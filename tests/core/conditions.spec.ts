@@ -259,7 +259,7 @@ describe('ConditionMatcher', () => {
       it('should REJECT exponential alternations', () => {
         const condition: HostRegexCondition = {
           conditionType: 'HostRegexCondition',
-          pattern: '(x+x+)+y',
+          pattern: '(xx+)+y',
         };
         const ctx = createContext('http://example.com/');
 

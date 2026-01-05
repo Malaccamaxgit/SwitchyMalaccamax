@@ -206,7 +206,7 @@ describe('ConditionMatcher', () => {
             it('should REJECT exponential alternations', () => {
                 const condition = {
                     conditionType: 'HostRegexCondition',
-                    pattern: '(x+x+)+y',
+                    pattern: '(xx+)+y',
                 };
                 const ctx = createContext('http://example.com/');
                 const result = ConditionMatcher.match(condition, ctx);
@@ -416,7 +416,7 @@ describe('ConditionMatcher', () => {
     describe('Poison-Pill Pattern Tests', () => {
         const poisonPatterns = [
             '(a+)+',
-            '(x+x+)+y',
+            '(xx+)+y',
             '(.*)*',
             '(.+)*',
             '([a-zA-Z]+)*',
