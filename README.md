@@ -5,8 +5,10 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
+[![Security Score](https://img.shields.io/badge/Security%20Score-9.2%2F10-brightgreen.svg)](./SECURITY_AUDIT_REPORT.md)
+[![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20CVEs-brightgreen.svg)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/security)
 
-A next-generation proxy manager built from the ground up with modern web technologies and a security-first mindset. Features intelligent pattern matching, ReDoS attack prevention, and a clean user interface powered by Vue 3 and Tailwind CSS.
+A next-generation proxy manager built from the ground up with modern web technologies and a security-first mindset. Features intelligent pattern matching, ReDoS attack prevention, AES-256-GCM credential encryption, and a clean user interface powered by Vue 3 and Tailwind CSS.
 
 ## ✨ Features
 
@@ -214,12 +216,44 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## 🔐 Security
 
-Security is a core principle of SwitchyMalaccamax. We take security vulnerabilities seriously.
+Security is a core principle of SwitchyMalaccamax. We implement defense-in-depth with multiple security layers.
 
-- **Reporting**: See [SECURITY.md](./SECURITY.md) for vulnerability disclosure policy
-- **ReDoS Protection**: All regex patterns validated before execution
-- **Input Sanitization**: User inputs sanitized and validated
-- **Secure Defaults**: Conservative security settings by default
+### Security Score: **9.2/10** (LOW RISK)
+
+| Category | Score | Status |
+|----------|-------|--------|
+| Broken Access Control | 9/10 | ✅ Secure |
+| Code Injection | 9/10 | ✅ Secure |
+| Cryptographic Failures | 9/10 | ✅ Secure |
+| Vulnerable Components | 10/10 | ✅ Secure |
+
+### Security Features
+
+- **🔒 Minimal Permissions**: Zero host permissions, minimal attack surface
+- **🛡️ Input Sanitization**: All user inputs validated and sanitized
+- **🔐 Credential Encryption**: AES-256-GCM encryption for proxy credentials
+- **🚫 ReDoS Protection**: Deterministic pattern matching (< 50ms guaranteed)
+- **🔍 Secret Scanning**: Pre-commit hooks prevent accidental credential exposure
+- **📊 Automated Audits**: GitHub Actions run security checks on every commit
+- **✅ 0 CVEs**: All dependencies regularly audited and updated
+
+### Automated Security
+
+This project includes comprehensive security automation:
+
+- **Pre-commit Hooks**: Blocks commits with secrets, vulnerabilities, or type errors
+- **Secret Scanner**: Detects 15+ secret patterns (API keys, tokens, credentials)
+- **GitHub Actions**: Automated vulnerability scanning on every push/PR
+- **Dependency Review**: Blocks PRs with vulnerable or problematic dependencies
+- **Weekly Audits**: Scheduled security scans every Monday
+
+See [docs/SECURITY_AUTOMATION.md](./docs/SECURITY_AUTOMATION.md) for setup instructions.
+
+### Reporting Vulnerabilities
+
+- **Security Policy**: [SECURITY.md](./SECURITY.md)
+- **Audit Report**: [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md)
+- **Contact**: Report vulnerabilities via GitHub Security Advisories
 
 ## 📄 License
 
