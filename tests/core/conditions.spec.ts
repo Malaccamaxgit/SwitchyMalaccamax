@@ -188,9 +188,9 @@ describe('ConditionMatcher', () => {
     it('should match ? wildcard', () => {
       const condition: HostWildcardCondition = {
         conditionType: 'HostWildcardCondition',
-        pattern: 'test?.example.com',
+        pattern: 'test?.test.example.com',
       };
-      const ctx = createContext('http://test1.example.com/');
+      const ctx = createContext('http://test1.test.example.com/');
 
       const result = ConditionMatcher.match(condition, ctx);
       expect(result.matched).toBe(true);
