@@ -1,6 +1,6 @@
 # SwitchyMalaccamax
 
-> Modern Chrome Extension for intelligent proxy switching with security-first design
+> Chrome Extension for proxy management
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
@@ -8,18 +8,18 @@
 [![Security Score](https://img.shields.io/badge/Security%20Score-9.2%2F10-brightgreen.svg)](./SECURITY_AUDIT_REPORT.md)
 [![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20CVEs-brightgreen.svg)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/security)
 
-A next-generation proxy manager built from the ground up with modern web technologies and a security-first mindset. Features intelligent pattern matching, ReDoS attack prevention, AES-256-GCM credential encryption, and a clean user interface powered by Vue 3 and Tailwind CSS.
+A Chrome extension for managing proxy configurations. Built with TypeScript, Vue 3, and Vite. Includes ReDoS attack prevention, AES-256-GCM credential encryption, and automated security scanning.
 
-## ✨ Features
+## Features
 
-- 🔒 **Security-Hardened**: ReDoS prevention with deterministic wildcard matching (< 50ms execution time)
-- 🔐 **Credential Encryption**: AES-256-GCM encryption for proxy passwords with PBKDF2 key derivation
-- ⚡ **Lightning Fast**: Sub-second builds with Vite 6, hot module reloading
-- 🎯 **Modern Architecture**: TypeScript 5.7+ strict mode, Vue 3 Composition API, Manifest V3
-- 🧪 **Thoroughly Tested**: 150+ tests with Vitest, including comprehensive security coverage
-- 🎨 **Clean Design**: Responsive UI with Tailwind CSS and dark mode support
-- 🛡️ **Zero Vulnerabilities**: 0 CVEs, automated security scanning on every commit
-- 🔧 **Developer Friendly**: Full type safety, ESLint + Prettier configuration
+- **ReDoS Prevention**: Deterministic wildcard matching with < 50ms execution time guarantee
+- **Credential Encryption**: AES-256-GCM encryption with PBKDF2 key derivation for stored passwords
+- **TypeScript**: Strict mode with full type safety
+- **Vue 3**: Composition API with Tailwind CSS
+- **Test Coverage**: 150+ tests including security, crypto, and pattern matching
+- **Manifest V3**: Chrome extension compliance
+- **Security Automation**: Pre-commit hooks and GitHub Actions for vulnerability scanning
+- **Development Tools**: ESLint, Prettier, Vitest, hot module reloading
 
 ## 🚀 Quick Start
 
@@ -223,40 +223,36 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 | **Pattern Match** | < 50ms (guaranteed) |
 | **Extension Size** | ~ 310 KB (gzipped) |
 
-## 🔐 Security
+## Security
 
-Security is a core principle of SwitchyMalaccamax. We implement defense-in-depth with multiple security layers.
+### Security Score: 9.2/10
 
-### Security Score: **9.2/10** (LOW RISK)
+Based on OWASP Top 10 audit (see [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md)):
 
-| Category | Score | Status |
-|----------|-------|--------|
-| Broken Access Control | 9/10 | ✅ Secure |
-| Code Injection | 9/10 | ✅ Secure |
-| Cryptographic Failures | 9/10 | ✅ Secure |
-| Vulnerable Components | 10/10 | ✅ Secure |
+| Category | Score |
+|----------|-------|
+| Broken Access Control | 9/10 |
+| Code Injection | 9/10 |
+| Cryptographic Failures | 9/10 |
+| Vulnerable Components | 10/10 |
 
-### Security Features
+### Implementation Details
 
-- **🔒 Minimal Permissions**: Zero host permissions, minimal attack surface
-- **🛡️ Input Sanitization**: All user inputs validated and sanitized
-- **🔐 Credential Encryption**: AES-256-GCM encryption for proxy credentials
-- **🚫 ReDoS Protection**: Deterministic pattern matching (< 50ms guaranteed)
-- **🔍 Secret Scanning**: Pre-commit hooks prevent accidental credential exposure
-- **📊 Automated Audits**: GitHub Actions run security checks on every commit
-- **✅ 0 CVEs**: All dependencies regularly audited and updated
+- **Permissions**: No host permissions requested (extension-only scope)
+- **Input Validation**: User-supplied regex patterns validated before execution
+- **Encryption**: AES-256-GCM with PBKDF2 (100,000 iterations) for stored credentials
+- **Pattern Matching**: Deterministic algorithm with 50ms timeout enforcement
+- **Dependencies**: Currently 0 known CVEs (checked via npm audit)
 
-### Automated Security
+### Security Automation
 
-This project includes comprehensive security automation:
+- **Pre-commit Hook**: Runs npm audit and secret scanner before allowing commits
+- **Secret Scanner**: Detects common patterns (AWS keys, API tokens, private keys, etc.)
+- **GitHub Actions**: Runs security checks on push/PR (.github/workflows/security-audit.yml)
+- **Dependency Review**: GitHub Action reviews dependency changes in PRs
+- **Scheduled Scans**: Weekly cron job (Mondays 9 AM UTC) in GitHub Actions
 
-- **Pre-commit Hooks**: Blocks commits with secrets, vulnerabilities, or type errors
-- **Secret Scanner**: Detects 15+ secret patterns (API keys, tokens, credentials)
-- **GitHub Actions**: Automated vulnerability scanning on every push/PR
-- **Dependency Review**: Blocks PRs with vulnerable or problematic dependencies
-- **Weekly Audits**: Scheduled security scans every Monday
-
-See [docs/SECURITY_AUTOMATION.md](./docs/SECURITY_AUTOMATION.md) for setup instructions.
+See [docs/SECURITY_AUTOMATION.md](./docs/SECURITY_AUTOMATION.md) for configuration details.
 
 ### Reporting Vulnerabilities
 
@@ -268,9 +264,9 @@ See [docs/SECURITY_AUTOMATION.md](./docs/SECURITY_AUTOMATION.md) for setup instr
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](./LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-Inspired by the SwitchyOmega and Proxy SwitchySharp extensions, rebuilt from the ground up with modern security and development practices.
+Inspired by SwitchyOmega and Proxy SwitchySharp extensions.
 
 ## 📚 Documentation
 
