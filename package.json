@@ -1,0 +1,71 @@
+{
+  "name": "switchymalaccamax",
+  "version": "0.1.0",
+  "description": "Modern Chrome Extension for intelligent proxy switching with security-first design",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.vue",
+    "lint:fix": "eslint . --ext .ts,.vue --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue,css}\""
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "ip-address": "^10.0.1",
+    "lucide-vue-next": "^0.562.0",
+    "radix-vue": "^1.9.17",
+    "safe-regex": "^2.1.1",
+    "tailwind-merge": "^3.4.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.25",
+    "@types/chrome": "^0.0.277",
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/ui": "^2.1.8",
+    "@vue/test-utils": "^2.4.6",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-plugin-vue": "^9.31.0",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Malaccamaxgit/SwitchyMalaccamax.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues"
+  },
+  "homepage": "https://github.com/Malaccamaxgit/SwitchyMalaccamax#readme",
+  "keywords": [
+    "chrome-extension",
+    "proxy",
+    "switcher",
+    "typescript",
+    "vue3",
+    "vite",
+    "manifest-v3",
+    "security",
+    "redos-prevention"
+  ],
+  "author": "Benjamin Alloul - VS Code - Clause Sonnet",
+  "license": "GPL-3.0"
+}

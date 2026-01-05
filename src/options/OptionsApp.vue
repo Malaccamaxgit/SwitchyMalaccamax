@@ -1,0 +1,1397 @@
+<template>
+  <div class="flex min-h-screen bg-white dark:bg-[#0a0a0a] text-slate-900 dark:text-white font-sans antialiased">
+    <!-- Sidebar -->
+    <aside class="w-56 bg-white dark:bg-[#0a0a0a] border-r border-gray-200 dark:border-zinc-900 flex flex-col flex-shrink-0">
+      <!-- Header -->
+      <div class="p-4 border-b border-gray-200 dark:border-zinc-900">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+            <Settings class="h-4 w-4 text-white" />
+          </div>
+          <span class="text-sm font-semibold tracking-tight">Settings</span>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex-1 overflow-y-auto py-4 px-3">
+        <!-- Settings Section -->
+        <div class="mb-6">
+          <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">
+            Configuration
+          </div>
+          <nav class="space-y-0.5">
+            <button
+              v-for="item in settingsNav"
+              :key="item.id"
+              @click="currentView = item.id"
+              :class="getSidebarItemClass(item.id)"
+              class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 transition-all duration-200 relative"
+            >
+              <div 
+                v-if="currentView === item.id"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-emerald-500 rounded-full"
+              ></div>
+              <component :is="item.icon" class="h-3.5 w-3.5 flex-shrink-0" />
+              <span class="tracking-tight">{{ item.label }}</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Profiles Section -->
+        <div>
+          <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">
+            Profiles
+          </div>
+          <nav class="space-y-0.5">
+            <button
+              v-for="profile in sortedProfiles"
+              :key="profile.id"
+              @click="selectProfile(profile)"
+              :class="getSidebarItemClass(`profile-${profile.id}`)"
+              class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 transition-all duration-200 group relative"
+            >
+              <div 
+                v-if="selectedProfile?.id === profile.id"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-emerald-500 rounded-full"
+              ></div>
+              <div 
+                class="w-2 h-2 rounded-full flex-shrink-0"
+                :style="{ backgroundColor: getProfileColor(profile) }"
+              ></div>
+              <component :is="getProfileIcon(profile)" class="h-3.5 w-3.5 flex-shrink-0" />
+              <span class="tracking-tight flex-1 truncate">{{ profile.name }}</span>
+              <div 
+                v-if="activeProfileId === profile.id"
+                class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"
+              ></div>
+            </button>
+            <button
+              @click="showProfileEditor = true"
+              class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 text-emerald-400 hover:bg-zinc-950/50 transition-colors"
+            >
+              <Plus class="h-3.5 w-3.5" />
+              <span class="tracking-tight">New Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="border-t border-zinc-900">
+        <div class="p-3 space-y-1">
+          <button
+            @click="applyChanges"
+            :disabled="savingChanges || !hasUnsavedChanges"
+            class="w-full px-2 py-1.5 rounded-md text-[12px] font-medium flex items-center justify-center gap-2 transition-colors"
+            :class="hasUnsavedChanges && !savingChanges 
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+              : 'bg-gray-300 dark:bg-zinc-950 text-gray-500 dark:text-zinc-600 cursor-not-allowed'"
+          >
+            <Check v-if="!savingChanges" class="h-3.5 w-3.5" />
+            <svg v-else class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ savingChanges ? 'Saving...' : 'Save Changes' }}</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <!-- Interface View -->
+      <div v-if="currentView === 'interface'" class="max-w-3xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Interface</h2>
+        
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Misc Options</h3>
+          <div class="space-y-3 bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <input type="checkbox" v-model="settings.confirmDelete" 
+                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+              <span class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight">
+                Confirm before deleting profiles
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Keyboard Shortcut</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[13px] text-slate-700 dark:text-zinc-300 mb-1">Quick Switch Popup</div>
+                <div class="text-[11px] text-slate-500 dark:text-zinc-600">Default: <span class="font-mono text-slate-600 dark:text-zinc-500">Alt+Shift+O</span></div>
+              </div>
+              <button
+                @click="configureShortcut"
+                class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Settings class="h-3.5 w-3.5" />
+                Configure
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Switch Options</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
+            <div>
+              <label class="text-[11px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-semibold mb-2 block">Startup Profile</label>
+              <select 
+                v-model="settings.startupProfile" 
+                class="w-full px-3 py-2 text-[13px] border border-gray-300 dark:border-zinc-900 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              >
+                <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- General View -->
+      <div v-else-if="currentView === 'general'" class="max-w-3xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">General</h2>
+        
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Network Requests</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <input type="checkbox" v-model="settings.showFailedRequests" 
+                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+              <div>
+                <div class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight mb-1">
+                  Show failed web requests
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed">
+                  Display a yellow badge on the icon when resources fail to load. 
+                  Allows quick profile configuration via popup menu.
+                </div>
+              </div>
+            </label>
+            <div>
+              <button
+                @click="showNetworkMonitor = true"
+                class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Activity class="h-3.5 w-3.5" />
+                Open Network Monitor
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Download Options</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <p class="text-[11px] text-slate-500 dark:text-zinc-600 mb-4 leading-relaxed">
+              Configure update frequency for online rule lists and PAC scripts.
+            </p>
+            <div>
+              <label class="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold mb-2 block">Download Interval</label>
+              <select
+                v-model="settings.downloadInterval"
+                class="w-full px-3 py-2 text-[13px] border border-zinc-900 rounded-md bg-zinc-950 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="never">Never</option>
+                <option value="15">Every 15 minutes</option>
+                <option value="60">Every hour</option>
+                <option value="360">Every 6 hours</option>
+                <option value="1440">Daily</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Conflicts</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <p class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed mb-4">
+              Other apps may try to control proxy settings, causing conflicts. Ad blockers and 
+              extensions may also use proxy settings. These conflicts are unavoidable due to browser limitations.
+            </p>
+            <div class="bg-red-100 dark:bg-red-950/30 border border-red-300 dark:border-red-900/50 rounded-lg p-3">
+              <p class="text-[11px] text-red-800 dark:text-red-400 leading-relaxed">
+                A red badge on the icon indicates another app has higher priority. Try uninstalling 
+                other apps and reinstalling to raise SwitchyMalaccamax's priority.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Import/Export View -->
+      <div v-else-if="currentView === 'import-export'" class="max-w-3xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Import/Export</h2>
+        <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-6">
+          <ProfileImportExport
+            :profiles="profiles"
+            @import="handleImportProfiles"
+            @exportComplete="handleExportComplete"
+          />
+        </div>
+      </div>
+
+      <!-- Theme View -->
+      <div v-else-if="currentView === 'theme'" class="max-w-3xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Theme</h2>
+        
+        <section>
+          <h3 class="text-base font-medium mb-4 text-slate-700 dark:text-zinc-300">Appearance</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <div class="flex gap-2 mb-4">
+              <button
+                @click="setTheme('light')"
+                :class="settings.theme === 'light' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
+                class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Sun class="h-4 w-4" />
+                Light
+              </button>
+              <button
+                @click="setTheme('dark')"
+                :class="settings.theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
+                class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Moon class="h-4 w-4" />
+                Dark
+              </button>
+              <button
+                @click="setTheme('auto')"
+                :class="settings.theme === 'auto' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
+                class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Monitor class="h-4 w-4" />
+                Auto
+              </button>
+            </div>
+            
+            <div class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed">
+              Dark mode is recommended for optimal contrast and readability. Auto mode adapts to your system preferences.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Logs View -->
+      <div v-else-if="currentView === 'logs'" class="max-w-5xl mx-auto p-8">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-semibold tracking-tight">Debug Logs</h2>
+          <div class="flex gap-2">
+            <Button variant="outline" size="sm" @click="exportLogs" :disabled="logs.length === 0">
+              <FileText class="h-4 w-4" />
+              Export
+            </Button>
+            <Button variant="outline" size="sm" @click="clearLogs" :disabled="logs.length === 0">
+              Clear
+            </Button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[600px] max-h-[600px] overflow-y-auto">
+          <div v-if="logs.length === 0" class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600">
+            No logs captured yet. Actions will be logged here.
+          </div>
+          <div v-else class="space-y-1 font-mono text-xs">
+            <div 
+              v-for="(log, index) in logs" 
+              :key="index"
+              :class="{
+                'text-red-600 dark:text-red-400': log.level === 'error',
+                'text-emerald-600 dark:text-emerald-400': log.level === 'success',
+                'text-blue-600 dark:text-blue-400': log.level === 'info',
+                'text-slate-500 dark:text-zinc-500': log.level === 'debug'
+              }"
+              class="py-1 border-b border-gray-200 dark:border-zinc-900/30"
+            >
+              <span class="text-slate-500 dark:text-zinc-600">[{{ log.timestamp }}]</span>
+              <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.level.toUpperCase() }}]</span>
+              <span class="ml-2">{{ log.message }}</span>
+              <div v-if="log.data" class="ml-16 text-slate-500 dark:text-zinc-600 mt-1 break-all">
+                {{ typeof log.data === 'object' ? JSON.stringify(log.data, null, 2) : log.data }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-xs text-slate-500 dark:text-zinc-600">
+          <p>Showing {{ logs.length }} of {{ maxLogs }} maximum logs. Export to save permanently.</p>
+        </div>
+      </div>
+
+      <!-- Profile Detail View -->
+      <div v-else-if="selectedProfile" class="max-w-4xl mx-auto p-8">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-3">
+            <component :is="getProfileIcon(selectedProfile)" class="h-5 w-5 text-emerald-400" />
+            <h2 class="text-2xl font-semibold tracking-tight">{{ selectedProfile.name }}</h2>
+            <div
+              class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider"
+              :class="getProfileTypeBadgeClass(selectedProfile)"
+            >
+              {{ getProfileTypeLabel(selectedProfile) }}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              @click="editProfile(selectedProfile)"
+              class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+            >
+              <Edit class="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button
+              v-if="selectedProfile.name !== 'Direct'"
+              @click="deleteProfile(selectedProfile)"
+              class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 hover:text-red-800 dark:hover:text-red-300 transition-colors flex items-center gap-2"
+            >
+              <Trash2 class="h-3.5 w-3.5" />
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Profile Content Based on Type -->
+        <div v-if="selectedProfile.profileType === 'SwitchProfile'">
+          <section class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold">Switch rules</h3>
+              <Button variant="ghost" size="sm" disabled title="Coming Soon - Advanced editor">
+                <Code class="h-4 w-4" />
+                Edit source code
+                <Badge variant="secondary" size="xs" class="ml-2">Beta</Badge>
+              </Button>
+            </div>
+
+            <!-- Rules Table -->
+            <div class="border border-border rounded-lg overflow-hidden">
+              <table class="w-full">
+                <thead class="bg-bg-secondary border-b border-border">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-16">Sort</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                      Condition Type
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                      Condition Details
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Profile</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  <tr 
+                    v-for="(rule, index) in switchProfileRules" 
+                    :key="index" 
+                    class="hover:bg-bg-secondary"
+                    draggable="true"
+                    @dragstart="handleRuleDragStart(index)"
+                    @dragover.prevent
+                    @drop="handleRuleDrop(index)"
+                  >
+                    <td class="px-4 py-3">
+                      <GripVertical class="h-4 w-4 text-text-tertiary cursor-move" />
+                    </td>
+                    <td class="px-4 py-3">
+                      <select 
+                        :value="rule.condition.conditionType"
+                        @change="updateRuleConditionType(index, ($event.target as HTMLSelectElement).value)"
+                        class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">Select an option</option>
+                        <option value="HostWildcardCondition">Host wildcard</option>
+                        <option value="HostRegexCondition">Host regex</option>
+                        <option value="UrlWildcardCondition">URL wildcard</option>
+                        <option value="UrlRegexCondition">URL regex</option>
+                        <option value="KeywordCondition">Keyword</option>
+                        <option value="HostLevelsCondition">Host levels</option>
+                        <option value="BypassCondition">Bypass</option>
+                      </select>
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        v-if="'pattern' in rule.condition"
+                        type="text"
+                        :value="rule.condition.pattern"
+                        @input="updateRulePattern(index, ($event.target as HTMLInputElement).value)"
+                        placeholder="Enter pattern..."
+                        class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <div v-else-if="rule.condition.conditionType === 'HostLevelsCondition'" class="flex gap-2">
+                        <input
+                          type="number"
+                          :value="rule.condition.minValue ?? -1"
+                          @input="updateRuleHostLevels(index, 'min', ($event.target as HTMLInputElement).value)"
+                          placeholder="Min"
+                          class="w-20 px-2 py-1 text-sm border border-border rounded bg-bg-primary"
+                        />
+                        <input
+                          type="number"
+                          :value="rule.condition.maxValue ?? -1"
+                          @input="updateRuleHostLevels(index, 'max', ($event.target as HTMLInputElement).value)"
+                          placeholder="Max"
+                          class="w-20 px-2 py-1 text-sm border border-border rounded bg-bg-primary"
+                        />
+                      </div>
+                      <span v-else class="text-xs text-text-tertiary">No details needed</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <select
+                        :value="rule.profileName"
+                        @change="updateRuleProfile(index, ($event.target as HTMLSelectElement).value)"
+                        class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">Select an option</option>
+                        <option v-for="p in profiles" :key="p.id" :value="p.name">{{ p.name }}</option>
+                      </select>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          class="h-7 w-7"
+                          @click="moveRuleUp(index)"
+                          :disabled="index === 0"
+                          title="Move up"
+                        >
+                          <ArrowUp class="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          class="h-7 w-7"
+                          @click="moveRuleDown(index)"
+                          :disabled="index === switchProfileRules.length - 1"
+                          title="Move down"
+                        >
+                          <ArrowDown class="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          class="h-7 w-7 text-red-600"
+                          @click="deleteRule(index)"
+                          title="Delete rule"
+                        >
+                          <Trash2 class="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <Button variant="outline" size="sm" class="mt-3" @click="addNewRule">
+              <Plus class="h-4 w-4" />
+              Add condition
+            </Button>
+          </section>
+
+          <section class="mb-8">
+            <h3 class="text-lg font-semibold mb-4">Default</h3>
+            <p class="text-sm text-text-secondary mb-2">Profile to use when no rules match</p>
+            <select
+              :value="switchProfileDefault"
+              @change="updateDefaultProfile(($event.target as HTMLSelectElement).value)"
+              class="w-full max-w-xs px-3 py-2 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select an option</option>
+              <option v-for="p in profiles" :key="p.id" :value="p.name">{{ p.name }}</option>
+            </select>
+          </section>
+        </div>
+
+        <!-- Fixed Proxy Profile -->
+        <div v-else-if="selectedProfile.profileType === 'FixedProfile'">
+          <Card padding="lg">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Proxy servers</h3>
+                <div class="grid grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Protocol</label>
+                    <select 
+                      v-model="(selectedProfile as any).proxyType"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="HTTP">HTTP</option>
+                      <option value="HTTPS">HTTPS</option>
+                      <option value="SOCKS4">SOCKS4</option>
+                      <option value="SOCKS5">SOCKS5</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Server</label>
+                    <input
+                      type="text"
+                      v-model="(selectedProfile as any).host"
+                      placeholder="192.168.50.30"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Port</label>
+                    <input
+                      type="number"
+                      v-model="(selectedProfile as any).port"
+                      placeholder="8213"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Bypass List</h3>
+                <p class="text-sm text-zinc-600 dark:text-zinc-500 mb-3">
+                  Servers for which you do not want to use any proxy: (One server on each line.)
+                </p>
+                <textarea
+                  v-model="bypassListText"
+                  @input="updateBypassList"
+                  rows="8"
+                  placeholder="192.168.2.0/24&#10;192.168.50.0/24&#10;127.0.0.1&#10;::1&#10;localhost&#10;<local>"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white font-mono text-sm"
+                ></textarea>
+                <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                  <a href="https://developer.chrome.com/docs/extensions/reference/api/proxy#bypass_list" target="_blank" class="hover:underline">
+                    Wildcards and CIDR notation available
+                  </a>
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <!-- Direct/System Profile -->
+        <div v-else>
+          <Card padding="lg">
+            <p class="text-text-secondary">
+              This is a {{ selectedProfile.profileType === 'DirectProfile' ? 'direct connection' : 'system proxy' }} profile.
+              {{ selectedProfile.profileType === 'DirectProfile' 
+                ? 'All requests will connect directly without using any proxy.' 
+                : 'The extension will use your system\'s configured proxy settings.' 
+              }}
+            </p>
+          </Card>
+        </div>
+      </div>
+    </main>
+
+    <!-- Dialogs -->
+    <ProfileEditor
+      v-model="showProfileEditor"
+      :profile="editingProfile"
+      @save="handleSaveProfile"
+      @cancel="editingProfile = undefined"
+    />
+
+    <NetworkMonitor v-model="showNetworkMonitor" />
+
+    <Toast ref="toastRef" position="bottom-right" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue';
+import { useDark } from '@vueuse/core';
+import { 
+  Plus, 
+  Settings,
+  FileText,
+  Download,
+  Upload,
+  Palette,
+  Globe,
+  Zap,
+  Monitor,
+  Server,
+  Shuffle,
+  Check,
+  X,
+  Edit,
+  Trash2,
+  Code,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
+  Sun,
+  Moon,
+  Activity
+} from 'lucide-vue-next';
+import { Card, Badge, Button, Toast, Select } from '@/components/ui';
+import { ProfileImportExport, ProfileEditor } from '@/components/profile';
+import { NetworkMonitor } from '@/components/network';
+import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
+import { generateId } from '@/lib/utils';
+
+const isDark = useDark();
+const toastRef = ref<InstanceType<typeof Toast>>();
+const showProfileEditor = ref(false);
+const showNetworkMonitor = ref(false);
+const editingProfile = ref<Profile | undefined>();
+const currentView = ref('interface');
+const selectedProfile = ref<Profile | undefined>();
+const savingChanges = ref(false);
+const hasUnsavedChanges = ref(false);
+const bypassListText = ref<string>('');
+const logs = ref<Array<{ timestamp: string; level: string; message: string; data?: any }>>([]);
+const maxLogs = 500;
+
+const settingsNav = [
+  { id: 'interface', label: 'Interface', icon: Settings },
+  { id: 'general', label: 'General', icon: Globe },
+  { id: 'import-export', label: 'Import/Export', icon: FileText },
+  { id: 'theme', label: 'Theme', icon: Palette },
+  { id: 'logs', label: 'Logs', icon: FileText },
+];
+
+const settings = ref({
+  confirmDelete: true,
+  startupProfile: 'profile-1',
+  showFailedRequests: false,
+  downloadInterval: 'never',
+  theme: 'light' as 'light' | 'dark' | 'auto',
+});
+
+const activeProfileId = ref<string>('profile-1');
+const lastSwitched = ref<Date>(new Date());
+
+const profiles = ref<Profile[]>([
+  {
+    id: 'profile-1',
+    name: 'Direct',
+    profileType: 'DirectProfile',
+    color: 'gray',
+  },
+  {
+    id: 'profile-2',
+    name: 'Your Proxy',
+    profileType: 'FixedProfile',
+    proxyType: 'HTTP',
+    host: 'proxy.example.com',
+    port: 8080,
+    color: 'blue',
+    bypassList: [
+      { conditionType: 'BypassCondition', pattern: '127.0.0.1' },
+      { conditionType: 'BypassCondition', pattern: '::1' },
+      { conditionType: 'BypassCondition', pattern: 'localhost' },
+      { conditionType: 'BypassCondition', pattern: '<local>' },
+    ],
+  } as FixedProfile,
+  {
+    id: 'profile-3',
+    name: 'Auto Switch',
+    profileType: 'SwitchProfile',
+    defaultProfileName: 'Direct',
+    rules: [
+      {
+        condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
+        profileName: 'Your Proxy'
+      },
+      {
+        condition: { conditionType: 'HostWildcardCondition', pattern: 'internal.company.net' },
+        profileName: 'Your Proxy'
+      }
+    ],
+    color: 'green',
+  } as SwitchProfile,
+]);
+
+function addLog(level: string, message: string, data?: any) {
+  const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+  logs.value.unshift({ timestamp, level, message, data });
+  if (logs.value.length > maxLogs) {
+    logs.value = logs.value.slice(0, maxLogs);
+  }
+}
+
+function clearLogs() {
+  logs.value = [];
+  console.log('[SwitchyMalaccamax:Options] Logs cleared');
+}
+
+function exportLogs() {
+  const logText = logs.value.map(log => {
+    const dataStr = log.data ? ' ' + JSON.stringify(log.data) : '';
+    return `[${log.timestamp}] [${log.level}] ${log.message}${dataStr}`;
+  }).join('\n');
+  
+  const blob = new Blob([logText], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  console.log('[SwitchyMalaccamax:Options] Logs exported');
+}
+
+const activeProfile = computed(() => 
+  profiles.value?.find(p => p.id === activeProfileId.value)
+);
+
+const sortedProfiles = computed(() => {
+  if (!Array.isArray(profiles.value)) return [];
+  
+  const direct = profiles.value.find(p => p.name === 'Direct');
+  const autoSwitch = profiles.value.find(p => p.name === 'Auto Switch');
+  const others = profiles.value
+    .filter(p => p.name !== 'Direct' && p.name !== 'Auto Switch')
+    .sort((a, b) => a.name.localeCompare(b.name));
+  
+  const sorted = [];
+  if (direct) sorted.push(direct);
+  if (autoSwitch) sorted.push(autoSwitch);
+  sorted.push(...others);
+  
+  return sorted;
+});
+
+const activeProfileName = computed(() => activeProfile.value?.name);
+
+const connectionStatus = computed<ConnectionStatus['status']>(() => {
+  if (!activeProfile.value) return 'disconnected';
+  if (activeProfile.value.profileType === 'DirectProfile') return 'direct';
+  if (activeProfile.value.profileType === 'FixedProfile') return 'active';
+  if (activeProfile.value.profileType === 'SwitchProfile') return 'auto';
+  return 'direct';
+});
+
+const connectionMode = computed<ConnectionStatus['connectionMode']>(() => {
+  if (activeProfile.value?.profileType === 'SwitchProfile') return 'Auto Switch';
+  if (activeProfile.value?.profileType === 'DirectProfile') return 'Direct';
+  return 'Manual';
+});
+
+const proxyType = computed(() => {
+  if (activeProfile.value?.profileType === 'FixedProfile' && 'proxyType' in activeProfile.value) {
+    return activeProfile.value.proxyType;
+  }
+  return undefined;
+});
+
+const proxyHost = computed(() => {
+  if (activeProfile.value?.profileType === 'FixedProfile' && 'host' in activeProfile.value) {
+    return `${activeProfile.value.host}:${activeProfile.value.port}`;
+  }
+  return undefined;
+});
+
+// Switch Profile Rules Management
+const switchProfileRules = computed({
+  get() {
+    if (selectedProfile.value?.profileType === 'SwitchProfile' && 'rules' in selectedProfile.value) {
+      return selectedProfile.value.rules || [];
+    }
+    return [];
+  },
+  set(newRules) {
+    if (selectedProfile.value?.profileType === 'SwitchProfile' && 'rules' in selectedProfile.value) {
+      selectedProfile.value.rules = newRules;
+      hasUnsavedChanges.value = true;
+    }
+  }
+});
+
+const switchProfileDefault = computed({
+  get() {
+    if (selectedProfile.value?.profileType === 'SwitchProfile' && 'defaultProfileName' in selectedProfile.value) {
+      return selectedProfile.value.defaultProfileName;
+    }
+    return '';
+  },
+  set(newDefault) {
+    if (selectedProfile.value?.profileType === 'SwitchProfile' && 'defaultProfileName' in selectedProfile.value) {
+      selectedProfile.value.defaultProfileName = newDefault;
+      hasUnsavedChanges.value = true;
+    }
+  }
+});
+
+let draggedRuleIndex: number | null = null;
+
+function handleRuleDragStart(index: number) {
+  draggedRuleIndex = index;
+  console.log('[SwitchyMalaccamax:Options] Drag started for rule', index);
+}
+
+function handleRuleDrop(dropIndex: number) {
+  if (draggedRuleIndex === null || draggedRuleIndex === dropIndex) return;
+  
+  console.log('[SwitchyMalaccamax:Options] Moving rule from', draggedRuleIndex, 'to', dropIndex);
+  const rules = [...switchProfileRules.value];
+  const [movedRule] = rules.splice(draggedRuleIndex, 1);
+  rules.splice(dropIndex, 0, movedRule);
+  switchProfileRules.value = rules;
+  draggedRuleIndex = null;
+}
+
+function updateRuleConditionType(index: number, conditionType: string) {
+  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'condition type to', conditionType);
+  const rules = [...switchProfileRules.value];
+  const rule = rules[index];
+  
+  // Create new condition based on type
+  if (conditionType === 'HostWildcardCondition') {
+    rule.condition = { conditionType: 'HostWildcardCondition', pattern: '' };
+  } else if (conditionType === 'HostRegexCondition') {
+    rule.condition = { conditionType: 'HostRegexCondition', pattern: '' };
+  } else if (conditionType === 'UrlWildcardCondition') {
+    rule.condition = { conditionType: 'UrlWildcardCondition', pattern: '' };
+  } else if (conditionType === 'UrlRegexCondition') {
+    rule.condition = { conditionType: 'UrlRegexCondition', pattern: '' };
+  } else if (conditionType === 'KeywordCondition') {
+    rule.condition = { conditionType: 'KeywordCondition', pattern: '' };
+  } else if (conditionType === 'HostLevelsCondition') {
+    rule.condition = { conditionType: 'HostLevelsCondition', minValue: 1, maxValue: 2 };
+  } else if (conditionType === 'BypassCondition') {
+    rule.condition = { conditionType: 'BypassCondition' };
+  }
+  
+  switchProfileRules.value = rules;
+}
+
+function updateRulePattern(index: number, pattern: string) {
+  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'pattern to', pattern);
+  const rules = [...switchProfileRules.value];
+  const rule = rules[index];
+  if ('pattern' in rule.condition) {
+    rule.condition.pattern = pattern;
+  }
+  switchProfileRules.value = rules;
+}
+
+function updateRuleHostLevels(index: number, type: 'min' | 'max', value: string) {
+  console.log('[SwitchyMalaccamax:Options] Update rule', index, type, 'value to', value);
+  const rules = [...switchProfileRules.value];
+  const rule = rules[index];
+  if (rule.condition.conditionType === 'HostLevelsCondition') {
+    const numValue = parseInt(value, 10);
+    if (type === 'min') {
+      rule.condition.minValue = isNaN(numValue) ? undefined : numValue;
+    } else {
+      rule.condition.maxValue = isNaN(numValue) ? undefined : numValue;
+    }
+  }
+  switchProfileRules.value = rules;
+}
+
+function updateRuleProfile(index: number, profileName: string) {
+  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'profile to', profileName);
+  const rules = [...switchProfileRules.value];
+  rules[index].profileName = profileName;
+  switchProfileRules.value = rules;
+}
+
+function moveRuleUp(index: number) {
+  if (index === 0) return;
+  console.log('[SwitchyMalaccamax:Options] Move rule', index, 'up');
+  const rules = [...switchProfileRules.value];
+  [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
+  switchProfileRules.value = rules;
+}
+
+function moveRuleDown(index: number) {
+  if (index >= switchProfileRules.value.length - 1) return;
+  console.log('[SwitchyMalaccamax:Options] Move rule', index, 'down');
+  const rules = [...switchProfileRules.value];
+  [rules[index], rules[index + 1]] = [rules[index + 1], rules[index]];
+  switchProfileRules.value = rules;
+}
+
+function deleteRule(index: number) {
+  console.log('[SwitchyMalaccamax:Options] Delete rule', index);
+  const rules = [...switchProfileRules.value];
+  rules.splice(index, 1);
+  switchProfileRules.value = rules;
+  toastRef.value?.success('Rule deleted', 'Success', 3000);
+}
+
+function addNewRule() {
+  console.log('[SwitchyMalaccamax:Options] Add new rule');
+  const rules = [...switchProfileRules.value];
+  rules.push({
+    condition: { conditionType: 'HostWildcardCondition', pattern: '' },
+    profileName: ''
+  });
+  switchProfileRules.value = rules;
+  toastRef.value?.info('New rule added', 'Info', 3000);
+}
+
+function updateDefaultProfile(profileName: string) {
+  console.log('[SwitchyMalaccamax:Options] Update default profile to', profileName);
+  switchProfileDefault.value = profileName;
+}
+
+function configureShortcut() {
+  console.log('[SwitchyMalaccamax:Options] Opening keyboard shortcuts configuration');
+  chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  toastRef.value?.info('Opening Chrome shortcuts settings...', 'Keyboard Shortcuts', 3000);
+}
+
+onMounted(async () => {
+  console.log('[SwitchyMalaccamax:Options] Loading data from storage...');
+  addLog('info', 'Loading data from storage...');
+  
+  // Check if we should open add profile dialog
+  const urlParams = new URLSearchParams(window.location.search);
+  const action = urlParams.get('action');
+  if (action === 'addProfile') {
+    // Open profile editor after data loads
+    setTimeout(() => {
+      showProfileEditor.value = true;
+      editingProfile.value = undefined;
+    }, 100);
+  }
+  
+  try {
+    // Load profiles from local storage, other settings from sync
+    const localResult = await chrome.storage.local.get(['profiles']);
+    const syncResult = await chrome.storage.sync.get(['activeProfileId', 'settings']);
+    
+    addLog('debug', 'Local storage result', { 
+      hasProfiles: !!localResult.profiles, 
+      profilesCount: localResult.profiles?.length,
+      keys: Object.keys(localResult)
+    });
+    
+    addLog('debug', 'Sync storage result', { 
+      hasActiveProfile: !!syncResult.activeProfileId,
+      hasSettings: !!syncResult.settings,
+      keys: Object.keys(syncResult)
+    });
+    
+    const result = { ...localResult, ...syncResult };
+    
+    console.log('[SwitchyMalaccamax:Options] Loaded data:', result);
+    addLog('debug', 'Combined storage result', { 
+      hasProfiles: !!result.profiles, 
+      profilesType: typeof result.profiles,
+      profilesLength: result.profiles?.length,
+      profilesIsArray: Array.isArray(result.profiles)
+    });
+    
+    // Load profiles from storage or keep defaults
+    if (result.profiles && result.profiles.length > 0) {
+      profiles.value = result.profiles;
+      const msg = `Loaded ${result.profiles.length} profiles from storage`;
+      console.log('[SwitchyMalaccamax:Options]', msg);
+      addLog('success', msg);
+      
+      // Migration: Update profile name capitalization
+      let needsSave = false;
+      profiles.value.forEach((p: any) => {
+        if (p.name === 'auto switch') {
+          p.name = 'Auto Switch';
+          needsSave = true;
+          addLog('info', 'Migrated profile name: "auto switch" → "Auto Switch"');
+        }
+        if (p.name === 'Builtin') {
+          p.name = 'Direct';
+          needsSave = true;
+          addLog('info', 'Migrated profile name: "Builtin" → "Direct"');
+        }
+      });
+      
+      // Migrate defaultProfileName in SwitchProfiles
+      profiles.value.forEach((p: any) => {
+        if (p.profileType === 'SwitchProfile' && p.defaultProfileName === 'Builtin') {
+          p.defaultProfileName = 'Direct';
+          needsSave = true;
+          addLog('info', 'Migrated default profile name in Auto Switch');
+        }
+      });
+      
+      // Save if migrations were applied
+      if (needsSave) {
+        await chrome.storage.local.set({ profiles: profiles.value });
+        addLog('success', 'Profile migrations saved');
+      }
+      
+      // Log bypass lists
+      result.profiles.forEach((p: any, i: number) => {
+        if (p.profileType === 'FixedProfile' && p.bypassList) {
+          const bypassMsg = `Profile "${p.name}" has ${p.bypassList.length} bypass rules`;
+          console.log(`[SwitchyMalaccamax:Options] ${bypassMsg}`);
+          addLog('debug', bypassMsg, p.bypassList);
+        }
+      });
+    } else {
+      // Keep default profiles and save them to storage
+      console.log('[SwitchyMalaccamax:Options] No profiles in storage, using defaults');
+      addLog('info', 'No profiles in storage, using defaults');
+      await chrome.storage.local.set({ profiles: profiles.value });
+    }
+    
+    if (result.activeProfileId) {
+      activeProfileId.value = result.activeProfileId;
+    }
+    if (result.settings) {
+      Object.assign(settings.value, result.settings);
+    }
+    
+    // Apply theme from settings
+    const theme = settings.value.theme || 'light';
+    if (theme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      isDark.value = prefersDark;
+      if (prefersDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (theme === 'dark') {
+      isDark.value = true;
+      document.documentElement.classList.add('dark');
+    } else {
+      isDark.value = false;
+      document.documentElement.classList.remove('dark');
+    }
+    
+    addLog('success', 'Data loaded successfully');
+    console.log('[SwitchyMalaccamax:Options] Data loaded successfully');
+  } catch (error) {
+    addLog('error', 'Failed to load data', error);
+    console.error('[SwitchyMalaccamax:Options] Failed to load data:', error);
+  }
+});
+
+async function saveProfiles() {
+  const logMsg = `Saving profiles: ${profiles.value.length} profiles`;
+  console.log('[SwitchyMalaccamax:Options]', logMsg);
+  addLog('info', logMsg);
+  
+  // Log each profile with bypass list details
+  profiles.value.forEach((p, i) => {
+    if (p.profileType === 'FixedProfile') {
+      const msg = `Profile ${i}: ${p.name} - bypassList: ${(p as any).bypassList?.length || 0} items`;
+      console.log(`[SwitchyMalaccamax:Options] ${msg}`);
+      addLog('debug', msg, (p as any).bypassList);
+    }
+  });
+  
+  try {
+    // Serialize to plain objects to avoid Vue reactivity proxy issues
+    const plainProfiles = JSON.parse(JSON.stringify(profiles.value));
+    addLog('info', 'Serialized profiles for storage');
+    addLog('debug', 'Serialized data size', {
+      profilesCount: plainProfiles.length,
+      jsonSize: JSON.stringify(plainProfiles).length,
+      quotaEstimate: `${(JSON.stringify(plainProfiles).length / 1024).toFixed(2)} KB`
+    });
+    
+    // Use chrome.storage.local for profiles (larger quota: 5MB vs 100KB for sync)
+    // This prevents quota exceeded errors with large profile configurations
+    await chrome.storage.local.set({ profiles: plainProfiles });
+    console.log('[SwitchyMalaccamax:Options] Profiles saved successfully');
+    addLog('success', 'Profiles saved successfully to local storage');
+    
+    // Verify what was saved
+    const saved = await chrome.storage.local.get(['profiles']);
+    console.log('[SwitchyMalaccamax:Options] Verification - saved profiles:', saved);
+    addLog('info', `Verification - profiles count: ${saved.profiles?.length || 0}`);
+    
+    if (saved.profiles && saved.profiles.length > 0) {
+      saved.profiles.forEach((p: any, i: number) => {
+        if (p.profileType === 'FixedProfile') {
+          const msg = `Verified profile ${i}: ${p.name} - bypassList: ${p.bypassList?.length || 0} items`;
+          console.log(`[SwitchyMalaccamax:Options] ${msg}`);
+          addLog('debug', msg, p.bypassList);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('[SwitchyMalaccamax:Options] Failed to save profiles:', error);
+    addLog('error', 'Failed to save profiles', error);
+    throw error;
+  }
+}
+
+async function handleProfileSwitch(profile: Profile) {
+  activeProfileId.value = profile.id;
+  lastSwitched.value = new Date();
+  
+  try {
+    await chrome.storage.sync.set({ activeProfileId: profile.id });
+    toastRef.value?.success(`Switched to "${profile.name}"`, 'Profile Changed', 2000);
+  } catch (error) {
+    toastRef.value?.error('Failed to switch profile', 'Error');
+  }
+}
+
+function handleEditProfile(profile: Profile) {
+  editingProfile.value = profile;
+  showEditor.value = true;
+}
+
+async function handleDeleteProfile(profile: Profile) {
+  const index = profiles.value.findIndex(p => p.id === profile.id);
+  if (index !== -1) {
+    profiles.value.splice(index, 1);
+    await saveProfiles();
+    toastRef.value?.success(`Profile "${profile.name}" deleted`, 'Deleted', 2000);
+  }
+}
+
+async function handleSaveProfile(profileData: Partial<Profile>) {
+  if (editingProfile.value) {
+    // Update existing
+    const index = profiles.value.findIndex(p => p.id === editingProfile.value!.id);
+    if (index !== -1) {
+      profiles.value[index] = {
+        ...profiles.value[index],
+        ...profileData,
+      };
+      toastRef.value?.success(`Profile "${profileData.name}" updated`, 'Saved', 3000);
+    }
+  } else {
+    // Create new
+    const newProfile: Profile = {
+      id: generateId('profile'),
+      ...profileData,
+    } as Profile;
+    profiles.value.push(newProfile);
+    toastRef.value?.success(`Profile "${profileData.name}" created`, 'Created', 3000);
+  }
+  
+  await saveProfiles();
+  showEditor.value = false;
+  editingProfile.value = undefined;
+}
+
+async function handleCreateFromTemplate(profileData: Partial<Profile>) {
+  const newProfile: Profile = {
+    id: generateId('profile'),
+    ...profileData,
+  } as Profile;
+  profiles.value.push(newProfile);
+  await saveProfiles();
+  toastRef.value?.success(`Profile "${profileData.name}" created from template`, 'Created', 3000);
+  showTemplates.value = false;
+}
+
+async function handleImportProfiles(importedProfiles: Profile[], replace: boolean) {
+  // Filter out Direct profile from imports (it should never be imported)
+  const filteredProfiles = importedProfiles.filter(p => p.name !== 'Direct');
+  
+  if (replace) {
+    // Always preserve Direct profile
+    const directProfile = profiles.value.find(p => p.name === 'Direct');
+    profiles.value = directProfile ? [directProfile, ...filteredProfiles] : filteredProfiles;
+    toastRef.value?.success(`Replaced with ${filteredProfiles.length} profiles`, 'Imported', 3000);
+  } else {
+    profiles.value.push(...filteredProfiles);
+    toastRef.value?.success(`Added ${filteredProfiles.length} profiles`, 'Imported', 3000);
+  }
+  await saveProfiles();
+}
+
+function handleExportComplete() {
+  toastRef.value?.success('Profiles exported successfully', 'Export Complete', 2000);
+}
+
+function getSidebarItemClass(id: string) {
+  const isActive = currentView.value === id || 
+                   (selectedProfile.value && `profile-${selectedProfile.value.id}` === id);
+  return isActive 
+    ? 'bg-zinc-950/50 text-white' 
+    : 'text-zinc-500 hover:bg-zinc-950/30 hover:text-zinc-300';
+}
+
+function getProfileIcon(profile: Profile) {
+  switch (profile.profileType) {
+    case 'DirectProfile': return Zap;
+    case 'SystemProfile': return Monitor;
+    case 'FixedProfile': return Server;
+    case 'SwitchProfile': return Shuffle;
+    default: return Globe;
+  }
+}
+
+function getProfileTypeLabel(profile: Profile): string {
+  switch (profile.profileType) {
+    case 'DirectProfile': return 'Direct';
+    case 'SystemProfile': return 'System';
+    case 'FixedProfile': return 'Fixed';
+    case 'SwitchProfile': return 'Auto';
+    case 'PacProfile': return 'PAC';
+    default: return 'Custom';
+  }
+}
+
+function getProfileTypeBadgeClass(profile: Profile): string {
+  switch (profile.profileType) {
+    case 'DirectProfile': return 'bg-zinc-900 text-zinc-500';
+    case 'SwitchProfile': return 'bg-emerald-900/30 text-emerald-400';
+    case 'FixedProfile': return 'bg-blue-900/30 text-blue-400';
+    default: return 'bg-zinc-900 text-zinc-500';
+  }
+}
+
+function getProfileColor(profile: Profile): string {
+  const colors: Record<string, string> = {
+    gray: '#9ca3af',
+    blue: '#3b82f6',
+    green: '#22c55e',
+    red: '#ef4444',
+    yellow: '#eab308',
+    purple: '#a855f7',
+  };
+  return colors[profile.color || 'blue'] || colors.blue;
+}
+
+function selectProfile(profile: Profile) {
+  if (!profile) {
+    console.warn('[SwitchyMalaccamax:Options] Attempted to select undefined profile');
+    return;
+  }
+  console.log('[SwitchyMalaccamax:Options] Selected profile:', profile.name);
+  selectedProfile.value = profile;
+  currentView.value = `profile-${profile.id}`;
+  
+  // Load bypass list if this is a FixedProfile
+  if (profile.profileType === 'FixedProfile') {
+    loadBypassListText(profile as FixedProfile);
+  }
+}
+
+function loadBypassListText(profile: FixedProfile) {
+  if (profile.bypassList && Array.isArray(profile.bypassList)) {
+    // Convert BypassCondition array to text (one pattern per line)
+    bypassListText.value = profile.bypassList
+      .map((condition: any) => condition.pattern || '')
+      .filter(pattern => pattern)
+      .join('\n');
+  } else {
+    bypassListText.value = '';
+  }
+}
+
+function updateBypassList() {
+  if (!selectedProfile.value || selectedProfile.value.profileType !== 'FixedProfile') {
+    return;
+  }
+  
+  hasUnsavedChanges.value = true;
+  
+  // Convert text to BypassCondition array
+  const lines = bypassListText.value
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith('#')); // Filter empty lines and comments
+  
+  const bypassList = lines.map(pattern => ({
+    conditionType: 'BypassCondition',
+    pattern
+  }));
+  
+  const msg = `Updated bypass list for ${selectedProfile.value.name}: ${bypassList.length} items`;
+  console.log('[SwitchyMalaccamax:Options]', msg);
+  addLog('info', msg, lines);
+  (selectedProfile.value as any).bypassList = bypassList;
+}
+
+function setTheme(theme: 'light' | 'dark' | 'auto') {
+  console.log('[SwitchyMalaccamax:Options] Setting theme:', theme);
+  settings.value.theme = theme;
+  hasUnsavedChanges.value = true;
+  
+  // Apply theme immediately
+  if (theme === 'auto') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    isDark.value = prefersDark;
+    if (prefersDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } else if (theme === 'dark') {
+    isDark.value = true;
+    document.documentElement.classList.add('dark');
+  } else {
+    isDark.value = false;
+    document.documentElement.classList.remove('dark');
+  }
+}
+
+async function saveSettings() {
+  console.log('[SwitchyMalaccamax:Options] Saving settings:', settings.value);
+  try {
+    await chrome.storage.sync.set({ settings: settings.value });
+    console.log('[SwitchyMalaccamax:Options] Settings saved');
+  } catch (error) {
+    console.error('[SwitchyMalaccamax:Options] Failed to save settings:', error);
+    throw error;
+  }
+}
+
+function editProfile(profile: Profile) {
+  console.log('[SwitchyMalaccamax:Options] Editing profile:', profile.name);
+  editingProfile.value = profile;
+  showProfileEditor.value = true;
+}
+
+async function deleteProfile(profile: Profile) {
+  console.log('[SwitchyMalaccamax:Options] Deleting profile:', profile.name);
+  if (settings.value.confirmDelete && !confirm(`Delete profile "${profile.name}"?`)) {
+    return;
+  }
+  const index = profiles.value.findIndex(p => p.id === profile.id);
+  if (index !== -1) {
+    profiles.value.splice(index, 1);
+    await saveProfiles();
+    selectedProfile.value = undefined;
+    currentView.value = 'interface';
+    toastRef.value?.success(`Profile "${profile.name}" deleted`, 'Deleted', 2000);
+  }
+}
+
+async function applyChanges() {
+  console.log('[SwitchyMalaccamax:Options] Applying changes...');
+  savingChanges.value = true;
+  try {
+    await saveProfiles();
+    await saveSettings();
+    hasUnsavedChanges.value = false;
+    console.log('[SwitchyMalaccamax:Options] Changes applied successfully');
+    toastRef.value?.success('Changes applied successfully', 'Saved', 2000);
+  } catch (error) {
+    console.error('[SwitchyMalaccamax:Options] Failed to apply changes:', error);
+    toastRef.value?.error('Failed to save changes', 'Error');
+  } finally {
+    savingChanges.value = false;
+  }
+}
+
+function discardChanges() {
+  console.log('[SwitchyMalaccamax:Options] Discarding changes');
+  if (hasUnsavedChanges.value && !confirm('Discard all unsaved changes?')) {
+    return;
+  }
+  window.location.reload();
+}
+
+// Watch for changes
+watch(settings, async () => {
+  hasUnsavedChanges.value = true;
+  console.log('[SwitchyMalaccamax:Options] Settings changed');
+  
+  // Save settings to sync storage
+  try {
+    await chrome.storage.sync.set({ settings: settings.value });
+  } catch (error) {
+    console.error('[SwitchyMalaccamax:Options] Failed to save settings:', error);
+  }
+}, { deep: true });
+
+watch(profiles, () => {
+  hasUnsavedChanges.value = true;
+  console.log('[SwitchyMalaccamax:Options] Profiles changed');
+}, { deep: true });
+</script>
