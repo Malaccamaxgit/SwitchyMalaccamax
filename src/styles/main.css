@@ -1,7 +1,10 @@
 @import './tokens.css';
 
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* 
+ * Note: Inter font is specified in tokens.css with system font fallbacks.
+ * We don't load it from Google Fonts to comply with CSP restrictions.
+ * System fonts (system-ui, -apple-system, Segoe UI) provide similar appearance.
+ */
 
 @tailwind base;
 @tailwind components;
