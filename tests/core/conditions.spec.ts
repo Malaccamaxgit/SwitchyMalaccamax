@@ -465,6 +465,8 @@ describe('ConditionMatcher', () => {
 
   describe('Real ZeroOmega Export Data', () => {
     it('should match Company domain patterns from export', () => {
+      // Note: These are wildcard patterns (not regex), where dots are literal characters
+      // The WildcardMatcher treats dots as-is, not as regex wildcards
       const patterns = [
         'confluence.Company.com',
         'jira2.Company.com',

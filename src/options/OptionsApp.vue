@@ -1017,13 +1017,19 @@ async function toggleTestConflict() {
   
   Logger.info(`Test conflict ${testConflictActive.value ? 'activated' : 'deactivated'}`);
   
-  toastRef.value?.show({
-    title: testConflictActive.value ? 'Test Conflict Activated' : 'Test Conflict Deactivated',
-    description: testConflictActive.value 
-      ? 'Open the popup to see the conflict warning banner.'
-      : 'Conflict warning removed from popup.',
-    variant: 'default'
-  });
+  if (testConflictActive.value) {
+    toastRef.value?.info(
+      'Open the popup to see the conflict warning banner.',
+      'Test Conflict Activated',
+      3000
+    );
+  } else {
+    toastRef.value?.info(
+      'Conflict warning removed from popup.',
+      'Test Conflict Deactivated',
+      3000
+    );
+  }
 }
 
 async function setLogLevel(level: LogLevel) {

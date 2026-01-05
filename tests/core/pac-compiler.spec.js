@@ -42,7 +42,7 @@ describe('PacCompiler', () => {
             const compiler = new PacCompiler(profiles);
             const result = compiler.compilePacScript('Workday');
             expect(result).toContain('PROXY 192.168.50.30:8213');
-            expect(result).toContain('127.0.0.1');
+            expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
             expect(result).toContain('localhost');
             expect(result).toContain('isInNet');
         });
@@ -64,7 +64,7 @@ describe('PacCompiler', () => {
             const compiler = new PacCompiler(profiles);
             const result = compiler.compilePacScript('Workday');
             expect(result).toContain('PROXY 192.168.50.30:8213');
-            expect(result).toContain('127.0.0.1');
+            expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
             expect(result).toContain('localhost');
         });
     });

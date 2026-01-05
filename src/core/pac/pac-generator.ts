@@ -261,14 +261,14 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
 
     const pattern = condition.pattern;
 
-    // IPv4 address
-    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(pattern)) {
-      return `if (/^${pattern.replace(/\./g, '\\.')}$/.test(host)) return "DIRECT";`;
+    // IPv4 address - explicit bounds to prevent ReDoS
+    if (/^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)$/.test(pattern)) {
+      return `if (/^${this.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
     }
 
     // IPv6 address
     if (pattern.includes(':') && !pattern.includes('.')) {
-      return `if (/^${pattern}$/.test(host)) return "DIRECT";`;
+      return `if (/^${this.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
     }
 
     // CIDR notation (e.g., 192.168.2.0/24)
