@@ -468,10 +468,10 @@ describe('ConditionMatcher', () => {
       // Note: These are wildcard patterns (not regex), where dots are literal characters
       // The WildcardMatcher treats dots as-is, not as regex wildcards
       const patterns = [
-        'confluence.Company.com',
-        'jira2.Company.com',
-        'ai.Company.com',
-        'svc-sdwan-vmanage.Company.com',
+        'confluence\.Company\.com',
+        'jira2\.Company\.com',
+        'ai\.Company\.com',
+        'svc-sdwan-vmanage\.Company\.com',
       ];
 
       for (const pattern of patterns) {
@@ -487,7 +487,7 @@ describe('ConditionMatcher', () => {
     });
 
     it('should match bypass conditions from export', () => {
-      const patterns = ['127.0.0.1', '[::1]', 'localhost'];
+      const patterns = ['127\.0\.0\.1', '[::1]', 'localhost'];
 
       for (const pattern of patterns) {
         const condition: BypassCondition = {
