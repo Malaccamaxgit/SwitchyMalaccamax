@@ -690,8 +690,74 @@
           </Card>
         </div>
 
+        <!-- PAC Profile -->
+        <div v-else-if="selectedProfile.profileType === 'PacProfile'">
+          <Card padding="lg">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">PAC Script</h3>
+                <div class="space-y-4">
+                  <div v-if="(selectedProfile as any).pacUrl">
+                    <label class="block text-sm font-medium mb-2">PAC URL</label>
+                    <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white break-all">
+                      {{ (selectedProfile as any).pacUrl }}
+                    </div>
+                  </div>
+                  <div v-else-if="(selectedProfile as any).pacScript">
+                    <label class="block text-sm font-medium mb-2">PAC Script</label>
+                    <textarea
+                      :value="(selectedProfile as any).pacScript"
+                      readonly
+                      rows="12"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white font-mono text-sm"
+                    ></textarea>
+                  </div>
+                  <div v-else>
+                    <p class="text-sm text-amber-600 dark:text-amber-400">
+                      No PAC URL or script configured for this profile.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div v-if="(selectedProfile as any).fallbackProxy">
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Fallback Proxy</h3>
+                <p class="text-sm text-zinc-600 dark:text-zinc-500 mb-3">
+                  Used when PAC script fails or is unavailable
+                </p>
+                <div class="grid grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Protocol</label>
+                    <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
+                      {{ (selectedProfile as any).fallbackProxy.scheme.toUpperCase() }}
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Server</label>
+                    <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
+                      {{ (selectedProfile as any).fallbackProxy.host }}
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Port</label>
+                    <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
+                      {{ (selectedProfile as any).fallbackProxy.port }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-md p-4">
+                <p class="text-sm text-blue-800 dark:text-blue-300">
+                  <strong>Note:</strong> To edit PAC script settings, click the "Edit" button above.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         <!-- Direct/System Profile -->
-        <div v-else>
+        <div v-else-if="selectedProfile.profileType === 'DirectProfile' || selectedProfile.profileType === 'SystemProfile'">
           <Card padding="lg">
             <p class="text-text-secondary">
               This is a {{ selectedProfile.profileType === 'DirectProfile' ? 'direct connection' : 'system proxy' }} profile.
@@ -699,6 +765,15 @@
                 ? 'All requests will connect directly without using any proxy.' 
                 : 'The extension will use your system\'s configured proxy settings.' 
               }}
+            </p>
+          </Card>
+        </div>
+        
+        <!-- Unknown Profile Type -->
+        <div v-else>
+          <Card padding="lg">
+            <p class="text-amber-600 dark:text-amber-400">
+              Unknown profile type: {{ selectedProfile.profileType }}
             </p>
           </Card>
         </div>
