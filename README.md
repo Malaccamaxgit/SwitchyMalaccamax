@@ -75,7 +75,7 @@ npm run format
 | **Language** | TypeScript | 5.7+ |
 | **Framework** | Vue 3 (Composition API) | 3.5+ |
 | **Build Tool** | Vite | 6.0+ |
-| **Testing** | Vitest | 2.1+ |
+| **Testing** | Vitest | 4.0+ |
 | **Styling** | Tailwind CSS | 3.4+ |
 | **Extension Plugin** | @crxjs/vite-plugin | 2.0+ |
 | **Target** | Chrome Manifest V3 | — |
