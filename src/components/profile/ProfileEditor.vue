@@ -290,13 +290,22 @@ const testing = ref(false);
 const testResult = ref<{ success: boolean; message: string } | null>(null);
 const showBypassList = ref(false);
 
-const profileTypeOptions = [
+const allProfileTypeOptions = [
   { label: 'Direct Connection', value: 'DirectProfile' },
   { label: 'Fixed Server', value: 'FixedProfile' },
   { label: 'Auto Switch', value: 'SwitchProfile' },
   { label: 'PAC Script', value: 'PacProfile' },
   { label: 'System Proxy', value: 'SystemProfile' },
 ];
+
+// Filter out DirectProfile when creating new profiles (only allow one Direct profile)
+const profileTypeOptions = computed(() => {
+  if (isEditMode.value) {
+    return allProfileTypeOptions;
+  }
+  // When creating new profile, exclude DirectProfile
+  return allProfileTypeOptions.filter(option => option.value !== 'DirectProfile');
+});
 
 const proxyProtocolOptions = [
   { label: 'HTTP', value: 'HTTP' },
