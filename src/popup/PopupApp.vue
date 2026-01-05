@@ -4,7 +4,7 @@
     <div class="px-3 pt-4 pb-3">
       <div class="flex items-baseline gap-2">
         <h1 class="text-[17px] font-bold tracking-tight text-slate-900 dark:text-white">Proxy Switcher</h1>
-        <div class="text-[9px] text-zinc-500 dark:text-zinc-500">v0.1.1</div>
+        <div class="text-[9px] text-zinc-500 dark:text-zinc-500">{{ versionWithPrefix }}</div>
       </div>
     </div>
 
@@ -123,6 +123,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Logger } from '@/utils/Logger';
+import { VERSION_PREFIXED as versionWithPrefix } from '@/utils/version';
 import { 
   Settings, 
   Plus, 

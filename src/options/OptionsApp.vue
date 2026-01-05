@@ -421,11 +421,11 @@
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Version:</span>
-              <span class="text-slate-900 dark:text-white font-mono">0.1.2</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ VERSION }}</span>
             </div>
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Manifest Version:</span>
-              <span class="text-slate-900 dark:text-white font-mono">3</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ getManifestVersion() }}</span>
             </div>
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Storage Used:</span>
@@ -797,6 +797,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useDark } from '@vueuse/core';
+import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
   Plus, 
   Settings,
