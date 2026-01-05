@@ -66,11 +66,18 @@ export declare class PacCompiler {
      */
     private wildcardToRegex;
     /**
+     * Sanitize profile name for use in JavaScript object key
+     * Prevents injection attacks via malicious profile names
+     * Security: Only allows alphanumeric, space, dash, underscore
+     */
+    private sanitizeProfileName;
+    /**
      * Escape regex special characters
      */
     private escapeRegexPattern;
     /**
      * Escape string for JavaScript
+     * Enhanced: Prevents newlines, control characters, and quote injection
      */
     private escapeString;
     /**

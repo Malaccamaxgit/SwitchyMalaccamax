@@ -76,7 +76,8 @@ export class PacCompiler {
             if (!profile)
                 continue;
             const functionCode = this.compileProfile(profile);
-            profileFunctions.push(`    "+${name}": ${functionCode}`);
+            const safeName = this.sanitizeProfileName(name);
+            profileFunctions.push(`    "+${safeName}": ${functionCode}`);
         }
         return `{
 ${profileFunctions.join(',\n')}
@@ -176,14 +177,16 @@ ${bypassCode}        return "${proxyResult}";
             const condition = this.generateConditionCheck(rule.condition);
             const targetProfile = rule.profileName;
             // Return profile reference (e.g., "+Workday")
-            rules.push(`        if (${condition}) return "+${targetProfile}";`);
+            const safeTargetProfile = this.sanitizeProfileName(targetProfile);
+            rules.push(`        if (${condition}) return "+${safeTargetProfile}";`);
         }
         // Default profile
         const defaultProfileName = profile.defaultProfileName || 'Direct';
+        const safeDefaultProfileName = this.sanitizeProfileName(defaultProfileName);
         const rulesCode = rules.length > 0 ? rules.join('\n') + '\n' : '';
         return `function(url, host, scheme) {
         "use strict";
-${rulesCode}        return "+${defaultProfileName}";
+${rulesCode}        return "+${safeDefaultProfileName}";
     }`;
     }
     /**
@@ -303,6 +306,14 @@ ${rulesCode}        return "+${defaultProfileName}";
         }
     }
     /**
+     * Sanitize profile name for use in JavaScript object key
+     * Prevents injection attacks via malicious profile names
+     * Security: Only allows alphanumeric, space, dash, underscore
+     */
+    sanitizeProfileName(name) {
+        return name.replace(/[^a-zA-Z0-9 _-]/g, '_');
+    }
+    /**
      * Escape regex special characters
      */
     escapeRegexPattern(pattern) {
@@ -310,9 +321,17 @@ ${rulesCode}        return "+${defaultProfileName}";
     }
     /**
      * Escape string for JavaScript
+     * Enhanced: Prevents newlines, control characters, and quote injection
      */
     escapeString(str) {
-        return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        return str
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t')
+            .replace(/[\x00-\x1F\x7F]/g, '');
     }
     /**
      * Convert proxy server to PAC result string
@@ -341,6 +360,7 @@ ${rulesCode}        return "+${defaultProfileName}";
      * Generate the complete PAC boilerplate with resolver logic
      */
     generatePacBoilerplate(rootProfileName, profilesDict) {
+        const safeRootProfileName = this.sanitizeProfileName(rootProfileName);
         return `var FindProxyForURL = function(init, profiles) {
     return function(url, host) {
         "use strict";
@@ -352,7 +372,7 @@ ${rulesCode}        return "+${defaultProfileName}";
         } while (typeof result !== "string" || result.charCodeAt(0) === 43);
         return result;
     };
-}("+${rootProfileName}", ${profilesDict});
+}("+${safeRootProfileName}", ${profilesDict});
 `;
     }
 }

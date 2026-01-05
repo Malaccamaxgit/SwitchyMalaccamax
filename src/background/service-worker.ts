@@ -3,9 +3,55 @@
  * Handles proxy settings and background tasks
  */
 import { Logger } from '../utils/Logger';
+import { migrateToEncryptedStorage } from '../utils/migration';
 
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
+
+// Run storage encryption migration on startup
+migrateToEncryptedStorage().catch(error => {
+  Logger.error('Failed to migrate storage to encryption', error);
+});
+
+// ============================================================================
+// MESSAGE VALIDATION
+// ============================================================================
+
+/**
+ * Validate proxy configuration structure
+ */
+function isValidProxyConfig(config: any): config is chrome.proxy.ProxyConfig {
+  if (!config || typeof config !== 'object') return false;
+  
+  // Must have valid mode
+  const validModes = ['direct', 'auto_detect', 'pac_script', 'fixed_servers', 'system'];
+  if (!config.mode || !validModes.includes(config.mode)) return false;
+  
+  // pac_script mode requires pacScript
+  if (config.mode === 'pac_script') {
+    if (!config.pacScript || typeof config.pacScript !== 'object') return false;
+    if (!config.pacScript.data && !config.pacScript.url) return false;
+  }
+  
+  // fixed_servers mode requires rules
+  if (config.mode === 'fixed_servers') {
+    if (!config.rules || typeof config.rules !== 'object') return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Validate color value (must be from allowed set)
+ */
+function isValidColor(color: any): boolean {
+  const allowedColors = ['gray', 'blue', 'green', 'red', 'yellow', 'purple'];
+  return typeof color === 'string' && allowedColors.includes(color);
+}
+
+// ============================================================================
+// ICON MANAGEMENT
+// ============================================================================
 
 /**
  * Initialize icon color based on active profile
@@ -195,20 +241,50 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 // Listen for messages from popup/options
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Security: Validate sender is from this extension
+  if (sender.id !== chrome.runtime.id) {
+    Logger.warn('Rejected message from unknown sender', { senderId: sender.id });
+    sendResponse({ success: false, error: 'Invalid sender' });
+    return false;
+  }
+  
   if (message.action === 'setProxy') {
+    // Security: Validate proxy configuration structure
+    if (!isValidProxyConfig(message.config)) {
+      Logger.warn('Rejected invalid proxy config', { config: message.config });
+      sendResponse({ success: false, error: 'Invalid proxy configuration' });
+      return false;
+    }
+    
+    // Security: Validate color if provided
+    if (message.profileColor && !isValidColor(message.profileColor)) {
+      Logger.warn('Rejected invalid color', { color: message.profileColor });
+      sendResponse({ success: false, error: 'Invalid color' });
+      return false;
+    }
+    
     (async () => {
-      await handleSetProxy(message.config);
-      if (message.profileColor) {
-        updateIconColor(message.profileColor);
+      try {
+        await handleSetProxy(message.config);
+        if (message.profileColor) {
+          updateIconColor(message.profileColor);
+        }
+        sendResponse({ success: true });
+      } catch (error) {
+        Logger.error('Failed to set proxy', error);
+        sendResponse({ success: false, error: String(error) });
       }
-      sendResponse({ success: true });
     })();
     return true; // Keep channel open for async response
   } else if (message.action === 'checkConflicts') {
     checkProxyConflicts().then(() => sendResponse({ success: true }));
     return true; // Keep channel open for async response
   }
+  
+  // Unknown action
+  Logger.warn('Unknown message action', { action: message.action });
+  sendResponse({ success: false, error: 'Unknown action' });
   return false;
 });
 

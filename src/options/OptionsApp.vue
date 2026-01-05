@@ -748,6 +748,7 @@ import {
   Bug
 } from 'lucide-vue-next';
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
+import { encryptProfile, decryptProfile } from '@/utils/crypto';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
 import { NetworkMonitor } from '@/components/network';
 import { generatePacScript } from '@/core/pac/pac-generator';
@@ -1244,7 +1245,10 @@ onMounted(async () => {
     
     // Load profiles from storage or keep defaults
     if (result.profiles && result.profiles.length > 0) {
-      profiles.value = result.profiles;
+      // Decrypt profiles on load
+      profiles.value = await Promise.all(
+        result.profiles.map((profile: Profile) => decryptProfile(profile))
+      );
       const msg = `Loaded ${result.profiles.length} profiles from storage`;
       Logger.info(msg);
       
@@ -1274,7 +1278,10 @@ onMounted(async () => {
       
       // Save if migrations were applied
       if (needsSave) {
-        await chrome.storage.local.set({ profiles: profiles.value });
+        const encryptedProfiles = await Promise.all(
+          profiles.value.map((profile: Profile) => encryptProfile(profile))
+        );
+        await chrome.storage.local.set({ profiles: encryptedProfiles });
         Logger.info('Profile migrations saved');
       }
       
@@ -1288,7 +1295,10 @@ onMounted(async () => {
     } else {
       // Keep default profiles and save them to storage
       Logger.info('No profiles in storage, using defaults');
-      await chrome.storage.local.set({ profiles: profiles.value });
+      const encryptedProfiles = await Promise.all(
+        profiles.value.map((profile: Profile) => encryptProfile(profile))
+      );
+      await chrome.storage.local.set({ profiles: encryptedProfiles });
     }
     
     if (result.activeProfileId) {
@@ -1357,9 +1367,14 @@ async function saveProfiles() {
       quotaEstimate: `${(JSON.stringify(plainProfiles).length / 1024).toFixed(2)} KB`
     });
     
+    // Encrypt sensitive credentials before storage
+    const encryptedProfiles = await Promise.all(
+      plainProfiles.map((profile: Profile) => encryptProfile(profile))
+    );
+    
     // Use chrome.storage.local for profiles (larger quota: 5MB vs 100KB for sync)
     // This prevents quota exceeded errors with large profile configurations
-    await chrome.storage.local.set({ profiles: plainProfiles });
+    await chrome.storage.local.set({ profiles: encryptedProfiles });
     Logger.info('Profiles saved successfully to local storage');
     
     // Verify what was saved
