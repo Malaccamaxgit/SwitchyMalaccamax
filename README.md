@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Security Score](https://img.shields.io/badge/Security%20Score-9.2%2F10-brightgreen.svg)](./SECURITY_AUDIT_REPORT.md)
+[![Security Score](https://img.shields.io/badge/Security%20Score-9.2%2F10-brightgreen.svg)](./docs/development/SECURITY_AUDIT_REPORT.md)
 [![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20CVEs-brightgreen.svg)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/security)
 
 A Chrome extension for managing proxy configurations. Built with TypeScript, Vue 3, and Vite. Includes ReDoS attack prevention, AES-256-GCM credential encryption, and automated security scanning.
@@ -128,7 +128,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
 
 ## Security
 
-**Security Score**: 9.2/10 (OWASP Top 10 audit - see [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md))
+**Security Score**: 9.2/10 (OWASP Top 10 audit - see [SECURITY_AUDIT_REPORT.md](./docs/development/SECURITY_AUDIT_REPORT.md))
 
 **Implementation**:
 - ReDoS prevention: Pattern matching validated and deterministic (< 50ms)
@@ -139,7 +139,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
 **Automation**:
 - Pre-commit hook runs npm audit and secret scanner
 - GitHub Actions: security checks on push/PR, weekly scans (Mondays 9 AM UTC)
-- See [docs/SECURITY_AUTOMATION.md](./docs/SECURITY_AUTOMATION.md)
+- See [docs/guides/SECURITY_AUTOMATION.md](./docs/guides/SECURITY_AUTOMATION.md)
 
 **Report vulnerabilities**: [SECURITY.md](./SECURITY.md) or GitHub Security Advisories
 
@@ -153,10 +153,43 @@ Inspired by SwitchyOmega and Proxy SwitchySharp extensions.
 
 ## Documentation
 
-- [Security](./SECURITY.md) / [Audit Report](./SECURITY_AUDIT_REPORT.md) / [Automation](./docs/SECURITY_AUTOMATION.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Project Setup](./docs/PROJECT_SETUP_COMPLETE.md)
-- Additional docs: [docs/](./docs/)
+### Quick Links
+- **Getting Started**: [Project Setup Guide](./docs/guides/PROJECT_SETUP_COMPLETE.md)
+- **Security**: [Security Policy](./SECURITY.md) | [Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md) | [Automation](./docs/guides/SECURITY_AUTOMATION.md)
+- **Contributing**: [CONTRIBUTING.md](./CONTRIBUTING.md) | [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md)
+
+### Documentation Map
+
+#### 📘 Guides (Step-by-Step Instructions)
+- [Icon Generation Guide](./docs/guides/ICON_GENERATION_GUIDE.md)
+- [Line Endings Configuration](./docs/guides/LINE_ENDINGS.md)
+- [Logger Integration Guide](./docs/guides/LOGGER_INTEGRATION_GUIDE.md)
+- [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md)
+- [Project Setup Complete](./docs/guides/PROJECT_SETUP_COMPLETE.md)
+- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md)
+
+#### 🏗️ Architecture (Deep Dives & Specifications)
+- [Format Comparison](./docs/architecture/format-comparison.md)
+- [Logger UI Integration](./docs/architecture/LOGGER_UI_INTEGRATION.md)
+- [Migration API Specification](./docs/architecture/migration-api-spec.md)
+- [Migration Architecture](./docs/architecture/migration-architecture.md)
+- [Migration Implementation Tracker](./docs/architecture/MIGRATION_IMPLEMENTATION_TRACKER.md)
+- [Migration Result Examples](./docs/architecture/migration-result-examples.md)
+- [Migration Results UI](./docs/architecture/migration-results-ui.md)
+- [Migration System Design](./docs/architecture/MIGRATION_SYSTEM_DESIGN.md)
+- [Migration UI States](./docs/architecture/migration-ui-states.md)
+- [PAC Compiler Fix](./docs/architecture/PAC_COMPILER_FIX.md)
+- [PAC Compiler Migration](./docs/architecture/PAC_COMPILER_MIGRATION.md)
+- [PAC Compiler Rewrite](./docs/architecture/PAC_COMPILER_REWRITE.md)
+- [PAC Export Feature](./docs/architecture/PAC_EXPORT_FEATURE.md)
+- [PAC Output Example](./docs/architecture/PAC_OUTPUT_EXAMPLE.md)
+- [UI Redesign Specification](./docs/architecture/UI_REDESIGN_SPEC.md)
+
+#### 🔧 Development (Contributor Information)
+- [Security Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md)
+
+#### 📦 Archive (Historical Reports)
+- [Development History](./docs/archive/)
 
 ---
 

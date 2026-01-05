@@ -114,9 +114,9 @@ For security auditors, please review:
 
 ## 📚 Security Documentation
 
-- [ReDoS Protection Design](./docs/SECURITY_IMPLEMENTATION_CHECKLIST.md)
-- [Security Test Results](./docs/SECURITY_VERIFICATION_REPORT.md)
-- [Architecture Overview](./README.md#security-architecture)
+- [Security Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md)
+- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md)
+- [Architecture Overview](./README.md#security)
 
 ## 🔒 Cryptographic Verification
 
