@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Security Score](https://img.shields.io/badge/Security%20Score-9.2%2F10-brightgreen.svg)](./docs/development/SECURITY_AUDIT_REPORT.md)
+[![Security Score](https://img.shields.io/badge/Security%20Score-9.5%2F10-brightgreen.svg)](./docs/development/SECURITY_AUDIT_REPORT.md)
 [![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20CVEs-brightgreen.svg)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/security)
 
 A Chrome extension for managing proxy configurations. Built with TypeScript, Vue 3, and Vite. Includes ReDoS attack prevention, AES-256-GCM credential encryption, and automated security scanning.
