@@ -28,7 +28,7 @@ A next-generation proxy manager built from the ground up with modern web technol
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/SwitchyMalaccamax.git
+git clone https://github.com/Malaccamaxgit/SwitchyMalaccamax.git
 cd SwitchyMalaccamax
 
 # Install dependencies
@@ -245,8 +245,8 @@ Contributions are welcome! Please read our [Contributing Guidelines](./CONTRIBUT
 
 ## 📮 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/SwitchyMalaccamax/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/SwitchyMalaccamax/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Malaccamaxgit/SwitchyMalaccamax/discussions)
 
 ---
 
