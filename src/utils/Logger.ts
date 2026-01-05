@@ -132,7 +132,11 @@ class LoggerService {
   private persistenceTimeout: number | null = null;
 
   constructor() {
-    this.initialize();
+    // Initialize asynchronously - will silently fail in test environments
+    this.initialize().catch(() => {
+      // Silently set initialized to true for test/Node.js environments
+      this.initialized = true;
+    });
   }
 
   /**
@@ -142,6 +146,12 @@ class LoggerService {
     if (this.initialized) return;
 
     try {
+      // Check if chrome API is available (not in Node.js test environment)
+      if (typeof chrome === 'undefined' || !chrome.storage) {
+        this.initialized = true;
+        return;
+      }
+
       // Load initial configuration from storage
       const result = await chrome.storage.local.get([
         STORAGE_KEY,
@@ -192,7 +202,10 @@ class LoggerService {
         persistedCount: this.persistedLogs.length
       });
     } catch (error) {
-      console.error('[Logger] Failed to initialize:', error);
+      // Only log initialization errors in browser environments, not in tests
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        console.error('[Logger] Failed to initialize:', error);
+      }
       // Fallback to defaults if storage fails
       this.currentLevel = DEFAULT_LOG_LEVEL;
       this.maxLines = DEFAULT_MAX_LINES;
