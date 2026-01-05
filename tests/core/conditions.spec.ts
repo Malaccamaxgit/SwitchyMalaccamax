@@ -510,7 +510,7 @@ describe('ConditionMatcher', () => {
   describe('Poison-Pill Pattern Tests', () => {
     const poisonPatterns = [
       '(a+)+',
-      '(x+x+)+y',
+      '(xx+)+y',
       '(.*)*',
       '(.+)*',
       '([a-zA-Z]+)*',
