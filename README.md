@@ -13,10 +13,12 @@ A next-generation proxy manager built from the ground up with modern web technol
 ## ✨ Features
 
 - 🔒 **Security-Hardened**: ReDoS prevention with deterministic wildcard matching (< 50ms execution time)
+- 🔐 **Credential Encryption**: AES-256-GCM encryption for proxy passwords with PBKDF2 key derivation
 - ⚡ **Lightning Fast**: Sub-second builds with Vite 6, hot module reloading
 - 🎯 **Modern Architecture**: TypeScript 5.7+ strict mode, Vue 3 Composition API, Manifest V3
-- 🧪 **Thoroughly Tested**: 47+ security tests with Vitest, comprehensive edge case coverage
+- 🧪 **Thoroughly Tested**: 150+ tests with Vitest, including comprehensive security coverage
 - 🎨 **Clean Design**: Responsive UI with Tailwind CSS and dark mode support
+- 🛡️ **Zero Vulnerabilities**: 0 CVEs, automated security scanning on every commit
 - 🔧 **Developer Friendly**: Full type safety, ESLint + Prettier configuration
 
 ## 🚀 Quick Start
@@ -103,19 +105,25 @@ src/
 ├── core/              # Business logic
 │   ├── schema.ts      # TypeScript type definitions
 │   ├── conditions.ts  # Pattern matching engine
+│   ├── pac/           # PAC script generation
 │   └── security/      # 🔒 Security modules
 │       ├── regexSafe.ts        # ReDoS prevention
 │       ├── wildcardMatcher.ts  # Deterministic wildcards
 │       └── constants.ts        # Security limits
-├── lib/               # Utilities
+├── utils/             # Utility functions
+│   ├── crypto.ts      # AES-256-GCM encryption for credentials
+│   ├── migration.ts   # Storage encryption migration
+│   └── Logger.ts      # Logging utility
+├── lib/               # Shared utilities
 │   └── utils.ts
 ├── styles/
 │   └── main.css       # Tailwind CSS entry point
 └── manifest.json      # Chrome extension manifest
 
 tests/                 # Vitest test suites
-├── unit/
-└── integration/
+├── core/              # Core logic tests
+├── security/          # Security tests (ReDoS, regex validation)
+└── utils/             # Utility tests (crypto, Logger)
 ```
 
 ### Security Architecture
@@ -140,14 +148,15 @@ SwitchyMalaccamax implements multiple layers of security to prevent Regular Expr
 
 #### 4. **Test Coverage**
 ```bash
-Test Files  2 passed (2)
-Tests       47 passed (47)
-Duration    275ms
+Test Files  6 total
+Tests       150+ passed
+Duration    ~500ms
 
 ✅ ReDoS attack prevention
 ✅ Complexity limit enforcement  
 ✅ Adversarial input handling
 ✅ Wildcard deterministic matching
+✅ Credential encryption (AES-256-GCM)
 ✅ Edge cases and error handling
 ```
 
@@ -212,7 +221,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 | **Build Time (prod)** | ~ 1.7s |
 | **Hot Reload** | < 200ms |
 | **Pattern Match** | < 50ms (guaranteed) |
-| **Extension Size** | ~ 250 KB |
+| **Extension Size** | ~ 310 KB (gzipped) |
 
 ## 🔐 Security
 
@@ -267,6 +276,9 @@ Inspired by the SwitchyOmega and Proxy SwitchySharp extensions, rebuilt from the
 
 - [Project Setup](./docs/PROJECT_SETUP_COMPLETE.md)
 - [Security Architecture](./SECURITY.md)
+- [Security Audit Report](./SECURITY_AUDIT_REPORT.md)
+- [Security Automation Guide](./docs/SECURITY_AUTOMATION.md)
+- [Line Endings Configuration](./docs/LINE_ENDINGS.md)
 - [Contributing Guidelines](./CONTRIBUTING.md)
 - [API Documentation](./docs/api/migration-api-spec.md)
 - [Architecture Deep-Dive](./docs/architecture/)
