@@ -122,6 +122,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { Logger } from '@/utils/Logger';
 import { 
   Settings, 
   Plus, 
@@ -135,6 +136,8 @@ import {
   Cloud
 } from 'lucide-vue-next';
 import type { Profile, FixedProfile } from '@/core/schema';
+
+Logger.setComponentPrefix('Popup');
 
 const activeProfileId = ref<string>('profile-1');
 
@@ -259,7 +262,7 @@ onMounted(async () => {
       document.documentElement.classList.remove('dark');
     }
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Popup] Failed to load profiles:', error);
+    Logger.error('Failed to load profiles', error);
   }
 });
 
@@ -292,7 +295,7 @@ async function checkProxyConflict() {
     const proxySettings = await chrome.proxy.settings.get({}) as any;
     const levelOfControl = proxySettings.levelOfControl;
     
-    console.log('[SwitchyMalaccamax:Popup] Checking conflict, levelOfControl:', levelOfControl);
+    Logger.debug('Checking conflict', { levelOfControl });
     
     if (levelOfControl === 'controlled_by_other_extensions') {
       hasConflict.value = true;
@@ -304,7 +307,7 @@ async function checkProxyConflict() {
       hasConflict.value = false;
     }
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Popup] Failed to check conflict:', error);
+    Logger.error('Failed to check conflict', error);
   }
 }
 
@@ -359,7 +362,7 @@ async function handleTakeControl() {
     // Wait a moment and check again (this will clear the conflict if successful)
     setTimeout(() => checkProxyConflict(), 500);
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Popup] Failed to take control:', error);
+    Logger.error('Failed to take control', error);
   }
 }
 
@@ -418,7 +421,7 @@ function getProfileButtonClass(profile: Profile) {
 const switchingProfile = ref(false);
 
 async function handleProfileSwitch(profile: Profile) {
-  console.log('[SwitchyMalaccamax:Popup] Switching to profile:', profile.name, profile.id);
+  Logger.info('Switching to profile', { name: profile.name, id: profile.id });
   
   // Immediate UI feedback
   switchingProfile.value = true;
@@ -426,7 +429,7 @@ async function handleProfileSwitch(profile: Profile) {
   activeProfileId.value = profile.id;
   
   try {
-    console.log('[SwitchyMalaccamax:Popup] Saving to storage...');
+    Logger.debug('Saving to storage', { activeProfileId: profile.id });
     // Save to storage
     await chrome.storage.sync.set({ activeProfileId: profile.id });
 
@@ -466,15 +469,15 @@ async function handleProfileSwitch(profile: Profile) {
     }
 
     // Send message to background script
-    console.log('[SwitchyMalaccamax:Popup] Applying proxy config:', config);
+    Logger.debug('Applying proxy config', config);
     await chrome.runtime.sendMessage({
       action: 'setProxy',
       config,
       profileColor: profile.color || 'blue',
     });
-    console.log('[SwitchyMalaccamax:Popup] Profile switch complete');
+    Logger.info('Profile switch complete');
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Popup] Failed to switch profile:', error);
+    Logger.error('Failed to switch profile', error);
     activeProfileId.value = previousProfile; // Rollback
   } finally {
     switchingProfile.value = false;

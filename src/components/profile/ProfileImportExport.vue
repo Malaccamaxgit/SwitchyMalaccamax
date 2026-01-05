@@ -231,6 +231,9 @@ import {
 import { Card, Button, Switch, Badge, Tooltip } from '@/components/ui';
 import { copyToClipboard as copyText } from '@/lib/utils';
 import type { Profile } from '@/core/schema';
+import { Logger } from '@/utils/Logger';
+
+Logger.setComponentPrefix('ProfileImportExport');
 
 interface Props {
   profiles: Profile[];
@@ -354,15 +357,15 @@ async function exportProfiles(format: 'json' | 'bak' = 'json') {
     await writable.write(content);
     await writable.close();
     
-    console.log('[SwitchyMalaccamax:ProfileExport] Profiles exported successfully');
+    Logger.info('Profiles exported successfully');
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      console.log('[SwitchyMalaccamax:ProfileExport] Export cancelled by user');
+      Logger.info('Export cancelled by user');
       return;
     }
     
     // Fallback to download if File System Access API fails
-    console.log('[SwitchyMalaccamax:ProfileExport] Using fallback download method');
+    Logger.info('Using fallback download method');
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

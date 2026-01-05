@@ -12,6 +12,8 @@
  * - Fail-closed behavior (returns non-matching regex on validation failure)
  */
 import safeRegex from 'safe-regex';
+import { Logger } from '../../utils/Logger';
+const log = Logger.scope('RegexValidator');
 import { SECURITY_LIMITS } from './constants';
 export class RegexValidator {
     /**
@@ -64,13 +66,13 @@ export class RegexValidator {
         try {
             const validation = this.validate(pattern);
             if (!validation.safe) {
-                console.warn(`[RegexValidator] Rejected unsafe pattern: ${validation.reason}`);
+                log.warn('Rejected unsafe pattern', { pattern, reason: validation.reason });
                 return /(?!)/; // Negative lookahead - never matches anything
             }
             return new RegExp(pattern, flags);
         }
         catch (error) {
-            console.error('[RegexValidator] Compilation error:', error);
+            log.error('Compilation error', error);
             return /(?!)/; // Fail closed
         }
     }

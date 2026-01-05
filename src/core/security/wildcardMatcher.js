@@ -15,6 +15,8 @@
  * - **.example.com: Matches all subdomains INCLUDING example.com
  */
 import { SECURITY_LIMITS } from './constants';
+import { Logger } from '../../utils/Logger';
+const log = Logger.scope('WildcardMatcher');
 export class WildcardMatcher {
     /**
      * Validates wildcard patterns against security limits
@@ -61,7 +63,7 @@ export class WildcardMatcher {
     static match(patterns, host) {
         const validation = this.validate(patterns);
         if (!validation.valid || !validation.patterns) {
-            console.warn(`[WildcardMatcher] Invalid patterns: ${validation.reason}`);
+            log.warn('Invalid patterns', { reason: validation.reason });
             return false;
         }
         // Try matching against each pattern

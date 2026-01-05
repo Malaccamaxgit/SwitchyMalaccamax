@@ -153,76 +153,6 @@
       </div>
 
       <!-- General View -->
-      <div v-else-if="currentView === 'general'" class="max-w-3xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">General</h2>
-        
-        <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Network Requests</h3>
-          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
-            <label class="flex items-start gap-3 cursor-pointer group">
-              <input type="checkbox" v-model="settings.showFailedRequests" 
-                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-              <div>
-                <div class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight mb-1">
-                  Show failed web requests
-                </div>
-                <div class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed">
-                  Display a yellow badge on the icon when resources fail to load. 
-                  Allows quick profile configuration via popup menu.
-                </div>
-              </div>
-            </label>
-            <div>
-              <button
-                @click="showNetworkMonitor = true"
-                class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
-              >
-                <Activity class="h-3.5 w-3.5" />
-                Open Network Monitor
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Download Options</h3>
-          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
-            <p class="text-[11px] text-slate-500 dark:text-zinc-600 mb-4 leading-relaxed">
-              Configure update frequency for online rule lists and PAC scripts.
-            </p>
-            <div>
-              <label class="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold mb-2 block">Download Interval</label>
-              <select
-                v-model="settings.downloadInterval"
-                class="w-full px-3 py-2 text-[13px] border border-zinc-900 rounded-md bg-zinc-950 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="never">Never</option>
-                <option value="15">Every 15 minutes</option>
-                <option value="60">Every hour</option>
-                <option value="360">Every 6 hours</option>
-                <option value="1440">Daily</option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Conflicts</h3>
-          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
-            <p class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed mb-4">
-              Other apps may try to control proxy settings, causing conflicts. Ad blockers and 
-              extensions may also use proxy settings. These conflicts are unavoidable due to browser limitations.
-            </p>
-            <div class="bg-red-100 dark:bg-red-950/30 border border-red-300 dark:border-red-900/50 rounded-lg p-3">
-              <p class="text-[11px] text-red-800 dark:text-red-400 leading-relaxed">
-                A red badge on the icon indicates another app has higher priority. Try uninstalling 
-                other apps and reinstalling to raise SwitchyMalaccamax's priority.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-
       <!-- Import/Export View -->
       <div v-else-if="currentView === 'import-export'" class="max-w-3xl mx-auto p-8">
         <h2 class="text-2xl font-semibold mb-8 tracking-tight">Import/Export</h2>
@@ -277,55 +207,140 @@
       </div>
 
       <!-- Logs View -->
-      <div v-else-if="currentView === 'logs'" class="max-w-5xl mx-auto p-8">
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-semibold tracking-tight">Debug Logs</h2>
-          <div class="flex gap-2">
-            <Button variant="outline" size="sm" @click="exportLogs" :disabled="logs.length === 0">
-              <FileText class="h-4 w-4" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm" @click="clearLogs" :disabled="logs.length === 0">
-              Clear
-            </Button>
+      <!-- Debug View (includes Logs) -->
+      <div v-else-if="currentView === 'debug'" class="max-w-5xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Debug & Logs</h2>
+        
+        <!-- Log Viewer Section (moved to top) -->
+        <section class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-medium text-slate-900 dark:text-zinc-300">Log Viewer</h3>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <label class="text-[13px] text-slate-600 dark:text-zinc-400">Export rows:</label>
+                <input
+                  v-model.number="logExportRowCount"
+                  type="number"
+                  min="10"
+                  max="1000"
+                  step="10"
+                  class="w-20 px-2 py-1 text-[13px] rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white"
+                />
+              </div>
+              <Button variant="outline" size="sm" @click="exportLogsToFile" :disabled="logs.length === 0">
+                <Download class="h-4 w-4" />
+                Export to File
+              </Button>
+              <Button variant="outline" size="sm" @click="clearLogs" :disabled="logs.length === 0">
+                Clear
+              </Button>
+            </div>
           </div>
-        </div>
 
-        <div class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[600px] max-h-[600px] overflow-y-auto">
-          <div v-if="logs.length === 0" class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600">
-            No logs captured yet. Actions will be logged here.
-          </div>
-          <div v-else class="space-y-1 font-mono text-xs">
-            <div 
-              v-for="(log, index) in logs" 
-              :key="index"
-              :class="{
-                'text-red-600 dark:text-red-400': log.level === 'error',
-                'text-emerald-600 dark:text-emerald-400': log.level === 'success',
-                'text-blue-600 dark:text-blue-400': log.level === 'info',
-                'text-slate-500 dark:text-zinc-500': log.level === 'debug'
-              }"
-              class="py-1 border-b border-gray-200 dark:border-zinc-900/30"
-            >
-              <span class="text-slate-500 dark:text-zinc-600">[{{ log.timestamp }}]</span>
-              <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.level.toUpperCase() }}]</span>
-              <span class="ml-2">{{ log.message }}</span>
-              <div v-if="log.data" class="ml-16 text-slate-500 dark:text-zinc-600 mt-1 break-all">
-                {{ typeof log.data === 'object' ? JSON.stringify(log.data, null, 2) : log.data }}
+          <div class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[400px] max-h-[400px] overflow-y-auto">
+            <div v-if="logs.length === 0" class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600">
+              No logs captured yet. Actions will be logged here.
+            </div>
+            <div v-else class="space-y-1 font-mono text-xs">
+              <div 
+                v-for="(log, index) in logs" 
+                :key="index"
+                :class="{
+                  'text-red-600 dark:text-red-400': log.level === 'ERROR',
+                  'text-emerald-600 dark:text-emerald-400': log.level === 'INFO',
+                  'text-yellow-600 dark:text-yellow-400': log.level === 'WARN',
+                  'text-slate-500 dark:text-zinc-500': log.level === 'DEBUG'
+                }"
+                class="py-1 border-b border-gray-200 dark:border-zinc-900/30"
+              >
+                <span class="text-slate-500 dark:text-zinc-600">[{{ new Date(log.timestamp).toLocaleTimeString() }}]</span>
+                <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.level }}]</span>
+                <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.component }}]</span>
+                <span class="ml-2">{{ log.message }}</span>
+                <div v-if="log.data" class="ml-16 text-slate-500 dark:text-zinc-600 mt-1 break-all">
+                  {{ typeof log.data === 'object' ? JSON.stringify(log.data, null, 2) : log.data }}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="mt-4 text-xs text-slate-500 dark:text-zinc-600">
-          <p>Showing {{ logs.length }} of {{ maxLogs }} maximum logs. Export to save permanently.</p>
-        </div>
-      </div>
+          <div class="mt-4 text-xs text-slate-500 dark:text-zinc-600">
+            <p>Showing {{ logs.length }} of {{ maxLogs }} maximum logs. Use "Export to File" to save logs for bug reports.</p>
+          </div>
+        </section>
 
-      <!-- Debug View -->
-      <div v-else-if="currentView === 'debug'" class="max-w-3xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Debug Tools</h2>
-        
+        <!-- Logging Configuration Section (now below Log Viewer) -->
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Logging Configuration</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Log Level Selector - Compact Design -->
+              <div>
+                <label class="text-[13px] font-medium text-slate-700 dark:text-zinc-300 block mb-2">
+                  Log Level
+                </label>
+                <p class="text-[12px] text-slate-500 dark:text-zinc-500 mb-3">
+                  Control verbosity for debugging. Changes apply immediately.
+                </p>
+                <div class="space-y-1.5">
+                  <button
+                    v-for="level in logLevels"
+                    :key="level.value"
+                    @click="setLogLevel(level.value)"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md border transition-all text-left group"
+                    :class="currentLogLevel === level.value 
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' 
+                      : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-gray-300 dark:hover:border-zinc-700'"
+                  >
+                    <span class="text-base">{{ level.icon }}</span>
+                    <span class="text-[13px] font-medium flex-1" :style="{ color: level.color }">
+                      {{ level.name }}
+                    </span>
+                    <div
+                      v-if="currentLogLevel === level.value"
+                      class="w-2 h-2 rounded-full bg-emerald-500"
+                    />
+                  </button>
+                </div>
+                <div class="mt-3 p-2.5 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-md">
+                  <p class="text-[11px] text-blue-700 dark:text-blue-400">
+                    💡 Use <strong>Debug</strong> when reporting issues
+                  </p>
+                </div>
+              </div>
+
+              <!-- Max Log Lines Input -->
+              <div>
+                <label class="text-[13px] font-medium text-slate-700 dark:text-zinc-300 block mb-2">
+                  Max Log Lines (Persistent Storage)
+                </label>
+                <p class="text-[12px] text-slate-500 dark:text-zinc-500 mb-3">
+                  Maximum entries in storage. Older logs auto-removed (FIFO).
+                </p>
+                <div class="flex items-center gap-3">
+                  <input
+                    v-model.number="currentLogMaxLines"
+                    type="number"
+                    min="10"
+                    max="50000"
+                    step="100"
+                    @blur="updateLogMaxLines"
+                    @keyup.enter="updateLogMaxLines"
+                    class="flex-1 px-3 py-2 text-[13px] rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <Button variant="outline" size="sm" @click="updateLogMaxLines">
+                    Apply
+                  </Button>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-zinc-500 mt-2">
+                  Hard cap: 50,000 lines. Default: 1,000 lines.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Proxy Conflict Testing Section -->
         <section class="mb-8">
           <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Proxy Conflict Testing</h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
@@ -355,12 +370,58 @@
           </div>
         </section>
 
+        <!-- Network Requests Section -->
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Network Requests</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <input type="checkbox" v-model="settings.showFailedRequests" 
+                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+              <div>
+                <div class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight mb-1">
+                  Show failed web requests
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed">
+                  Display a yellow badge on the icon when resources fail to load. 
+                  Allows quick profile configuration via popup menu.
+                </div>
+              </div>
+            </label>
+            <div>
+              <button
+                @click="showNetworkMonitor = true"
+                class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Activity class="h-3.5 w-3.5" />
+                Open Network Monitor
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Conflicts Section -->
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Conflicts</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <p class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed mb-4">
+              Other apps may try to control proxy settings, causing conflicts. Ad blockers and 
+              extensions may also use proxy settings. These conflicts are unavoidable due to browser limitations.
+            </p>
+            <div class="bg-red-100 dark:bg-red-950/30 border border-red-300 dark:border-red-900/50 rounded-lg p-3">
+              <p class="text-[11px] text-red-800 dark:text-red-400 leading-relaxed">
+                A red badge on the icon indicates another app has higher priority. Try uninstalling 
+                other apps and reinstalling to raise SwitchyMalaccamax's priority.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section>
           <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Extension Information</h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Version:</span>
-              <span class="text-slate-900 dark:text-white font-mono">0.1.1</span>
+              <span class="text-slate-900 dark:text-white font-mono">0.1.2</span>
             </div>
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Manifest Version:</span>
@@ -394,6 +455,15 @@
             >
               <Edit class="h-3.5 w-3.5" />
               Edit
+            </button>
+            <button
+              v-if="selectedProfile.profileType === 'FixedProfile' || selectedProfile.profileType === 'SwitchProfile'"
+              @click="exportProfileAsPac(selectedProfile)"
+              class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-2"
+              title="Export as PAC script"
+            >
+              <Download class="h-3.5 w-3.5" />
+              Export PAC
             </button>
             <button
               v-if="selectedProfile.name !== 'Direct'"
@@ -680,8 +750,13 @@ import {
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
 import { NetworkMonitor } from '@/components/network';
+import { generatePacScript } from '@/core/pac/pac-generator';
+import { Logger, LogLevel, LogLevelMetadata, getLogLevel, setLogLevel as saveLogLevel, getLogMaxLines, setLogMaxLines } from '@/utils/Logger';
 import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
 import { generateId } from '@/lib/utils';
+
+// Set component prefix for all logs from Options page
+Logger.setComponentPrefix('Options');
 
 const isDark = useDark();
 const toastRef = ref<InstanceType<typeof Toast>>();
@@ -693,18 +768,69 @@ const selectedProfile = ref<Profile | undefined>();
 const savingChanges = ref(false);
 const hasUnsavedChanges = ref(false);
 const bypassListText = ref<string>('');
-const logs = ref<Array<{ timestamp: string; level: string; message: string; data?: any }>>([]);
+const logs = ref<Array<{ timestamp: string; level: string; component: string; message: string; data?: any }>>([]);
 const maxLogs = 500;
+const logExportRowCount = ref(100);
 const testConflictActive = ref(false);
 const storageUsed = ref('Calculating...');
+const currentLogLevel = ref<LogLevel>(LogLevel.INFO);
+const currentLogMaxLines = ref<number>(1000);
+
+// Initialize logs from Logger buffer
+logs.value = Logger.getLogBuffer();
+
+// Subscribe to new log entries
+Logger.addLogListener((entry) => {
+  logs.value.unshift(entry);
+  if (logs.value.length > maxLogs) {
+    logs.value = logs.value.slice(0, maxLogs);
+  }
+});
+
+// Log level options for UI
+const logLevels = computed(() => [
+  {
+    value: LogLevel.DEBUG,
+    name: LogLevelMetadata[LogLevel.DEBUG].name,
+    description: LogLevelMetadata[LogLevel.DEBUG].description,
+    color: LogLevelMetadata[LogLevel.DEBUG].color,
+    icon: LogLevelMetadata[LogLevel.DEBUG].icon
+  },
+  {
+    value: LogLevel.INFO,
+    name: LogLevelMetadata[LogLevel.INFO].name,
+    description: LogLevelMetadata[LogLevel.INFO].description,
+    color: LogLevelMetadata[LogLevel.INFO].color,
+    icon: LogLevelMetadata[LogLevel.INFO].icon
+  },
+  {
+    value: LogLevel.WARN,
+    name: LogLevelMetadata[LogLevel.WARN].name,
+    description: LogLevelMetadata[LogLevel.WARN].description,
+    color: LogLevelMetadata[LogLevel.WARN].color,
+    icon: LogLevelMetadata[LogLevel.WARN].icon
+  },
+  {
+    value: LogLevel.ERROR,
+    name: LogLevelMetadata[LogLevel.ERROR].name,
+    description: LogLevelMetadata[LogLevel.ERROR].description,
+    color: LogLevelMetadata[LogLevel.ERROR].color,
+    icon: LogLevelMetadata[LogLevel.ERROR].icon
+  },
+  {
+    value: LogLevel.NONE,
+    name: LogLevelMetadata[LogLevel.NONE].name,
+    description: LogLevelMetadata[LogLevel.NONE].description,
+    color: LogLevelMetadata[LogLevel.NONE].color,
+    icon: LogLevelMetadata[LogLevel.NONE].icon
+  }
+]);
 
 const settingsNav = [
   { id: 'interface', label: 'Interface', icon: Settings },
-  { id: 'general', label: 'General', icon: Globe },
   { id: 'import-export', label: 'Import/Export', icon: FileText },
   { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'logs', label: 'Logs', icon: FileText },
-  { id: 'debug', label: 'Debug', icon: Bug },
+  { id: 'debug', label: 'Debug & Logs', icon: Bug },
 ];
 
 const settings = ref({
@@ -759,33 +885,51 @@ const profiles = ref<Profile[]>([
   } as SwitchProfile,
 ]);
 
-function addLog(level: string, message: string, data?: any) {
-  const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
-  logs.value.unshift({ timestamp, level, message, data });
-  if (logs.value.length > maxLogs) {
-    logs.value = logs.value.slice(0, maxLogs);
-  }
-}
-
-function clearLogs() {
+async function clearLogs() {
+  await Logger.clearLogBuffer();
   logs.value = [];
-  console.log('[SwitchyMalaccamax:Options] Logs cleared');
+  Logger.info('Logs cleared');
+  toastRef.value?.success('All logs cleared', 'Success', 2000);
 }
 
-function exportLogs() {
-  const logText = logs.value.map(log => {
-    const dataStr = log.data ? ' ' + JSON.stringify(log.data) : '';
-    return `[${log.timestamp}] [${log.level}] ${log.message}${dataStr}`;
-  }).join('\n');
-  
-  const blob = new Blob([logText], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-  console.log('[SwitchyMalaccamax:Options] Logs exported');
+async function exportLogsToFile() {
+  try {
+    // Get the specified number of most recent logs
+    const logsToExport = logs.value.slice(-logExportRowCount.value);
+    
+    const logText = [
+      '='.repeat(80),
+      'SwitchyMalaccamax Debug Logs',
+      `Exported: ${new Date().toISOString()}`,
+      `Total Logs: ${logs.value.length} | Exported: ${logsToExport.length}`,
+      '='.repeat(80),
+      '',
+      ...logsToExport.map(log => {
+        const dataStr = log.data ? '\n  Data: ' + JSON.stringify(log.data, null, 2).replace(/\n/g, '\n  ') : '';
+        return `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}${dataStr}`;
+      })
+    ].join('\n');
+    
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const filename = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+    
+    // Use Chrome Downloads API with saveAs to prompt user for location
+    await chrome.downloads.download({
+      url: url,
+      filename: filename,
+      saveAs: true // This prompts the user to choose save location
+    });
+    
+    // Clean up the blob URL after a short delay
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    Logger.info('Logs exported to file', { count: logsToExport.length, filename });
+    toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
+  } catch (error) {
+    Logger.error('Failed to export logs', error);
+    toastRef.value?.error('Failed to export logs', 'Error');
+  }
 }
 
 async function toggleTestConflict() {
@@ -794,7 +938,7 @@ async function toggleTestConflict() {
   // Store the test conflict state in chrome.storage so popup can read it
   await chrome.storage.local.set({ testConflictActive: testConflictActive.value });
   
-  addLog('info', `Test conflict ${testConflictActive.value ? 'activated' : 'deactivated'}`);
+  Logger.info(`Test conflict ${testConflictActive.value ? 'activated' : 'deactivated'}`);
   
   toastRef.value?.show({
     title: testConflictActive.value ? 'Test Conflict Activated' : 'Test Conflict Deactivated',
@@ -803,6 +947,41 @@ async function toggleTestConflict() {
       : 'Conflict warning removed from popup.',
     variant: 'default'
   });
+}
+
+async function setLogLevel(level: LogLevel) {
+  try {
+    await saveLogLevel(level);
+    currentLogLevel.value = level;
+    Logger.info('Log level changed', { level: LogLevelMetadata[level].name });
+    toastRef.value?.success(
+      `Log level set to ${LogLevelMetadata[level].name}`,
+      'Settings Updated',
+      2000
+    );
+  } catch (error) {
+    Logger.error('Failed to save log level', error);
+    toastRef.value?.error('Failed to save log level', 'Error');
+  }
+}
+
+async function updateLogMaxLines() {
+  try {
+    // Validate input
+    const value = Math.max(10, Math.min(currentLogMaxLines.value, 50000));
+    currentLogMaxLines.value = value;
+    
+    await setLogMaxLines(value);
+    Logger.info('Max log lines changed', { maxLines: value });
+    toastRef.value?.success(
+      `Max log lines set to ${value.toLocaleString()}`,
+      'Settings Updated',
+      2000
+    );
+  } catch (error) {
+    Logger.error('Failed to save max log lines', error);
+    toastRef.value?.error('Failed to save max log lines', 'Error');
+  }
 }
 
 async function calculateStorageUsed() {
@@ -901,13 +1080,13 @@ let draggedRuleIndex: number | null = null;
 
 function handleRuleDragStart(index: number) {
   draggedRuleIndex = index;
-  console.log('[SwitchyMalaccamax:Options] Drag started for rule', index);
+  Logger.debug('Drag started for rule', { index });
 }
 
 function handleRuleDrop(dropIndex: number) {
   if (draggedRuleIndex === null || draggedRuleIndex === dropIndex) return;
   
-  console.log('[SwitchyMalaccamax:Options] Moving rule from', draggedRuleIndex, 'to', dropIndex);
+  Logger.debug('Moving rule', { from: draggedRuleIndex, to: dropIndex });
   const rules = [...switchProfileRules.value];
   const [movedRule] = rules.splice(draggedRuleIndex, 1);
   rules.splice(dropIndex, 0, movedRule);
@@ -916,7 +1095,7 @@ function handleRuleDrop(dropIndex: number) {
 }
 
 function updateRuleConditionType(index: number, conditionType: string) {
-  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'condition type to', conditionType);
+  Logger.debug('Update rule condition type', { index, conditionType });
   const rules = [...switchProfileRules.value];
   const rule = rules[index];
   
@@ -941,7 +1120,7 @@ function updateRuleConditionType(index: number, conditionType: string) {
 }
 
 function updateRulePattern(index: number, pattern: string) {
-  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'pattern to', pattern);
+  Logger.debug('Update rule pattern', { index, pattern });
   const rules = [...switchProfileRules.value];
   const rule = rules[index];
   if ('pattern' in rule.condition) {
@@ -951,7 +1130,7 @@ function updateRulePattern(index: number, pattern: string) {
 }
 
 function updateRuleHostLevels(index: number, type: 'min' | 'max', value: string) {
-  console.log('[SwitchyMalaccamax:Options] Update rule', index, type, 'value to', value);
+  Logger.debug('Update rule host levels', { index, type, value });
   const rules = [...switchProfileRules.value];
   const rule = rules[index];
   if (rule.condition.conditionType === 'HostLevelsCondition') {
@@ -966,7 +1145,7 @@ function updateRuleHostLevels(index: number, type: 'min' | 'max', value: string)
 }
 
 function updateRuleProfile(index: number, profileName: string) {
-  console.log('[SwitchyMalaccamax:Options] Update rule', index, 'profile to', profileName);
+  Logger.debug('Update rule profile', { index, profileName });
   const rules = [...switchProfileRules.value];
   rules[index].profileName = profileName;
   switchProfileRules.value = rules;
@@ -974,7 +1153,7 @@ function updateRuleProfile(index: number, profileName: string) {
 
 function moveRuleUp(index: number) {
   if (index === 0) return;
-  console.log('[SwitchyMalaccamax:Options] Move rule', index, 'up');
+  Logger.debug('Move rule up', { index });
   const rules = [...switchProfileRules.value];
   [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
   switchProfileRules.value = rules;
@@ -982,14 +1161,14 @@ function moveRuleUp(index: number) {
 
 function moveRuleDown(index: number) {
   if (index >= switchProfileRules.value.length - 1) return;
-  console.log('[SwitchyMalaccamax:Options] Move rule', index, 'down');
+  Logger.debug('Move rule down', { index });
   const rules = [...switchProfileRules.value];
   [rules[index], rules[index + 1]] = [rules[index + 1], rules[index]];
   switchProfileRules.value = rules;
 }
 
 function deleteRule(index: number) {
-  console.log('[SwitchyMalaccamax:Options] Delete rule', index);
+  Logger.debug('Delete rule', { index });
   const rules = [...switchProfileRules.value];
   rules.splice(index, 1);
   switchProfileRules.value = rules;
@@ -997,7 +1176,7 @@ function deleteRule(index: number) {
 }
 
 function addNewRule() {
-  console.log('[SwitchyMalaccamax:Options] Add new rule');
+  Logger.debug('Add new rule');
   const rules = [...switchProfileRules.value];
   rules.push({
     condition: { conditionType: 'HostWildcardCondition', pattern: '' },
@@ -1008,19 +1187,22 @@ function addNewRule() {
 }
 
 function updateDefaultProfile(profileName: string) {
-  console.log('[SwitchyMalaccamax:Options] Update default profile to', profileName);
+  Logger.debug('Update default profile', { profileName });
   switchProfileDefault.value = profileName;
 }
 
 function configureShortcut() {
-  console.log('[SwitchyMalaccamax:Options] Opening keyboard shortcuts configuration');
+  Logger.info('Opening keyboard shortcuts configuration');
   chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
   toastRef.value?.info('Opening Chrome shortcuts settings...', 'Keyboard Shortcuts', 3000);
 }
 
 onMounted(async () => {
-  console.log('[SwitchyMalaccamax:Options] Loading data from storage...');
-  addLog('info', 'Loading data from storage...');
+  Logger.info('Loading data from storage');
+  
+  // Load current log level and max lines
+  currentLogLevel.value = await getLogLevel();
+  currentLogMaxLines.value = await getLogMaxLines();
   
   // Check if we should open add profile dialog
   const urlParams = new URLSearchParams(window.location.search);
@@ -1038,13 +1220,13 @@ onMounted(async () => {
     const localResult = await chrome.storage.local.get(['profiles']);
     const syncResult = await chrome.storage.sync.get(['activeProfileId', 'settings']);
     
-    addLog('debug', 'Local storage result', { 
+    Logger.debug('Local storage result', { 
       hasProfiles: !!localResult.profiles, 
       profilesCount: localResult.profiles?.length,
       keys: Object.keys(localResult)
     });
     
-    addLog('debug', 'Sync storage result', { 
+    Logger.debug('Sync storage result', { 
       hasActiveProfile: !!syncResult.activeProfileId,
       hasSettings: !!syncResult.settings,
       keys: Object.keys(syncResult)
@@ -1052,8 +1234,8 @@ onMounted(async () => {
     
     const result = { ...localResult, ...syncResult };
     
-    console.log('[SwitchyMalaccamax:Options] Loaded data:', result);
-    addLog('debug', 'Combined storage result', { 
+    Logger.debug('Loaded data', result);
+    Logger.debug('Combined storage result', { 
       hasProfiles: !!result.profiles, 
       profilesType: typeof result.profiles,
       profilesLength: result.profiles?.length,
@@ -1064,8 +1246,7 @@ onMounted(async () => {
     if (result.profiles && result.profiles.length > 0) {
       profiles.value = result.profiles;
       const msg = `Loaded ${result.profiles.length} profiles from storage`;
-      console.log('[SwitchyMalaccamax:Options]', msg);
-      addLog('success', msg);
+      Logger.info(msg);
       
       // Migration: Update profile name capitalization
       let needsSave = false;
@@ -1073,12 +1254,12 @@ onMounted(async () => {
         if (p.name === 'auto switch') {
           p.name = 'Auto Switch';
           needsSave = true;
-          addLog('info', 'Migrated profile name: "auto switch" → "Auto Switch"');
+          Logger.info('Migrated profile name: "auto switch" → "Auto Switch"');
         }
         if (p.name === 'Builtin') {
           p.name = 'Direct';
           needsSave = true;
-          addLog('info', 'Migrated profile name: "Builtin" → "Direct"');
+          Logger.info('Migrated profile name: "Builtin" → "Direct"');
         }
       });
       
@@ -1087,28 +1268,26 @@ onMounted(async () => {
         if (p.profileType === 'SwitchProfile' && p.defaultProfileName === 'Builtin') {
           p.defaultProfileName = 'Direct';
           needsSave = true;
-          addLog('info', 'Migrated default profile name in Auto Switch');
+          Logger.info('Migrated default profile name in Auto Switch');
         }
       });
       
       // Save if migrations were applied
       if (needsSave) {
         await chrome.storage.local.set({ profiles: profiles.value });
-        addLog('success', 'Profile migrations saved');
+        Logger.info('Profile migrations saved');
       }
       
       // Log bypass lists
       result.profiles.forEach((p: any, i: number) => {
         if (p.profileType === 'FixedProfile' && p.bypassList) {
           const bypassMsg = `Profile "${p.name}" has ${p.bypassList.length} bypass rules`;
-          console.log(`[SwitchyMalaccamax:Options] ${bypassMsg}`);
-          addLog('debug', bypassMsg, p.bypassList);
+          Logger.debug(bypassMsg, p.bypassList);
         }
       });
     } else {
       // Keep default profiles and save them to storage
-      console.log('[SwitchyMalaccamax:Options] No profiles in storage, using defaults');
-      addLog('info', 'No profiles in storage, using defaults');
+      Logger.info('No profiles in storage, using defaults');
       await chrome.storage.local.set({ profiles: profiles.value });
     }
     
@@ -1137,8 +1316,7 @@ onMounted(async () => {
       document.documentElement.classList.remove('dark');
     }
     
-    addLog('success', 'Data loaded successfully');
-    console.log('[SwitchyMalaccamax:Options] Data loaded successfully');
+    Logger.info('Data loaded successfully');
     
     // Load debug test conflict state
     const debugResult = await chrome.storage.local.get(['testConflictActive']);
@@ -1146,33 +1324,34 @@ onMounted(async () => {
       testConflictActive.value = debugResult.testConflictActive;
     }
     
+    // Load current log level
+    currentLogLevel.value = await getLogLevel();
+    Logger.debug('Initial log level loaded', { level: LogLevelMetadata[currentLogLevel.value].name });
+    
     // Calculate storage usage
     calculateStorageUsed();
   } catch (error) {
-    addLog('error', 'Failed to load data', error);
-    console.error('[SwitchyMalaccamax:Options] Failed to load data:', error);
+    Logger.error('Failed to load data', error);
   }
 });
 
 async function saveProfiles() {
   const logMsg = `Saving profiles: ${profiles.value.length} profiles`;
-  console.log('[SwitchyMalaccamax:Options]', logMsg);
-  addLog('info', logMsg);
+  Logger.info(logMsg);
   
   // Log each profile with bypass list details
   profiles.value.forEach((p, i) => {
     if (p.profileType === 'FixedProfile') {
       const msg = `Profile ${i}: ${p.name} - bypassList: ${(p as any).bypassList?.length || 0} items`;
-      console.log(`[SwitchyMalaccamax:Options] ${msg}`);
-      addLog('debug', msg, (p as any).bypassList);
+      Logger.debug(msg, (p as any).bypassList);
     }
   });
   
   try {
     // Serialize to plain objects to avoid Vue reactivity proxy issues
     const plainProfiles = JSON.parse(JSON.stringify(profiles.value));
-    addLog('info', 'Serialized profiles for storage');
-    addLog('debug', 'Serialized data size', {
+    Logger.info('Serialized profiles for storage');
+    Logger.debug('Serialized data size', {
       profilesCount: plainProfiles.length,
       jsonSize: JSON.stringify(plainProfiles).length,
       quotaEstimate: `${(JSON.stringify(plainProfiles).length / 1024).toFixed(2)} KB`
@@ -1181,26 +1360,23 @@ async function saveProfiles() {
     // Use chrome.storage.local for profiles (larger quota: 5MB vs 100KB for sync)
     // This prevents quota exceeded errors with large profile configurations
     await chrome.storage.local.set({ profiles: plainProfiles });
-    console.log('[SwitchyMalaccamax:Options] Profiles saved successfully');
-    addLog('success', 'Profiles saved successfully to local storage');
+    Logger.info('Profiles saved successfully to local storage');
     
     // Verify what was saved
     const saved = await chrome.storage.local.get(['profiles']);
-    console.log('[SwitchyMalaccamax:Options] Verification - saved profiles:', saved);
-    addLog('info', `Verification - profiles count: ${saved.profiles?.length || 0}`);
+    Logger.debug('Verification - saved profiles', saved);
+    Logger.info(`Verification - profiles count: ${saved.profiles?.length || 0}`);
     
     if (saved.profiles && saved.profiles.length > 0) {
       saved.profiles.forEach((p: any, i: number) => {
         if (p.profileType === 'FixedProfile') {
           const msg = `Verified profile ${i}: ${p.name} - bypassList: ${p.bypassList?.length || 0} items`;
-          console.log(`[SwitchyMalaccamax:Options] ${msg}`);
-          addLog('debug', msg, p.bypassList);
+          Logger.debug(msg, p.bypassList);
         }
       });
     }
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Options] Failed to save profiles:', error);
-    addLog('error', 'Failed to save profiles', error);
+    Logger.error('Failed to save profiles', error);
     throw error;
   }
 }
@@ -1340,10 +1516,10 @@ function getProfileColor(profile: Profile): string {
 
 function selectProfile(profile: Profile) {
   if (!profile) {
-    console.warn('[SwitchyMalaccamax:Options] Attempted to select undefined profile');
+    Logger.warn('Attempted to select undefined profile');
     return;
   }
-  console.log('[SwitchyMalaccamax:Options] Selected profile:', profile.name);
+  Logger.info('Selected profile', { name: profile.name });
   selectedProfile.value = profile;
   currentView.value = `profile-${profile.id}`;
   
@@ -1384,13 +1560,12 @@ function updateBypassList() {
   }));
   
   const msg = `Updated bypass list for ${selectedProfile.value.name}: ${bypassList.length} items`;
-  console.log('[SwitchyMalaccamax:Options]', msg);
-  addLog('info', msg, lines);
+  Logger.info(msg, lines);
   (selectedProfile.value as any).bypassList = bypassList;
 }
 
 function setTheme(theme: 'light' | 'dark' | 'auto') {
-  console.log('[SwitchyMalaccamax:Options] Setting theme:', theme);
+  Logger.info('Setting theme', { theme });
   settings.value.theme = theme;
   hasUnsavedChanges.value = true;
   
@@ -1413,24 +1588,56 @@ function setTheme(theme: 'light' | 'dark' | 'auto') {
 }
 
 async function saveSettings() {
-  console.log('[SwitchyMalaccamax:Options] Saving settings:', settings.value);
+  Logger.debug('Saving settings', settings.value);
   try {
     await chrome.storage.sync.set({ settings: settings.value });
-    console.log('[SwitchyMalaccamax:Options] Settings saved');
+    Logger.info('Settings saved');
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Options] Failed to save settings:', error);
+    Logger.error('Failed to save settings', error);
     throw error;
   }
 }
 
 function editProfile(profile: Profile) {
-  console.log('[SwitchyMalaccamax:Options] Editing profile:', profile.name);
+  Logger.info('Editing profile', { name: profile.name });
   editingProfile.value = profile;
   showProfileEditor.value = true;
 }
 
+async function exportProfileAsPac(profile: Profile) {
+  Logger.info('Exporting PAC for profile', { name: profile.name, type: profile.profileType });
+  try {
+    // Generate PAC script
+    const pacScript = generatePacScript(profile, profiles.value);
+    
+    // Sanitize filename: replace spaces and special chars with underscores
+    const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+    const filename = `${safeName}.pac`;
+    
+    // Create blob and download with saveAs prompt
+    const blob = new Blob([pacScript], { type: 'application/x-ns-proxy-autoconfig' });
+    const url = URL.createObjectURL(blob);
+    
+    // Use Chrome Downloads API with saveAs to prompt user for location
+    await chrome.downloads.download({
+      url: url,
+      filename: filename,
+      saveAs: true // This prompts the user to choose save location
+    });
+    
+    // Clean up the blob URL after a short delay
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
+    Logger.info('PAC export successful', { filename });
+  } catch (error) {
+    Logger.error('Failed to export PAC', error);
+    toastRef.value?.error('Failed to export PAC script', 'Error');
+  }
+}
+
 async function deleteProfile(profile: Profile) {
-  console.log('[SwitchyMalaccamax:Options] Deleting profile:', profile.name);
+  Logger.info('Deleting profile', { name: profile.name });
   if (settings.value.confirmDelete && !confirm(`Delete profile "${profile.name}"?`)) {
     return;
   }
@@ -1445,16 +1652,16 @@ async function deleteProfile(profile: Profile) {
 }
 
 async function applyChanges() {
-  console.log('[SwitchyMalaccamax:Options] Applying changes...');
+  Logger.info('Applying changes');
   savingChanges.value = true;
   try {
     await saveProfiles();
     await saveSettings();
     hasUnsavedChanges.value = false;
-    console.log('[SwitchyMalaccamax:Options] Changes applied successfully');
+    Logger.info('Changes applied successfully');
     toastRef.value?.success('Changes applied successfully', 'Saved', 2000);
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Options] Failed to apply changes:', error);
+    Logger.error('Failed to apply changes', error);
     toastRef.value?.error('Failed to save changes', 'Error');
   } finally {
     savingChanges.value = false;
@@ -1462,7 +1669,7 @@ async function applyChanges() {
 }
 
 function discardChanges() {
-  console.log('[SwitchyMalaccamax:Options] Discarding changes');
+  Logger.info('Discarding changes');
   if (hasUnsavedChanges.value && !confirm('Discard all unsaved changes?')) {
     return;
   }
@@ -1472,18 +1679,18 @@ function discardChanges() {
 // Watch for changes
 watch(settings, async () => {
   hasUnsavedChanges.value = true;
-  console.log('[SwitchyMalaccamax:Options] Settings changed');
+  Logger.debug('Settings changed');
   
   // Save settings to sync storage
   try {
     await chrome.storage.sync.set({ settings: settings.value });
   } catch (error) {
-    console.error('[SwitchyMalaccamax:Options] Failed to save settings:', error);
+    Logger.error('Failed to save settings', error);
   }
 }, { deep: true });
 
 watch(profiles, () => {
   hasUnsavedChanges.value = true;
-  console.log('[SwitchyMalaccamax:Options] Profiles changed');
+  Logger.debug('Profiles changed');
 }, { deep: true });
 </script>

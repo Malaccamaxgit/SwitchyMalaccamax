@@ -2,7 +2,9 @@
  * Service Worker for SwitchyMalaccamax
  * Handles proxy settings and background tasks
  */
-console.log('[SwitchyMalaccamax] Service worker initialized');
+import { Logger } from '../utils/Logger';
+Logger.setComponentPrefix('Background');
+Logger.info('Service worker initialized');
 /**
  * Initialize icon color based on active profile
  */
@@ -14,15 +16,15 @@ async function initializeIconColor() {
         const activeProfile = profiles.find((p) => p.id === syncResult.activeProfileId);
         if (activeProfile?.color) {
             updateIconColor(activeProfile.color);
-            console.log('[SwitchyMalaccamax] Initialized icon with profile color:', activeProfile.color);
+            Logger.info('Initialized icon with profile color', { color: activeProfile.color });
         }
         else {
             updateIconColor('blue'); // Default color
-            console.log('[SwitchyMalaccamax] Initialized icon with default color: blue');
+            Logger.info('Initialized icon with default color: blue');
         }
     }
     catch (error) {
-        console.error('[SwitchyMalaccamax] Failed to initialize icon color:', error);
+        Logger.error('Failed to initialize icon color', error);
         updateIconColor('blue'); // Fallback to default
     }
 }
@@ -79,7 +81,7 @@ function updateIconColor(color) {
     });
     // Update icon
     chrome.action.setIcon({ imageData });
-    console.log('[SwitchyMalaccamax] Icon updated with color:', color, hexColor);
+    Logger.debug('Icon updated with color', { color, hexColor });
 }
 /**
  * Apply startup profile on extension initialization
@@ -91,13 +93,15 @@ async function applyStartupProfile() {
         const profiles = localResult.profiles || [];
         const settings = syncResult.settings || {};
         const startupProfileId = settings.startupProfile;
-        console.log('[SwitchyMalaccamax] Startup profile ID:', startupProfileId);
-        console.log('[SwitchyMalaccamax] Current active profile ID:', syncResult.activeProfileId);
+        Logger.debug('Checking startup profile', {
+            startupProfileId,
+            currentActiveProfileId: syncResult.activeProfileId
+        });
         // If there's a startup profile set and it's different from current, apply it
         if (startupProfileId && startupProfileId !== syncResult.activeProfileId) {
             const startupProfile = profiles.find((p) => p.id === startupProfileId);
             if (startupProfile) {
-                console.log('[SwitchyMalaccamax] Applying startup profile:', startupProfile.name);
+                Logger.info('Applying startup profile', { name: startupProfile.name });
                 // Update active profile
                 await chrome.storage.sync.set({ activeProfileId: startupProfileId });
                 // Build and apply proxy config
@@ -140,11 +144,11 @@ async function applyStartupProfile() {
             }
         }
         else {
-            console.log('[SwitchyMalaccamax] No startup profile change needed');
+            Logger.debug('No startup profile change needed');
         }
     }
     catch (error) {
-        console.error('[SwitchyMalaccamax] Failed to apply startup profile:', error);
+        Logger.error('Failed to apply startup profile', error);
     }
 }
 // Check conflicts immediately on startup
@@ -156,7 +160,7 @@ applyStartupProfile();
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === 'install') {
-        console.log('[SwitchyMalaccamax] Extension installed');
+        Logger.info('Extension installed');
         // Initialize default settings
         chrome.storage.sync.set({
             profiles: [],
@@ -186,12 +190,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 // Monitor proxy settings changes (with delay to allow changes to propagate)
 chrome.proxy.settings.onChange.addListener((details) => {
-    console.log('[SwitchyMalaccamax] ⚠️ PROXY SETTINGS CHANGED ⚠️');
-    console.log('[SwitchyMalaccamax] Change details:', JSON.stringify(details, null, 2));
-    console.log('[SwitchyMalaccamax] Level of control from onChange:', details.levelOfControl);
+    Logger.debug('Proxy settings changed', {
+        levelOfControl: details.levelOfControl
+    });
     // Check levelOfControl directly from the onChange event
     if (details.levelOfControl === 'controlled_by_other_extensions') {
-        console.warn('[SwitchyMalaccamax] Detected control by another extension via onChange!');
+        Logger.warn('Detected control by another extension');
         chrome.action.setBadgeText({ text: '!' });
         chrome.action.setBadgeBackgroundColor({ color: '#DC2626' });
         chrome.action.setTitle({
@@ -199,7 +203,7 @@ chrome.proxy.settings.onChange.addListener((details) => {
         });
     }
     else if (details.levelOfControl === 'not_controllable') {
-        console.warn('[SwitchyMalaccamax] Detected not_controllable via onChange!');
+        Logger.warn('Detected not_controllable');
         chrome.action.setBadgeText({ text: '?' });
         chrome.action.setBadgeBackgroundColor({ color: '#F59E0B' });
         chrome.action.setTitle({
@@ -207,7 +211,7 @@ chrome.proxy.settings.onChange.addListener((details) => {
         });
     }
     else if (details.levelOfControl === 'controlled_by_this_extension') {
-        console.log('[SwitchyMalaccamax] Confirmed control via onChange');
+        Logger.debug('Confirmed control via onChange');
         chrome.action.setBadgeText({ text: '' });
         chrome.action.setBadgeBackgroundColor({ color: [0, 0, 0, 0] });
         chrome.action.setTitle({ title: 'SwitchyMalaccamax - Proxy Switcher' });
@@ -227,9 +231,10 @@ async function checkProxyConflicts() {
     try {
         const proxySettings = await chrome.proxy.settings.get({});
         const levelOfControl = proxySettings.levelOfControl;
-        console.log('[SwitchyMalaccamax] === Conflict Check ===');
-        console.log('[SwitchyMalaccamax] Level of control:', levelOfControl);
-        console.log('[SwitchyMalaccamax] Current proxy config:', JSON.stringify(proxySettings.value, null, 2));
+        Logger.debug('Conflict check', {
+            levelOfControl,
+            config: proxySettings.value
+        });
         if (levelOfControl === 'controlled_by_other_extensions') {
             // Another extension has higher priority - show red badge
             await chrome.action.setBadgeText({ text: '!' });
@@ -237,21 +242,21 @@ async function checkProxyConflicts() {
             await chrome.action.setTitle({
                 title: 'SwitchyMalaccamax - Conflict: Another extension has higher priority'
             });
-            console.warn('[SwitchyMalaccamax] Proxy controlled by another extension');
+            Logger.warn('Proxy controlled by another extension');
         }
         else if (levelOfControl === 'controlled_by_this_extension') {
             // This extension has control - clear badge completely
             await chrome.action.setBadgeText({ text: '' });
             await chrome.action.setBadgeBackgroundColor({ color: [0, 0, 0, 0] }); // Transparent
             await chrome.action.setTitle({ title: 'SwitchyMalaccamax - Proxy Switcher' });
-            console.log('[SwitchyMalaccamax] Proxy controlled by this extension');
+            Logger.debug('Proxy controlled by this extension');
         }
         else if (levelOfControl === 'controllable_by_this_extension') {
             // Can take control but hasn't - clear badge completely
             await chrome.action.setBadgeText({ text: '' });
             await chrome.action.setBadgeBackgroundColor({ color: [0, 0, 0, 0] }); // Transparent
             await chrome.action.setTitle({ title: 'SwitchyMalaccamax - Proxy Switcher' });
-            console.log('[SwitchyMalaccamax] Proxy controllable by this extension');
+            Logger.debug('Proxy controllable by this extension');
         }
         else {
             // Not controllable (policy/system) - show amber warning
@@ -260,11 +265,11 @@ async function checkProxyConflicts() {
             await chrome.action.setTitle({
                 title: 'SwitchyMalaccamax - Warning: Proxy cannot be controlled'
             });
-            console.warn('[SwitchyMalaccamax] Proxy not controllable');
+            Logger.warn('Proxy not controllable');
         }
     }
     catch (error) {
-        console.error('[SwitchyMalaccamax] Failed to check proxy conflicts:', error);
+        Logger.error('Failed to check proxy conflicts', error);
     }
 }
 /**
@@ -276,17 +281,16 @@ async function handleSetProxy(config) {
             value: config,
             scope: 'regular',
         });
-        console.log('[SwitchyMalaccamax] Proxy set successfully');
+        Logger.info('Proxy set successfully');
         // Check for conflicts immediately and again after a delay
         await checkProxyConflicts();
         setTimeout(() => checkProxyConflicts(), 500);
         setTimeout(() => checkProxyConflicts(), 1500);
     }
     catch (error) {
-        console.error('[SwitchyMalaccamax] Failed to set proxy:', error);
+        Logger.error('Failed to set proxy', error);
         // Check conflicts even on error to show current state
         await checkProxyConflicts();
     }
 }
-export {};
 //# sourceMappingURL=service-worker.js.map

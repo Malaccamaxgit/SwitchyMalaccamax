@@ -141,6 +141,9 @@
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { Play, Square, Trash2, Activity, Download } from 'lucide-vue-next';
 import { Dialog, Card, Button, Badge } from '@/components/ui';
+import { Logger } from '@/utils/Logger';
+
+Logger.setComponentPrefix('NetworkMonitor');
 
 interface NetworkRequest {
   id: string;
@@ -204,7 +207,7 @@ function toggleMonitoring() {
 }
 
 function startMonitoring() {
-  console.log('[SwitchyMalaccamax:NetworkMonitor] Starting network monitoring');
+  Logger.info('Starting network monitoring');
   isMonitoring.value = true;
   
   // Listen to completed requests
@@ -230,7 +233,7 @@ function startMonitoring() {
 }
 
 function stopMonitoring() {
-  console.log('[SwitchyMalaccamax:NetworkMonitor] Stopping network monitoring');
+  Logger.info('Stopping network monitoring');
   isMonitoring.value = false;
   
   if (requestListener) {
@@ -240,12 +243,12 @@ function stopMonitoring() {
 }
 
 function clearLogs() {
-  console.log('[SwitchyMalaccamax:NetworkMonitor] Clearing logs');
+  Logger.info('Clearing logs');
   requests.value = [];
 }
 
 async function exportAnalytics() {
-  console.log('[SwitchyMalaccamax:NetworkMonitor] Exporting analytics');
+  Logger.info('Exporting analytics');
   
   // Prepare CSV data
   const headers = ['Timestamp', 'Status', 'Method', 'URL'];
@@ -291,15 +294,15 @@ async function exportAnalytics() {
     await writable.write(fullContent);
     await writable.close();
     
-    console.log('[SwitchyMalaccamax:NetworkMonitor] Analytics exported successfully');
+    Logger.info('Analytics exported successfully');
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      console.log('[SwitchyMalaccamax:NetworkMonitor] Export cancelled by user');
+      Logger.info('Export cancelled by user');
       return;
     }
     
     // Fallback to download if File System Access API fails
-    console.log('[SwitchyMalaccamax:NetworkMonitor] Using fallback download method');
+    Logger.info('Using fallback download method');
     const blob = new Blob([fullContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

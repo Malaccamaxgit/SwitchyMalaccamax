@@ -17,6 +17,9 @@
 
 import { SECURITY_LIMITS } from './constants';
 import type { WildcardValidationResult } from './types';
+import { Logger } from '../../utils/Logger';
+
+const log = Logger.scope('WildcardMatcher');
 
 export class WildcardMatcher {
   /**
@@ -70,7 +73,7 @@ export class WildcardMatcher {
     const validation = this.validate(patterns);
     
     if (!validation.valid || !validation.patterns) {
-      console.warn(`[WildcardMatcher] Invalid patterns: ${validation.reason}`);
+      log.warn('Invalid patterns', { reason: validation.reason });
       return false;
     }
 

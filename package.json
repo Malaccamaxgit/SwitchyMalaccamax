@@ -1,6 +1,6 @@
 {
   "name": "switchymalaccamax",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Modern Chrome Extension for intelligent proxy switching with security-first design",
   "type": "module",
   "scripts": {
