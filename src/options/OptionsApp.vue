@@ -322,6 +322,58 @@
         </div>
       </div>
 
+      <!-- Debug View -->
+      <div v-else-if="currentView === 'debug'" class="max-w-3xl mx-auto p-8">
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Debug Tools</h2>
+        
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Proxy Conflict Testing</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
+            <div class="mb-4">
+              <p class="text-[13px] text-slate-700 dark:text-zinc-400 mb-2">
+                Test how the extension handles proxy conflicts by simulating a conflict warning in the popup.
+              </p>
+              <p class="text-[12px] text-slate-500 dark:text-zinc-500">
+                This will display a conflict warning banner in the popup window without actually creating a real proxy conflict.
+              </p>
+            </div>
+            <button
+              @click="toggleTestConflict"
+              class="w-full px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+              :class="testConflictActive 
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                : 'bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800'"
+            >
+              <Bug class="h-4 w-4" />
+              {{ testConflictActive ? '✓ Test Conflict Active' : 'Activate Test Conflict' }}
+            </button>
+            <div v-if="testConflictActive" class="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-md">
+              <p class="text-[12px] text-emerald-700 dark:text-emerald-400">
+                ✓ Test conflict is active. Open the popup to see the conflict warning banner.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Extension Information</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Version:</span>
+              <span class="text-slate-900 dark:text-white font-mono">0.1.1</span>
+            </div>
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Manifest Version:</span>
+              <span class="text-slate-900 dark:text-white font-mono">3</span>
+            </div>
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Storage Used:</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ storageUsed }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- Profile Detail View -->
       <div v-else-if="selectedProfile" class="max-w-4xl mx-auto p-8">
         <div class="flex items-center justify-between mb-8">
@@ -622,7 +674,8 @@ import {
   ArrowDown,
   Sun,
   Moon,
-  Activity
+  Activity,
+  Bug
 } from 'lucide-vue-next';
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
@@ -642,6 +695,8 @@ const hasUnsavedChanges = ref(false);
 const bypassListText = ref<string>('');
 const logs = ref<Array<{ timestamp: string; level: string; message: string; data?: any }>>([]);
 const maxLogs = 500;
+const testConflictActive = ref(false);
+const storageUsed = ref('Calculating...');
 
 const settingsNav = [
   { id: 'interface', label: 'Interface', icon: Settings },
@@ -649,6 +704,7 @@ const settingsNav = [
   { id: 'import-export', label: 'Import/Export', icon: FileText },
   { id: 'theme', label: 'Theme', icon: Palette },
   { id: 'logs', label: 'Logs', icon: FileText },
+  { id: 'debug', label: 'Debug', icon: Bug },
 ];
 
 const settings = ref({
@@ -730,6 +786,33 @@ function exportLogs() {
   a.click();
   URL.revokeObjectURL(url);
   console.log('[SwitchyMalaccamax:Options] Logs exported');
+}
+
+async function toggleTestConflict() {
+  testConflictActive.value = !testConflictActive.value;
+  
+  // Store the test conflict state in chrome.storage so popup can read it
+  await chrome.storage.local.set({ testConflictActive: testConflictActive.value });
+  
+  addLog('info', `Test conflict ${testConflictActive.value ? 'activated' : 'deactivated'}`);
+  
+  toastRef.value?.show({
+    title: testConflictActive.value ? 'Test Conflict Activated' : 'Test Conflict Deactivated',
+    description: testConflictActive.value 
+      ? 'Open the popup to see the conflict warning banner.'
+      : 'Conflict warning removed from popup.',
+    variant: 'default'
+  });
+}
+
+async function calculateStorageUsed() {
+  try {
+    const usage = await chrome.storage.local.getBytesInUse();
+    const usageKB = (usage / 1024).toFixed(2);
+    storageUsed.value = `${usageKB} KB`;
+  } catch (error) {
+    storageUsed.value = 'N/A';
+  }
 }
 
 const activeProfile = computed(() => 
@@ -1056,6 +1139,15 @@ onMounted(async () => {
     
     addLog('success', 'Data loaded successfully');
     console.log('[SwitchyMalaccamax:Options] Data loaded successfully');
+    
+    // Load debug test conflict state
+    const debugResult = await chrome.storage.local.get(['testConflictActive']);
+    if (debugResult.testConflictActive !== undefined) {
+      testConflictActive.value = debugResult.testConflictActive;
+    }
+    
+    // Calculate storage usage
+    calculateStorageUsed();
   } catch (error) {
     addLog('error', 'Failed to load data', error);
     console.error('[SwitchyMalaccamax:Options] Failed to load data:', error);

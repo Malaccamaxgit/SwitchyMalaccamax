@@ -116,15 +116,6 @@
           Add Profile
         </button>
       </div>
-      <!-- Debug Test Button -->
-      <div class="px-2.5 pb-2.5">
-        <button
-          @click="toggleTestConflict"
-          class="w-full px-2 py-1.5 rounded text-[11px] font-medium text-zinc-500 dark:text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          {{ hasConflict ? '✓ Test: Hide Conflict' : '⚠ Test: Show Conflict' }}
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -224,9 +215,15 @@ onMounted(async () => {
   // Load active profile from storage
   try {
     // Load profiles from local storage (larger quota), settings from sync
-    const localResult = await chrome.storage.local.get(['profiles']);
+    const localResult = await chrome.storage.local.get(['profiles', 'testConflictActive']);
     const syncResult = await chrome.storage.sync.get(['activeProfileId', 'settings']);
     const result = { ...localResult, ...syncResult };
+    
+    // Check if test conflict is active (for debug purposes)
+    if (result.testConflictActive) {
+      hasConflict.value = true;
+      conflictMessage.value = 'Test conflict: Another extension is controlling the proxy';
+    }
     
     if (result.profiles && Array.isArray(result.profiles)) {
       profiles.value = result.profiles;
@@ -266,12 +263,6 @@ onMounted(async () => {
   }
 });
 
-function toggleTestConflict() {
-  hasConflict.value = !hasConflict.value;
-  if (hasConflict.value) {
-    conflictMessage.value = 'Test conflict: Another extension is controlling the proxy';
-  }
-}
 
 function getProfileIcon(profile: Profile) {
   switch (profile.profileType) {
