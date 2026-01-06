@@ -810,6 +810,8 @@ Logger.setComponentPrefix('Options');
 const isDark = useDark();
 const toastRef = ref<InstanceType<typeof Toast>>();
 const showProfileEditor = ref(false);
+const showEditor = ref(false);
+const showTemplates = ref(false);
 const editingProfile = ref<Profile | undefined>();
 const currentView = ref('interface');
 const selectedProfile = ref<Profile | undefined>();
