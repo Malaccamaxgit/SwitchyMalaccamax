@@ -8,15 +8,50 @@ Logger.setComponentPrefix('Crypto');
 
 // Key derivation parameters
 const PBKDF2_ITERATIONS = 100000;
-const SALT_LENGTH = 16;
+const SALT_LENGTH = 32;
 const IV_LENGTH = 12;
+const USER_SALT_KEY = 'crypto_user_salt';
 
 /**
- * Generate a deterministic encryption key from extension ID
- * Uses PBKDF2 to derive key from runtime ID (unique per installation)
+ * Generate or retrieve user-specific random salt
+ * Security: Adds per-user entropy to prevent cross-user key predictability
+ */
+async function getUserSalt(): Promise<Uint8Array> {
+  try {
+    const stored = await chrome.storage.local.get(USER_SALT_KEY);
+    
+    if (stored[USER_SALT_KEY]) {
+      // Convert stored base64 back to Uint8Array
+      const saltStr = stored[USER_SALT_KEY];
+      return Uint8Array.from(atob(saltStr), c => c.charCodeAt(0));
+    }
+    
+    // Generate new random salt
+    const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+    
+    // Store as base64
+    const saltStr = btoa(String.fromCharCode(...salt));
+    await chrome.storage.local.set({ [USER_SALT_KEY]: saltStr });
+    
+    Logger.info('Generated new user-specific encryption salt');
+    return salt;
+  } catch (error) {
+    Logger.error('Failed to get/generate user salt', error);
+    // Fallback to deterministic salt (degraded security)
+    const fallback = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(chrome.runtime.id + Date.now())
+    );
+    return new Uint8Array(fallback).slice(0, SALT_LENGTH);
+  }
+}
+
+/**
+ * Generate encryption key from extension ID + user-specific salt
+ * Security: Combines extension ID (installation-unique) with random user salt (user-unique)
  */
 async function getEncryptionKey(): Promise<CryptoKey> {
-  // Use extension ID as base material (unique per installation)
+  // Use extension ID as base material
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(chrome.runtime.id),
@@ -25,17 +60,17 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     ['deriveKey']
   );
 
-  // Generate deterministic salt from extension ID
-  const salt = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(chrome.runtime.id + 'switchymalaccamax-salt')
-  );
+  // Get user-specific random salt
+  const userSalt = await getUserSalt();
 
-  // Derive encryption key
+  // Convert to plain ArrayBuffer for compatibility
+  const saltBuffer = userSalt.slice().buffer as ArrayBuffer;
+
+  // Derive encryption key with user salt
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: new Uint8Array(salt).slice(0, SALT_LENGTH),
+      salt: saltBuffer,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },

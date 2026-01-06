@@ -1,0 +1,16 @@
+#!/bin/sh
+# Husky pre-commit hook for security checks
+
+echo "🔒 Running pre-commit security checks..."
+
+# Run security scanner
+node scripts/pre-commit-security.js
+
+# Check exit code
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit security checks failed!"
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0

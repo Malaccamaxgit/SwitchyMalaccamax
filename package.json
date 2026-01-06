@@ -6,14 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:prod": "node scripts/production-logger.js && npm run build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:security": "vitest run tests/security/",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.vue",
     "lint:fix": "eslint . --ext .ts,.vue --fix",
-    "format": "prettier --write \"src/**/*.{ts,vue,css}\""
+    "format": "prettier --write \"src/**/*.{ts,vue,css}\"",
+    "security:scan": "node scripts/pre-commit-security.js",
+    "security:audit": "npm audit && node scripts/secret-scanner.js"
   },
   "dependencies": {
     "@vueuse/core": "^14.1.0",

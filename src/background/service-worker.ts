@@ -8,6 +8,38 @@ import { migrateToEncryptedStorage } from '../utils/migration';
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
 
+// ============================================================================
+// MESSAGE TYPES (Security Enhancement)
+// ============================================================================
+
+interface BaseMessage {
+  action: string;
+}
+
+interface SetProxyMessage extends BaseMessage {
+  action: 'setProxy';
+  config: chrome.proxy.ProxyConfig;
+  profileColor?: string;
+}
+
+interface CheckConflictsMessage extends BaseMessage {
+  action: 'checkConflicts';
+}
+
+type ExtensionMessage = SetProxyMessage | CheckConflictsMessage;
+
+// Action whitelist for validation
+const ALLOWED_ACTIONS = ['setProxy', 'checkConflicts'] as const;
+type AllowedAction = typeof ALLOWED_ACTIONS[number];
+
+function isAllowedAction(action: any): action is AllowedAction {
+  return ALLOWED_ACTIONS.includes(action);
+}
+
+// Rate limiting map: senderId -> last message timestamp
+const messageRateLimit = new Map<string, number>();
+const RATE_LIMIT_MS = 100; // Max 10 messages per second per sender
+
 // Run storage encryption migration on startup
 migrateToEncryptedStorage().catch(error => {
   Logger.error('Failed to migrate storage to encryption', error);
@@ -241,11 +273,31 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 // Listen for messages from popup/options
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   // Security: Validate sender is from this extension
   if (sender.id !== chrome.runtime.id) {
     Logger.warn('Rejected message from unknown sender', { senderId: sender.id });
     sendResponse({ success: false, error: 'Invalid sender' });
+    return false;
+  }
+  
+  // Security: Rate limiting (prevent message spam)
+  const senderId = sender.tab?.id?.toString() || sender.url || 'unknown';
+  const now = Date.now();
+  const lastMessage = messageRateLimit.get(senderId) || 0;
+  
+  if (now - lastMessage < RATE_LIMIT_MS) {
+    Logger.warn('Rate limit exceeded', { senderId, timeSinceLastMessage: now - lastMessage });
+    sendResponse({ success: false, error: 'Rate limit exceeded' });
+    return false;
+  }
+  
+  messageRateLimit.set(senderId, now);
+  
+  // Security: Validate action is in whitelist
+  if (!message.action || !isAllowedAction(message.action)) {
+    Logger.warn('Rejected unknown action', { action: message.action });
+    sendResponse({ success: false, error: 'Unknown action' });
     return false;
   }
   
@@ -282,9 +334,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep channel open for async response
   }
   
-  // Unknown action
-  Logger.warn('Unknown message action', { action: message.action });
-  sendResponse({ success: false, error: 'Unknown action' });
+  // This should never be reached due to whitelist check - all cases handled above
   return false;
 });
 

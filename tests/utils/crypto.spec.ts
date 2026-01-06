@@ -1,10 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { encryptData, decryptData, isEncrypted, encryptProfile, decryptProfile } from '../../src/utils/crypto';
 
-// Mock chrome.runtime for testing
+// Mock chrome API for testing
+const mockStorage: Record<string, any> = {};
 global.chrome = {
   runtime: {
     id: 'test-extension-id-12345',
+  },
+  storage: {
+    local: {
+      get: async (key: string | string[]) => {
+        const keys = Array.isArray(key) ? key : [key];
+        const result: Record<string, any> = {};
+        keys.forEach(k => {
+          if (mockStorage[k]) result[k] = mockStorage[k];
+        });
+        return result;
+      },
+      set: async (items: Record<string, any>) => {
+        Object.assign(mockStorage, items);
+      },
+    },
   },
 } as any;
 
