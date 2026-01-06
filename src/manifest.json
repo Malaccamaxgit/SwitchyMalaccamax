@@ -6,7 +6,6 @@
   "permissions": [
     "proxy",
     "storage",
-    "webRequest",
     "downloads"
   ],
   "background": {

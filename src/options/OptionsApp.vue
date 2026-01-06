@@ -370,34 +370,7 @@
           </div>
         </section>
 
-        <!-- Network Requests Section -->
-        <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Network Requests</h3>
-          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
-            <label class="flex items-start gap-3 cursor-pointer group">
-              <input type="checkbox" v-model="settings.showFailedRequests" 
-                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-              <div>
-                <div class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight mb-1">
-                  Show failed web requests
-                </div>
-                <div class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed">
-                  Display a yellow badge on the icon when resources fail to load. 
-                  Allows quick profile configuration via popup menu.
-                </div>
-              </div>
-            </label>
-            <div>
-              <button
-                @click="showNetworkMonitor = true"
-                class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
-              >
-                <Activity class="h-3.5 w-3.5" />
-                Open Network Monitor
-              </button>
-            </div>
-          </div>
-        </section>
+
 
         <!-- Conflicts Section -->
         <section class="mb-8">
@@ -788,7 +761,7 @@
       @cancel="editingProfile = undefined"
     />
 
-    <NetworkMonitor v-model="showNetworkMonitor" />
+
 
     <Toast ref="toastRef" position="bottom-right" />
   </div>
@@ -820,13 +793,11 @@ import {
   ArrowDown,
   Sun,
   Moon,
-  Activity,
   Bug
 } from 'lucide-vue-next';
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
 import { encryptProfile, decryptProfile } from '@/utils/crypto';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
-import { NetworkMonitor } from '@/components/network';
 import { generatePacScript } from '@/core/pac/pac-generator';
 import { Logger, LogLevel, LogLevelMetadata, getLogLevel, setLogLevel as saveLogLevel, getLogMaxLines, setLogMaxLines } from '@/utils/Logger';
 import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
@@ -838,7 +809,6 @@ Logger.setComponentPrefix('Options');
 const isDark = useDark();
 const toastRef = ref<InstanceType<typeof Toast>>();
 const showProfileEditor = ref(false);
-const showNetworkMonitor = ref(false);
 const editingProfile = ref<Profile | undefined>();
 const currentView = ref('interface');
 const selectedProfile = ref<Profile | undefined>();
@@ -913,7 +883,6 @@ const settingsNav = [
 const settings = ref({
   confirmDelete: true,
   startupProfile: 'profile-1',
-  showFailedRequests: false,
   downloadInterval: 'never',
   theme: 'light' as 'light' | 'dark' | 'auto',
 });

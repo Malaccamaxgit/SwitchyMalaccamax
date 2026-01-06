@@ -1,4 +1,3 @@
 declare module 'safe-regex' {
-  function safeRegex(pattern: string): boolean;
-  export default safeRegex;
+  export default function safe(re: RegExp | string, options?: { limit?: number }): boolean;
 }
