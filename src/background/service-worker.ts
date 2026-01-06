@@ -262,7 +262,11 @@ applyStartupProfile();
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     Logger.info('Extension installed');
-    // Initialize default settings
+    // Initialize default settings including log level
+    chrome.storage.local.set({
+      logLevel: 1, // LogLevel.INFO
+      logMaxLines: 1000
+    });
     chrome.storage.sync.set({
       profiles: [],
       activeProfile: 'direct',

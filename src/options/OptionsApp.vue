@@ -211,6 +211,25 @@
       <div v-else-if="currentView === 'debug'" class="max-w-5xl mx-auto p-8">
         <h2 class="text-2xl font-semibold mb-8 tracking-tight">Debug & Logs</h2>
         
+        <!-- Extension Information -->
+        <section class="mb-8">
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Extension Information</h3>
+          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Version:</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ VERSION }}</span>
+            </div>
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Manifest Version:</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ getManifestVersion() }}</span>
+            </div>
+            <div class="flex justify-between text-[13px]">
+              <span class="text-slate-500 dark:text-zinc-500">Storage Used:</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ storageUsed }}</span>
+            </div>
+          </div>
+        </section>
+        
         <!-- Log Viewer Section (moved to top) -->
         <section class="mb-8">
           <div class="flex items-center justify-between mb-4">
@@ -385,24 +404,6 @@
                 A red badge on the icon indicates another app has higher priority. Try uninstalling 
                 other apps and reinstalling to raise SwitchyMalaccamax's priority.
               </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Extension Information</h3>
-          <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
-            <div class="flex justify-between text-[13px]">
-              <span class="text-slate-500 dark:text-zinc-500">Version:</span>
-              <span class="text-slate-900 dark:text-white font-mono">{{ VERSION }}</span>
-            </div>
-            <div class="flex justify-between text-[13px]">
-              <span class="text-slate-500 dark:text-zinc-500">Manifest Version:</span>
-              <span class="text-slate-900 dark:text-white font-mono">{{ getManifestVersion() }}</span>
-            </div>
-            <div class="flex justify-between text-[13px]">
-              <span class="text-slate-500 dark:text-zinc-500">Storage Used:</span>
-              <span class="text-slate-900 dark:text-white font-mono">{{ storageUsed }}</span>
             </div>
           </div>
         </section>
@@ -960,15 +961,14 @@ async function exportLogsToFile() {
     const url = URL.createObjectURL(blob);
     const filename = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
     
-    // Use Chrome Downloads API with saveAs to prompt user for location
-    await chrome.downloads.download({
-      url: url,
-      filename: filename,
-      saveAs: true // This prompts the user to choose save location
-    });
+    // Use <a download> to trigger save dialog
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
     
     // Clean up the blob URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
     
     Logger.info('Logs exported to file', { count: logsToExport.length, filename });
     toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
@@ -1680,19 +1680,18 @@ async function exportProfileAsPac(profile: Profile) {
     const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
     const filename = `${safeName}.pac`;
     
-    // Create blob and download with saveAs prompt
+    // Create blob and download with save dialog
     const blob = new Blob([pacScript], { type: 'application/x-ns-proxy-autoconfig' });
     const url = URL.createObjectURL(blob);
     
-    // Use Chrome Downloads API with saveAs to prompt user for location
-    await chrome.downloads.download({
-      url: url,
-      filename: filename,
-      saveAs: true // This prompts the user to choose save location
-    });
+    // Use <a download> to trigger save dialog
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
     
     // Clean up the blob URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
     
     toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
     Logger.info('PAC export successful', { filename });

@@ -47,7 +47,7 @@ Implementation: [`src/utils/crypto.ts`](./src/utils/crypto.ts)
 
 - **Content Security Policy**: Strict CSP in manifest prevents inline script execution
 - **Input Sanitization**: All user inputs validated before use
-- **Minimal Permissions**: Extension requests only `proxy`, `storage`, and `downloads` permissions
+- **Minimal Permissions**: Extension requests only `proxy` and `storage` permissions
 - **No eval()**: No dynamic code execution
 - **TypeScript Strict Mode**: Type checking prevents common errors
 

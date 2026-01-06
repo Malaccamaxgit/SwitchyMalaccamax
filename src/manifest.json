@@ -5,8 +5,7 @@
   "description": "Modern proxy switcher with intelligent pattern matching and security-first design",
   "permissions": [
     "proxy",
-    "storage",
-    "downloads"
+    "storage"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",
