@@ -1,33 +1,38 @@
 # SwitchyMalaccamax
 
-> Chrome Extension for proxy management
+Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt with TypeScript, Vue 3, and Vite.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
-[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Security Score](https://img.shields.io/badge/Security%20Score-9.5%2F10-brightgreen.svg)](./docs/development/SECURITY_AUDIT_REPORT.md)
-[![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20CVEs-brightgreen.svg)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/security)
-
-A Chrome extension for managing proxy configurations. Built with TypeScript, Vue 3, and Vite. Includes ReDoS attack prevention, AES-256-GCM credential encryption, and automated security scanning.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 
 ## Features
 
-- Switch proxy profiles manually or automatically based on URL patterns
+- Switch between multiple proxy profiles manually or automatically
 - 5 profile types: Direct, Fixed Server, PAC Script, Auto Switch, System Proxy
-- 7 condition types for auto-switching: wildcards, regex, keywords, host levels, bypass
-- TypeScript with strict mode and Vue 3 Composition API
-- ReDoS-safe pattern matching (< 50ms guaranteed)
-- AES-256-GCM credential encryption
-- 150+ tests with Vitest
+- 7 condition types for auto-switching: wildcards, regex, keywords, host levels, URL patterns, bypass rules
+- Import/export configurations
+- Generate PAC (Proxy Auto-Configuration) scripts
 
-## 🚀 Quick Start
+### Technical Details
 
-### Prerequisites
+- **Language**: TypeScript 5.7 (strict mode)
+- **Framework**: Vue 3 Composition API
+- **Build**: Vite 6 with @crxjs/vite-plugin
+- **Testing**: Vitest (163 tests)
+- **Security**: ReDoS-safe pattern matching, AES-256-GCM credential encryption
+- **Target**: Chrome Manifest V3
 
-- Node.js 18+ and npm 9+
-- Chrome/Chromium 88+
+## Installation
 
-### Installation
+### For Users
+
+1. Download the latest release from GitHub
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" (toggle in top-right)
+4. Click "Load unpacked"
+5. Select the `dist/` folder from the extracted release
+
+### For Developers
 
 ```bash
 # Clone the repository
@@ -39,124 +44,81 @@ npm install
 
 # Build the extension
 npm run build
+
+# Development mode with hot reload
+npm run dev
 ```
 
-### Load Extension in Chrome
+## Usage
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in top-right)
-3. Click "Load unpacked"
-4. Select the `dist/` directory from the project root
-5. The extension icon will appear in your toolbar
+Click the extension icon in your browser toolbar to:
+- Quickly switch between configured proxy profiles
+- Access the options page for detailed configuration
 
-### Development Mode
+### Condition Types
+
+Auto Switch profiles support these matching conditions:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| Host Wildcard | Match hostnames with wildcards | `*.example.com` |
+| Host Regex | Match hostnames with regex | `^.*\.example\.com$` |
+| URL Wildcard | Match full URLs with wildcards | `https://*.example.com/*` |
+| URL Regex | Match full URLs with regex | `^https://.*\.example\.com/.*$` |
+| Keyword | Simple substring match | `example` |
+| Host Levels | Match by subdomain depth | Min: 2, Max: 3 |
+| Bypass | Always use direct connection | — |
+
+## Development
+
+For development setup:
 
 ```bash
-# Start development server with hot reload
-npm run dev
-
-# Run tests
-npm test
-
-# Run tests with UI
-npm run test:ui
-
-# Type checking
-npm run typecheck
-
-# Lint and format
-npm run lint
-npm run format
+npm run dev          # Development mode with hot reload
+npm test             # Run tests
+npm run typecheck    # Type checking
+npm run lint         # Lint code
+npm run format       # Format code
 ```
 
-## 📦 Technology Stack
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| **Language** | TypeScript | 5.7+ |
-| **Framework** | Vue 3 (Composition API) | 3.5+ |
-| **Build Tool** | Vite | 6.0+ |
-| **Testing** | Vitest | 4.0+ |
-| **Styling** | Tailwind CSS | 3.4+ |
-| **Extension Plugin** | @crxjs/vite-plugin | 2.0+ |
-| **Target** | Chrome Manifest V3 | — |
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
 
 ## Project Structure
 
 ```
 src/
-├── background/          # Service worker
-├── popup/              # Quick switch UI
-├── options/            # Configuration page
-├── components/         # Vue components
-├── core/               # Business logic
-│   ├── schema.ts       # Type definitions
-│   ├── conditions.ts   # Pattern matching
-│   ├── pac/            # PAC generation
-│   └── security/       # ReDoS prevention
-├── utils/              # Utilities (crypto, Logger)
-└── manifest.json       # Extension manifest
+├── background/       # Service worker
+├── popup/           # Quick switch UI
+├── options/         # Configuration page
+├── components/      # Vue components
+├── core/            # Business logic
+│   ├── schema.ts    # Type definitions
+│   ├── conditions.ts # Pattern matching
+│   ├── pac/         # PAC generation
+│   └── security/    # ReDoS prevention
+└── utils/           # Utilities (crypto, logging)
 
-tests/                  # Vitest test suites
+tests/               # Test suites
 ```
-
-## Configuration
-
-### Condition Types
-
-Auto Switch profiles support these condition types:
-
-| Condition Type | Description | Example |
-|---------------|-------------|---------|
-| `HostWildcardCondition` | Wildcard hostname matching | `*.example.com` |
-| `HostRegexCondition` | Regex hostname matching | `^.*\.example\.com$` |
-| `UrlWildcardCondition` | Wildcard full URL matching | `https://*.example.com/*` |
-| `UrlRegexCondition` | Regex full URL matching | `^https://.*\.example\.com/.*$` |
-| `KeywordCondition` | Simple substring match | `example` |
-| `HostLevelsCondition` | Subdomain depth matching | `minValue: 2, maxValue: 3` |
-| `BypassCondition` | Always bypass proxy | — |
-
-## Development
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
-
-## Performance
-
-- Build time: ~1.7s (production)
-- Pattern matching: < 50ms (guaranteed)
-- Extension size: ~310 KB (gzipped)
 
 ## Security
 
-**Security Score**: 9.2/10 (OWASP Top 10 audit - see [SECURITY_AUDIT_REPORT.md](./docs/development/SECURITY_AUDIT_REPORT.md))
+This extension includes several security features:
 
-**Implementation**:
-- ReDoS prevention: Pattern matching validated and deterministic (< 50ms)
-- Credential encryption: AES-256-GCM with PBKDF2 (100,000 iterations)
-- Permissions: No host permissions requested
-- Dependencies: 0 known CVEs
+- **ReDoS Prevention**: User-supplied regex patterns are validated before use to prevent catastrophic backtracking
+- **Credential Encryption**: Proxy credentials are encrypted using AES-256-GCM with PBKDF2 key derivation
+- **Content Security Policy**: Strict CSP prevents inline script execution
+- **Input Sanitization**: All user inputs are validated and sanitized
 
-**Automation**:
-- Pre-commit hook runs npm audit and secret scanner
-- GitHub Actions: security checks on push/PR, weekly scans (Mondays 9 AM UTC)
-- See [docs/guides/SECURITY_AUTOMATION.md](./docs/guides/SECURITY_AUTOMATION.md)
+For security issues, see [SECURITY.md](./SECURITY.md).
 
-**Report vulnerabilities**: [SECURITY.md](./SECURITY.md) or GitHub Security Advisories
+## License
 
-## 📄 License
+GNU General Public License v3.0 - see [LICENSE](./LICENSE) for details.
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](./LICENSE) file for details.
+## Credits
 
-## Acknowledgments
-
-Inspired by SwitchyOmega and Proxy SwitchySharp extensions.
-
-## Documentation
-
-### Quick Links
-- **Getting Started**: [Project Setup Guide](./docs/guides/PROJECT_SETUP_COMPLETE.md)
-- **Security**: [Security Policy](./SECURITY.md) | [Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md) | [Automation](./docs/guides/SECURITY_AUTOMATION.md)
-- **Contributing**: [CONTRIBUTING.md](./CONTRIBUTING.md) | [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md)
+Fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega). Original concept from Proxy SwitchySharp.
 
 ### Documentation Map
 

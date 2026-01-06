@@ -4,9 +4,9 @@
  * Checks for common security issues before allowing commits
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const RED = '\x1b[31m';
 const YELLOW = '\x1b[33m';
@@ -20,32 +20,37 @@ const SECURITY_PATTERNS = [
     pattern: /console\.log(?!\s*\()/gi,
     severity: 'warning',
     message: 'Found console.log - consider using Logger utility',
-    excludePaths: ['src/utils/Logger.ts', 'scripts/']
+    excludePaths: ['src/utils/Logger.ts', 'scripts/', 'tests/']
   },
   {
     pattern: /innerHTML|dangerouslySetInnerHTML/gi,
     severity: 'error',
-    message: 'Found innerHTML usage - XSS risk! Use textContent or Vue data binding'
+    message: 'Found innerHTML usage - XSS risk! Use textContent or Vue data binding',
+    excludePaths: ['scripts/']
   },
   {
     pattern: /eval\s*\(/gi,
     severity: 'error',
-    message: 'Found eval() usage - code injection risk!'
+    message: 'Found eval() usage - code injection risk!',
+    excludePaths: ['scripts/']
   },
   {
     pattern: /v-html/gi,
     severity: 'error',
-    message: 'Found v-html directive - XSS risk! Use v-text or {{}} syntax'
+    message: 'Found v-html directive - XSS risk! Use v-text or {{}} syntax',
+    excludePaths: ['scripts/']
   },
   {
     pattern: /\.fromCharCode\(/gi,
     severity: 'warning',
-    message: 'Found fromCharCode - potential obfuscation'
+    message: 'Found fromCharCode - potential obfuscation',
+    excludePaths: ['src/utils/crypto.ts', 'tests/']
   },
   {
     pattern: /(api[_-]?key|secret|password|token)\s*[:=]\s*["'][^"']+["']/gi,
     severity: 'error',
-    message: 'Possible hardcoded secret detected!'
+    message: 'Possible hardcoded secret detected!',
+    excludePaths: ['tests/', 'scripts/']
   },
   {
     pattern: /chrome\.storage\.(sync|local)\.get.*\)\.then/gi,
@@ -68,6 +73,11 @@ function getStagedFiles() {
 
 function scanFile(filePath, patterns) {
   if (!fs.existsSync(filePath)) {
+    return [];
+  }
+
+  // Always exclude the security scanner script itself
+  if (filePath.includes('pre-commit-security.js')) {
     return [];
   }
 

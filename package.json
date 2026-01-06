@@ -4,6 +4,7 @@
   "description": "Modern Chrome Extension for intelligent proxy switching with security-first design",
   "type": "module",
   "scripts": {
+    "prepare": "husky",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:prod": "node scripts/production-logger.js && npm run build",
@@ -43,6 +44,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
     "eslint-plugin-vue": "^9.31.0",
+    "husky": "^9.1.7",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "sharp": "^0.34.5",

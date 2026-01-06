@@ -1,203 +1,102 @@
-# Contributing to SwitchyMalaccamax
+# Contributing
 
-Thank you for your interest in contributing to SwitchyMalaccamax! This document provides guidelines and standards for contributing to the project.
+Thanks for your interest in contributing to SwitchyMalaccamax.
 
-## 🌟 Code of Conduct
-
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help create a welcoming environment
-- Report unacceptable behavior to maintainers
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ and npm 9+
 - Git
 - Chrome/Chromium 88+
-- TypeScript knowledge
-- Familiarity with Vue 3 and Chrome Extensions
+- Basic knowledge of TypeScript and Vue 3
 
-### Development Setup
+### Setup
 
 ```bash
-# Fork and clone the repository
+# Fork and clone
 git clone https://github.com/your-username/SwitchyMalaccamax.git
 cd SwitchyMalaccamax
 
 # Install dependencies
 npm install
 
-# Start development server
+# Start development
 npm run dev
 
 # Run tests
 npm test
 
-# Build extension
+# Build
 npm run build
 ```
 
-## 📋 Development Workflow
+## Development
 
-### 1. Create a Branch
+### Branch Naming
 
-```bash
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/bug-description
-```
-
-Branch naming conventions:
 - `feature/` - New features
 - `fix/` - Bug fixes
-- `docs/` - Documentation updates
+- `docs/` - Documentation
 - `refactor/` - Code refactoring
-- `test/` - Test additions/updates
-- `security/` - Security improvements
+- `test/` - Test updates
 
-### 2. Make Your Changes
-
-Follow our coding standards (see below) and commit your changes with clear, descriptive messages.
-
-### 3. Test Your Changes
+### Before Submitting
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-
-# Format code
-npm run format
+npm test              # All tests must pass
+npm run typecheck     # No TypeScript errors
+npm run lint          # Code must pass linting
 ```
 
-### 4. Submit a Pull Request
+### Pull Requests
 
-- Push your branch to your fork
-- Open a Pull Request against the `main` branch
-- Fill out the PR template completely
-- Link any related issues
-- Wait for review and address feedback
+1. Create a branch from `main`
+2. Make your changes
+3. Add tests if applicable
+4. Ensure all checks pass
+5. Submit PR with clear description
 
-## 💻 Coding Standards
+## Code Standards
 
-### TypeScript Guidelines
+### TypeScript
 
-#### Strict Type Safety
+- Use strict mode (enabled by default)
+- Avoid `any` types
+- Prefer interfaces for object shapes
+
+### Security
+
+**IMPORTANT**: All user-supplied regex patterns must be validated:
 
 ```typescript
-// ✅ Good - Explicit types
-function processProfile(profile: Profile): void {
-  // ...
-}
-
-// ❌ Bad - Implicit any
-function processProfile(profile) {
-  // ...
-}
-```
-
-#### No Implicit Any
-
-```typescript
-// ✅ Good
-const items: string[] = [];
-
-// ❌ Bad
-const items = []; // implicit any[]
-```
-
-#### Prefer Interfaces for Objects
-
-```typescript
-// ✅ Good
-interface Profile {
-  name: string;
-  type: ProfileType;
-}
-
-// ❌ Avoid (unless you need union types)
-type Profile = {
-  name: string;
-  type: ProfileType;
-}
-```
-
-### Vue 3 Standards
-
-#### Use Composition API with `<script setup>`
-
-```vue
-<!-- ✅ Good -->
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-
-const count = ref(0);
-const doubled = computed(() => count.value * 2);
-</script>
-
-<!-- ❌ Bad - Options API -->
-<script lang="ts">
-export default {
-  data() {
-    return { count: 0 };
-  }
-}
-</script>
-```
-
-#### Proper TypeScript Props
-
-```typescript
-// ✅ Good
-interface Props {
-  profile: Profile;
-  enabled?: boolean;
-}
-
-const props = defineProps<Props>();
-
-// ❌ Bad - No types
-const props = defineProps(['profile', 'enabled']);
-```
-
-### Security Requirements
-
-#### 🔒 CRITICAL: Regex Validation
-
-**ALL user-supplied regex patterns MUST be validated using `regexSafe.ts`**
-
-```typescript
-// ✅ Good - Validated regex
 import { validateRegex } from '@/core/security';
 
-const userPattern = getUserInput();
 const validation = validateRegex(userPattern);
-
 if (!validation.isValid) {
   throw new Error(validation.error);
 }
-
-const regex = new RegExp(validation.pattern!);
-
-// ❌ DANGEROUS - Unvalidated regex (ReDoS vulnerability!)
-const userPattern = getUserInput();
-const regex = new RegExp(userPattern); // DO NOT DO THIS
 ```
 
-#### Wildcard Patterns
+Do not create RegExp directly from user input - this creates ReDoS vulnerabilities.
 
-```typescript
-// ✅ Good - Use WildcardMatcher
+### Vue Components
+
+- Use Composition API with `<script setup>`
+- Define prop types with TypeScript interfaces
+- Keep components focused and small
+
+## Testing
+
+- Write tests for new features
+- Update tests when changing existing code
+- Security-critical code needs security tests
+
+Run tests: `npm test`
+
+## Questions?
+
+Open an issue for questions or clarifications.
 import { WildcardMatcher } from '@/core/security';
 
 const matcher = new WildcardMatcher(userPattern);

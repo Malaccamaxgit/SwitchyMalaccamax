@@ -81,3 +81,37 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Vitest
+.vitest/
+
+# Editor directories and files
+.fleet/
+.cursor/
+
+# MacOS
+.AppleDouble
+.LSOverride
+Icon
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# GitHub Copilot
+.copilot/
+
+# AI assistant artifacts
+.ai/
+*.ai.md
