@@ -3,6 +3,7 @@ title: SwitchyMalaccamax
 description: "Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt with TypeScript, Vue 3, and Vite."
 url: "https://malaccamaxgit.github.io" # Your main domain
 baseurl: "/SwitchyMalaccamax"          # Your repository name (starts with /)
+repository: Malaccamaxgit/SwitchyMalaccamax
 
 # Google Search Console Verification
 google_site_verification: "googlebff89d051a4afbcb.html"
