@@ -48,4 +48,4 @@ Updates will be posted to this page with a new "Last Updated" date.
 
 ## Contact
 
-For privacy concerns: benjam.alloul@gmail.com
+For privacy concerns: benjamin.alloul@gmail.com

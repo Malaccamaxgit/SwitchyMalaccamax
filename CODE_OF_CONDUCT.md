@@ -13,7 +13,7 @@ This applies to all project spaces including GitHub issues, pull requests, and d
 
 ## Reporting
 
-Report unacceptable behavior to benjam.alloul@gmail.com.
+Report unacceptable behavior to benjamin.alloul@gmail.com.
 
 Reports will be reviewed and addressed as appropriate for a solo-maintained project.
 

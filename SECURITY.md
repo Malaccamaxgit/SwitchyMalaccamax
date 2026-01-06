@@ -5,7 +5,7 @@
 If you discover a security vulnerability in this extension, please report it responsibly:
 
 1. **GitHub Security Advisories** (preferred): Go to the "Security" tab → "Advisories" → "Report a vulnerability"
-2. **Email**: Send details to **benjam.alloul@gmail.com** with subject `SECURITY: SwitchyMalaccamax`
+2. **Email**: Send details to **benjamin.alloul@gmail.com** with subject `SECURITY: SwitchyMalaccamax`
 
 **Please do not open public GitHub issues for security vulnerabilities.**
 
@@ -81,7 +81,7 @@ Current status: 0 known vulnerabilities
 
 ## Contact
 
-- **Security Issues**: benjam.alloul@gmail.com
+- **Security Issues**: benjamin.alloul@gmail.com
 - **General Issues**: [GitHub Issues](https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues)
 
 ---
