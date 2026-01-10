@@ -5,6 +5,30 @@ Notable changes to this project.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)  
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.1.5] - 2026-01-06
+
+### Added
+- Startup profile feature: automatically apply a profile on browser start
+- Profile visibility toggle (show/hide in popup quick-switch menu)
+- Built-in profiles (Direct, System Proxy) with protection from deletion
+- Test Connection feature for proxy profiles with customizable target URL/IP
+- SOCKS4 authentication field behavior (username only)
+- Commercial proxy service support (API token in password field)
+
+### Changed
+- Auto Switch profile no longer shows bypass list editor (bypass handled per-rule)
+- Log viewer moved to Debug section with configurable export row count
+- Improved PAC compiler with recursive profile resolution
+
+### Fixed
+- Profile editor validation and UI consistency
+- Husky pre-commit hooks on Windows (CMD wrapper)
+- Security scanner false positive for validation error messages
+
+### Security
+- 171 tests passing with comprehensive PAC fuzzing
+- npm audit: 0 vulnerabilities
+
 ## [0.1.3] - 2026-01-05
 
 ### Security
