@@ -1,16 +1,10 @@
 #!/bin/sh
-# Husky pre-commit hook for security checks
+# Husky pre-commit hook - Windows wrapper
 
-echo "🔒 Running pre-commit security checks..."
-
-# Run security scanner (use cmd.exe for Windows compatibility)
-cmd.exe /c "node scripts/pre-commit-security.js"
-
-# Check exit code
-if [ $? -ne 0 ]; then
-  echo "❌ Pre-commit security checks failed!"
-  exit 1
+# On Windows, call the .cmd script which handles it properly
+if command -v cmd.exe > /dev/null 2>&1; then
+  exec cmd.exe /c ".husky\pre-commit.cmd"
+else
+  # Fallback for non-Windows
+  node scripts/pre-commit-security.js
 fi
-
-echo "✅ Pre-commit checks passed"
-exit 0
