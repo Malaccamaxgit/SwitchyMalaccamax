@@ -19,22 +19,36 @@
             v-model="formData.name"
             label="Profile Name"
             placeholder="e.g., Work Proxy, Home VPN"
-            hint="Give your profile a descriptive name"
+            hint="Give your profile a descriptive name (max 50 characters)"
             :error="errors.name"
-            :disabled="isDirectProfile"
+            :disabled="isBuiltInProfile"
+            :maxlength="50"
             required
           />
           
           <Select
+            v-if="!isBuiltInProfile"
             v-model="formData.profileType"
             :options="profileTypeOptions"
             label="Profile Type"
             hint="Choose how this profile handles connections"
             :error="errors.profileType"
-            :disabled="isDirectProfile"
+            :disabled="isEditMode"
             required
             @change="handleProfileTypeChange"
           />
+          
+          <!-- Built-in profile type display (read-only) -->
+          <div v-if="isBuiltInProfile" class="space-y-1.5">
+            <label class="block text-sm font-medium text-text-primary">Profile Type</label>
+            <div class="px-3 py-2 text-sm rounded-md border border-border bg-slate-100 dark:bg-slate-800 text-text-secondary">
+              {{ isDirectProfile ? 'Direct Connection' : 'System Proxy' }}
+              <span class="ml-2 text-xs text-text-tertiary">(built-in)</span>
+            </div>
+            <p class="text-xs text-text-tertiary">
+              {{ isDirectProfile ? 'Bypass all proxies and connect directly' : 'Uses your operating system\'s proxy settings' }}
+            </p>
+          </div>
           
           <Select
             v-model="formData.color"
@@ -42,6 +56,15 @@
             label="Color Tag"
             hint="Helps identify profiles visually"
           />
+          
+          <!-- Show in Popup Toggle (always available) -->
+          <div class="flex items-center justify-between py-2">
+            <div>
+              <label class="text-sm font-medium text-text-primary">Show in Popup</label>
+              <p class="text-xs text-text-tertiary">Display this profile in the quick-switch popup menu</p>
+            </div>
+            <Switch v-model="formData.showInPopup" />
+          </div>
         </div>
       </section>
 
@@ -64,6 +87,7 @@
                 label="Host"
                 placeholder="proxy.example.com"
                 :error="errors.host"
+                :maxlength="255"
                 required
               >
                 <template #prefix>
@@ -84,37 +108,59 @@
           <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
             <div>
               <p class="text-sm font-medium">Require Authentication</p>
-              <p class="text-xs text-text-tertiary">Proxy requires username and password</p>
+              <p class="text-xs text-text-tertiary">
+                {{ formData.proxyType === 'SOCKS4' ? 'SOCKS4: Username only' : 'Username and password or API token' }}
+              </p>
             </div>
             <Switch v-model="formData.requiresAuth" />
           </div>
           
           <Transition name="expand">
-            <div v-if="formData.requiresAuth" class="grid grid-cols-2 gap-4 pl-4 border-l-2 border-blue-500">
-              <Input
-                v-model="formData.username"
-                label="Username"
-                placeholder="username"
-                :error="errors.username"
-                :required="formData.requiresAuth"
-              >
-                <template #prefix>
-                  <User class="h-4 w-4 text-text-tertiary" />
-                </template>
-              </Input>
+            <div v-if="formData.requiresAuth" class="pl-4 border-l-2 border-blue-500">
+              <div :class="formData.proxyType === 'SOCKS4' ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-4'">
+                <Input
+                  v-model="formData.username"
+                  label="Username"
+                  placeholder="username"
+                  :error="errors.username"
+                  :required="formData.requiresAuth"
+                  :maxlength="128"
+                >
+                  <template #prefix>
+                    <User class="h-4 w-4 text-text-tertiary" />
+                  </template>
+                </Input>
+                
+                <Input
+                  v-if="formData.proxyType !== 'SOCKS4'"
+                  v-model="formData.password"
+                  type="password"
+                  label="Password / API Token"
+                  placeholder="••••••••"
+                  :error="errors.password"
+                  :required="formData.requiresAuth"
+                  :maxlength="256"
+                >
+                  <template #prefix>
+                    <Lock class="h-4 w-4 text-text-tertiary" />
+                  </template>
+                </Input>
+              </div>
               
-              <Input
-                v-model="formData.password"
-                type="password"
-                label="Password"
-                placeholder="••••••••"
-                :error="errors.password"
-                :required="formData.requiresAuth"
-              >
-                <template #prefix>
-                  <Lock class="h-4 w-4 text-text-tertiary" />
-                </template>
-              </Input>
+              <!-- Protocol-specific authentication notes -->
+              <div v-if="formData.proxyType === 'SOCKS4'" class="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-900">
+                <p class="text-xs text-blue-700 dark:text-blue-300">
+                  <strong>Note:</strong> SOCKS4 only supports username authentication. Password field not available.
+                </p>
+              </div>
+              
+              <!-- API Token help for HTTP/HTTPS/SOCKS5 -->
+              <div v-if="formData.proxyType !== 'SOCKS4'" class="mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-900">
+                <p class="text-xs text-amber-700 dark:text-amber-300">
+                  <strong>💡 Using a commercial proxy?</strong> Most services (Bright Data, ScraperAPI, Oxylabs, etc.) 
+                  accept API tokens in the Password field. Check your provider's documentation for the exact format.
+                </p>
+              </div>
             </div>
           </Transition>
         </div>
@@ -148,8 +194,9 @@
             v-model="formData.pacUrl"
             label="PAC URL"
             placeholder="http://example.com/proxy.pac"
-            hint="URL to PAC script file"
+            hint="URL to PAC script file (max 2048 characters)"
             :error="errors.pacUrl"
+            :maxlength="2048"
             required
           >
             <template #prefix>
@@ -162,10 +209,11 @@
             <textarea
               v-model="formData.pacScript"
               rows="8"
+              maxlength="102400"
               class="w-full px-3 py-2 text-sm font-mono rounded-md border border-border bg-bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="function FindProxyForURL(url, host) {&#10;  return 'DIRECT';&#10;}"
             ></textarea>
-            <p class="text-xs text-text-tertiary mt-1.5">JavaScript function to determine proxy</p>
+            <p class="text-xs text-text-tertiary mt-1.5">JavaScript function to determine proxy (max 100KB)</p>
           </div>
         </div>
       </section>
@@ -178,10 +226,10 @@
             <Info class="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
               <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Rules will be configured separately
+                {{ isEditMode ? 'Profile Name and Color Only' : 'Rules will be configured separately' }}
               </p>
               <p class="text-xs text-blue-700 dark:text-blue-300">
-                After creating the profile, you can add conditions and target profiles for automatic switching.
+                {{ isEditMode ? 'On this screen you can change the profile name and color tag. Rules are configured on the profile detail page in Settings.' : 'After creating the profile, you can add conditions and target profiles for automatic switching.' }}
               </p>
             </div>
           </div>
@@ -189,7 +237,8 @@
       </section>
 
       <!-- Advanced Settings -->
-      <section>
+      <!-- Only show bypass list for FixedProfile (DirectProfile, SystemProfile, PacProfile don't need it) -->
+      <section v-if="isFixedProfile">
         <h3 class="text-sm font-semibold mb-3">Advanced Settings</h3>
         <div class="space-y-3">
           <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
@@ -205,7 +254,8 @@
               <Input
                 v-model="formData.bypassList"
                 placeholder="localhost, 127.0.0.1, *.local"
-                hint="Comma-separated list of hosts/patterns"
+                hint="Comma-separated list of hosts/patterns (max 4KB)"
+                :maxlength="4096"
               />
             </div>
           </Transition>
@@ -214,26 +264,39 @@
 
       <!-- Test Connection -->
       <section v-if="isFixedProfile" class="pt-4 border-t border-border">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <Tooltip content="Test if the proxy server is reachable">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                :loading="testing"
-                @click="testConnection"
-              >
-                <Zap class="h-3.5 w-3.5" />
-                Test Connection
-              </Button>
-            </Tooltip>
-            
-            <Transition name="fade">
-              <Badge v-if="testResult" :variant="testResult.success ? 'success' : 'danger'" size="sm">
-                {{ testResult.message }}
-              </Badge>
-            </Transition>
+        <div class="space-y-3">
+          <div>
+            <Input
+              v-model="formData.testUrl"
+              label="Test URL/IP (Optional)"
+              :placeholder="testUrlPlaceholder"
+              :hint="formData.proxyType === 'SOCKS4' || formData.proxyType === 'SOCKS5' 
+                ? 'Test IP address (default: 8.8.8.8 - Google DNS)'
+                : 'Test URL (default: Google no-content endpoint)'"
+            />
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <Tooltip content="Test if the proxy server is reachable">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  :loading="testing"
+                  @click="testConnection"
+                >
+                  <Zap class="h-3.5 w-3.5" />
+                  Test Connection
+                </Button>
+              </Tooltip>
+              
+              <Transition name="fade">
+                <Badge v-if="testResult" :variant="testResult.success ? 'success' : 'danger'" size="sm">
+                  {{ testResult.message }}
+                </Badge>
+              </Transition>
+            </div>
           </div>
         </div>
       </section>
@@ -266,12 +329,15 @@ const isOpen = computed({
 });
 
 const isEditMode = computed(() => !!props.profile);
-const isDirectProfile = computed(() => props.profile?.name === 'Direct');
+const isDirectProfile = computed(() => props.profile?.profileType === 'DirectProfile');
+const isSystemProfile = computed(() => props.profile?.profileType === 'SystemProfile');
+const isBuiltInProfile = computed(() => isDirectProfile.value || isSystemProfile.value);
 
 const formData = ref({
   name: '',
   profileType: 'FixedProfile' as Profile['profileType'],
   color: 'blue',
+  showInPopup: true,
   proxyType: 'HTTP',
   host: '',
   port: '',
@@ -282,6 +348,7 @@ const formData = ref({
   pacUrl: '',
   pacScript: '',
   bypassList: '',
+  testUrl: 'https://www.google.com/generate_204', // Default for HTTP/HTTPS
 });
 
 const errors = ref<Record<string, string>>({});
@@ -290,21 +357,46 @@ const testing = ref(false);
 const testResult = ref<{ success: boolean; message: string } | null>(null);
 const showBypassList = ref(false);
 
-const allProfileTypeOptions = [
-  { label: 'Direct Connection', value: 'DirectProfile' },
-  { label: 'Fixed Server', value: 'FixedProfile' },
-  { label: 'Auto Switch', value: 'SwitchProfile' },
-  { label: 'PAC Script', value: 'PacProfile' },
-  { label: 'System Proxy', value: 'SystemProfile' },
+// User-creatable profile types (excludes built-in Direct and System)
+const creatableProfileTypeOptions = [
+  { 
+    label: 'Fixed Server', 
+    value: 'FixedProfile',
+    description: 'Route all traffic through a single proxy server'
+  },
+  { 
+    label: 'Auto Switch', 
+    value: 'SwitchProfile',
+    description: 'Automatically switch between proxies based on URL patterns'
+  },
+  { 
+    label: 'PAC Script', 
+    value: 'PacProfile',
+    description: 'Use a Proxy Auto-Configuration script for advanced routing'
+  },
 ];
 
-// Filter out DirectProfile when creating new profiles (only allow one Direct profile)
+// All profile types (for display when editing built-in profiles)
+const allProfileTypeOptions = [
+  { 
+    label: 'Direct Connection', 
+    value: 'DirectProfile',
+    description: 'Bypass all proxies and connect directly to the internet'
+  },
+  { 
+    label: 'System Proxy', 
+    value: 'SystemProfile',
+    description: 'Use the operating system\'s proxy settings'
+  },
+  ...creatableProfileTypeOptions,
+];
+
+// When creating new profiles, only show creatable types
 const profileTypeOptions = computed(() => {
   if (isEditMode.value) {
     return allProfileTypeOptions;
   }
-  // When creating new profile, exclude DirectProfile
-  return allProfileTypeOptions.filter(option => option.value !== 'DirectProfile');
+  return creatableProfileTypeOptions;
 });
 
 const proxyProtocolOptions = [
@@ -326,6 +418,24 @@ const colorOptions = [
 const isFixedProfile = computed(() => formData.value.profileType === 'FixedProfile');
 const isPacProfile = computed(() => formData.value.profileType === 'PacProfile');
 const isSwitchProfile = computed(() => formData.value.profileType === 'SwitchProfile');
+
+// Test URL placeholder based on proxy type
+const testUrlPlaceholder = computed(() => {
+  const proxyType = formData.value.proxyType;
+  if (proxyType === 'SOCKS4' || proxyType === 'SOCKS5') {
+    return '8.8.8.8 (IP address)';
+  }
+  return 'https://www.google.com/generate_204';
+});
+
+// Default test target based on proxy type
+const defaultTestTarget = computed(() => {
+  const proxyType = formData.value.proxyType;
+  if (proxyType === 'SOCKS4' || proxyType === 'SOCKS5') {
+    return '8.8.8.8'; // Google Public DNS - reliable, always available
+  }
+  return 'https://www.google.com/generate_204'; // Google no-content endpoint
+});
 
 function handleProfileTypeChange() {
   // Clear type-specific errors when changing profile type
@@ -355,7 +465,7 @@ function validateForm(): boolean {
         errors.value.username = 'Username is required';
       }
       if (!formData.value.password) {
-        errors.value.password = 'Password is required';
+        errors.value.password = 'Credentials are required';
       }
     }
   }
@@ -376,6 +486,7 @@ function buildProfile(): Partial<Profile> {
     name: formData.value.name.trim(),
     profileType: formData.value.profileType,
     color: formData.value.color,
+    showInPopup: formData.value.showInPopup,
   };
   
   switch (formData.value.profileType) {
@@ -391,7 +502,14 @@ function buildProfile(): Partial<Profile> {
           password: formData.value.password,
         }),
         ...(formData.value.bypassList && {
-          bypassList: formData.value.bypassList.split(',').map(s => s.trim()).filter(Boolean),
+          bypassList: formData.value.bypassList
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .map(pattern => ({
+              conditionType: 'BypassCondition',
+              pattern
+            })),
         }),
       } as Partial<FixedProfile>;
       
@@ -440,6 +558,7 @@ function resetForm() {
     name: '',
     profileType: 'FixedProfile',
     color: 'blue',
+    showInPopup: true,
     proxyType: 'HTTP',
     host: '',
     port: '',
@@ -450,6 +569,7 @@ function resetForm() {
     pacUrl: '',
     pacScript: '',
     bypassList: '',
+    testUrl: 'https://www.google.com/generate_204',
   };
   errors.value = {};
   testResult.value = null;
@@ -465,17 +585,101 @@ async function testConnection() {
   testing.value = true;
   testResult.value = null;
   
+  const proxyType = formData.value.proxyType;
+  const isSocks = proxyType === 'SOCKS4' || proxyType === 'SOCKS5';
+  
+  // Get test target (use custom or default)
+  const testTarget = formData.value.testUrl.trim() || defaultTestTarget.value;
+  
   try {
-    // Simulate connection test (in real app, would use background script)
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock result - in production, actually test the proxy
-    const success = Math.random() > 0.3;
-    testResult.value = {
-      success,
-      message: success ? 'Connected' : 'Connection failed',
+    // Build test proxy config
+    const testConfig: chrome.proxy.ProxyConfig = {
+      mode: 'fixed_servers',
+      rules: {
+        singleProxy: {
+          scheme: proxyType.toLowerCase() as 'http' | 'https' | 'socks4' | 'socks5',
+          host: formData.value.host,
+          port: Number(formData.value.port),
+        },
+      },
     };
+    
+    // Temporarily apply the proxy
+    await chrome.proxy.settings.set({ value: testConfig, scope: 'regular' });
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    try {
+      if (isSocks) {
+        // For SOCKS proxies, test with a simple HTTP request to the target
+        // If testTarget is an IP, try to reach it via HTTP
+        const testUrl = testTarget.startsWith('http') ? testTarget : `http://${testTarget}`;
+        const response = await fetch(testUrl, {
+          method: 'HEAD',
+          signal: controller.signal,
+          mode: 'no-cors', // Avoid CORS issues when testing IPs
+        });
+        
+        clearTimeout(timeoutId);
+        
+        // For SOCKS, if we didn't timeout, consider it success
+        testResult.value = {
+          success: true,
+          message: 'Connected successfully',
+        };
+      } else {
+        // For HTTP/HTTPS proxies, test with standard request
+        const response = await fetch(testTarget, {
+          method: 'GET',
+          signal: controller.signal,
+          // Note: Proxy auth is handled by Chrome if configured
+        });
+      
+        clearTimeout(timeoutId);
+        
+        // Status 204 (No Content) is expected from this endpoint
+        const success = response.status === 204 || response.ok;
+        testResult.value = {
+          success,
+          message: success ? 'Connected successfully' : `HTTP ${response.status}`,
+        };
+        
+        // If auth is required and not provided, Chrome will show auth dialog
+        if (response.status === 407) {
+          testResult.value = {
+            success: false,
+            message: 'Proxy authentication required',
+          };
+        }
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        testResult.value = { success: false, message: 'Connection timeout' };
+      } else {
+        testResult.value = { success: false, message: 'Connection failed' };
+      }
+    }
+  } catch (error) {
+    testResult.value = { success: false, message: 'Test failed' };
   } finally {
+    // Restore original proxy settings
+    try {
+      const { activeProfileId } = await chrome.storage.sync.get('activeProfileId');
+      const { profiles } = await chrome.storage.local.get('profiles');
+      if (profiles && activeProfileId) {
+        const activeProfile = profiles.find((p: any) => p.id === activeProfileId);
+        if (activeProfile) {
+          // Restore active profile (implementation would need full proxy logic)
+          await chrome.runtime.sendMessage({ action: 'restoreProxy' });
+        }
+      }
+    } catch (error) {
+      // Ignore restoration errors
+    }
+    
     testing.value = false;
   }
 }
@@ -486,6 +690,7 @@ watch(() => props.profile, (profile) => {
     formData.value.name = profile.name;
     formData.value.profileType = profile.profileType;
     formData.value.color = profile.color || 'blue';
+    formData.value.showInPopup = profile.showInPopup !== false; // Default to true
     
     if (profile.profileType === 'FixedProfile') {
       formData.value.proxyType = profile.proxyType || 'HTTP';
@@ -494,9 +699,13 @@ watch(() => props.profile, (profile) => {
       formData.value.requiresAuth = !!(profile.username || profile.password);
       formData.value.username = profile.username || '';
       formData.value.password = profile.password || '';
-      if (profile.bypassList) {
-        formData.value.bypassList = profile.bypassList.join(', ');
-        showBypassList.value = true;
+      if (profile.bypassList && Array.isArray(profile.bypassList)) {
+        // Convert BypassCondition array to comma-separated string
+        formData.value.bypassList = profile.bypassList
+          .map((condition: any) => condition.pattern || '')
+          .filter(pattern => pattern)
+          .join(', ');
+        showBypassList.value = profile.bypassList.length > 0;
       }
     } else if (profile.profileType === 'PacProfile') {
       if ('pacUrl' in profile && profile.pacUrl) {
@@ -509,6 +718,19 @@ watch(() => props.profile, (profile) => {
     }
   }
 }, { immediate: true });
+
+// Update test URL when proxy type changes
+watch(() => formData.value.proxyType, (newType) => {
+  // Only update if field is empty or contains a default value
+  const currentValue = formData.value.testUrl.trim();
+  const isDefaultHttpUrl = currentValue === 'https://www.google.com/generate_204' || currentValue === '';
+  const isDefaultSocksIp = currentValue === '8.8.8.8' || currentValue === '';
+  
+  // Update to new default if current value is a default or empty
+  if (isDefaultHttpUrl || isDefaultSocksIp) {
+    formData.value.testUrl = defaultTestTarget.value;
+  }
+});
 
 // Reset when dialog closes
 watch(isOpen, (open) => {

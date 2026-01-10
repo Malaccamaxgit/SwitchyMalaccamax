@@ -1,6 +1,6 @@
 {
   "name": "switchymalaccamax",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Modern Chrome Extension for intelligent proxy switching with security-first design",
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "build:prod": "node scripts/production-logger.js && npm run build",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:security": "vitest run tests/security/",

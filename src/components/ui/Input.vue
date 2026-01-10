@@ -23,6 +23,7 @@
         :disabled="disabled"
         :readonly="readonly"
         :required="required"
+        :maxlength="maxlength"
         :class="inputClass"
         :aria-invalid="hasError"
         :aria-describedby="hasError ? `${inputId}-error` : hasHint ? `${inputId}-hint` : undefined"
@@ -89,6 +90,7 @@ export interface InputProps {
   prefix?: string;
   suffix?: string;
   size?: 'sm' | 'md' | 'lg';
+  maxlength?: number;
 }
 
 const props = withDefaults(defineProps<InputProps>(), {

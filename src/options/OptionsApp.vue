@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-white dark:bg-[#0a0a0a] text-slate-900 dark:text-white font-sans antialiased">
     <!-- Sidebar -->
-    <aside class="w-56 bg-white dark:bg-[#0a0a0a] border-r border-gray-200 dark:border-zinc-900 flex flex-col flex-shrink-0">
+    <aside class="w-64 bg-white dark:bg-[#0a0a0a] border-r border-gray-200 dark:border-zinc-900 flex flex-col flex-shrink-0">
       <!-- Header -->
       <div class="p-4 border-b border-gray-200 dark:border-zinc-900">
         <div class="flex items-center gap-2">
@@ -60,6 +60,20 @@
               ></div>
               <component :is="getProfileIcon(profile)" class="h-3.5 w-3.5 flex-shrink-0" />
               <span class="tracking-tight flex-1 truncate">{{ profile.name }}</span>
+              
+              <!-- Show in Popup toggle -->
+              <button
+                @click.stop="toggleShowInPopup(profile)"
+                :class="profile.showInPopup !== false 
+                  ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' 
+                  : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'"
+                class="text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors flex-shrink-0"
+                :title="profile.showInPopup !== false ? 'Click to hide from popup menu' : 'Click to show in popup menu'"
+              >
+                {{ profile.showInPopup !== false ? 'Visible' : 'Hidden' }}
+              </button>
+              
+              <!-- Active profile indicator -->
               <div 
                 v-if="activeProfileId === profile.id"
                 class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"
@@ -440,7 +454,7 @@
               Export PAC
             </button>
             <button
-              v-if="selectedProfile.name !== 'Direct'"
+              v-if="!selectedProfile.isBuiltIn"
               @click="deleteProfile(selectedProfile)"
               class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 hover:text-red-800 dark:hover:text-red-300 transition-colors flex items-center gap-2"
             >
@@ -638,6 +652,26 @@
                       placeholder="8213"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
                     />
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Authentication Status -->
+              <div>
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Authentication</h3>
+                <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900">
+                  <div v-if="(selectedProfile as any).username || (selectedProfile as any).password" class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium">Enabled</span>
+                    <span class="text-xs text-slate-500 dark:text-zinc-500 ml-2">Username: {{ (selectedProfile as any).username }}</span>
+                  </div>
+                  <div v-else class="flex items-center gap-2 text-slate-500 dark:text-zinc-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Not configured</span>
                   </div>
                 </div>
               </div>
@@ -887,7 +921,7 @@ const settings = ref({
   confirmDelete: true,
   startupProfile: 'profile-1',
   downloadInterval: 'never',
-  theme: 'light' as 'light' | 'dark' | 'auto',
+  theme: 'auto' as 'light' | 'dark' | 'auto',
 });
 
 const activeProfileId = ref<string>('profile-1');
@@ -895,10 +929,20 @@ const lastSwitched = ref<Date>(new Date());
 
 const profiles = ref<Profile[]>([
   {
-    id: 'profile-1',
+    id: 'profile-direct',
     name: 'Direct',
     profileType: 'DirectProfile',
     color: 'gray',
+    showInPopup: true,
+    isBuiltIn: true,
+  },
+  {
+    id: 'profile-system',
+    name: 'System Proxy',
+    profileType: 'SystemProfile',
+    color: 'gray',
+    showInPopup: true,
+    isBuiltIn: true,
   },
   {
     id: 'profile-2',
@@ -908,6 +952,7 @@ const profiles = ref<Profile[]>([
     host: 'proxy.example.com',
     port: 8080,
     color: 'blue',
+    showInPopup: true,
     bypassList: [
       { conditionType: 'BypassCondition', pattern: '127.0.0.1' },
       { conditionType: 'BypassCondition', pattern: '::1' },
@@ -920,6 +965,7 @@ const profiles = ref<Profile[]>([
     name: 'Auto Switch',
     profileType: 'SwitchProfile',
     defaultProfileName: 'Direct',
+    showInPopup: true,
     rules: [
       {
         condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
@@ -1398,6 +1444,27 @@ onMounted(async () => {
   }
 });
 
+async function toggleShowInPopup(profile: Profile) {
+  Logger.info('Toggling showInPopup', { name: profile.name, currentValue: profile.showInPopup });
+  
+  // Toggle the showInPopup property
+  profile.showInPopup = profile.showInPopup === false ? true : false;
+  
+  // Save changes immediately
+  try {
+    await saveProfiles();
+    hasUnsavedChanges.value = false; // Reset since we just saved
+    const status = profile.showInPopup ? 'shown in' : 'hidden from';
+    toastRef.value?.success(`"${profile.name}" will be ${status} popup menu`, 'Updated', 2000);
+    Logger.info('showInPopup toggled successfully', { name: profile.name, newValue: profile.showInPopup });
+  } catch (error) {
+    Logger.error('Failed to toggle showInPopup', error);
+    toastRef.value?.error('Failed to save changes', 'Error');
+    // Revert the change on error
+    profile.showInPopup = !profile.showInPopup;
+  }
+}
+
 async function saveProfiles() {
   const logMsg = `Saving profiles: ${profiles.value.length} profiles`;
   Logger.info(logMsg);
@@ -1497,7 +1564,7 @@ async function handleSaveProfile(profileData: Partial<Profile>) {
   }
   
   await saveProfiles();
-  showEditor.value = false;
+  showProfileEditor.value = false;
   editingProfile.value = undefined;
 }
 
@@ -1704,6 +1771,12 @@ async function exportProfileAsPac(profile: Profile) {
 }
 
 async function deleteProfile(profile: Profile) {
+  // Prevent deletion of built-in profiles
+  if (profile.isBuiltIn) {
+    toastRef.value?.error('Built-in profiles cannot be deleted', 'Not Allowed');
+    return;
+  }
+  
   Logger.info('Deleting profile', { name: profile.name });
   if (settings.value.confirmDelete && !confirm(`Delete profile "${profile.name}"?`)) {
     return;

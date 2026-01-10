@@ -3,8 +3,8 @@
 
 echo "🔒 Running pre-commit security checks..."
 
-# Run security scanner
-node scripts/pre-commit-security.js
+# Run security scanner (use cmd.exe for Windows compatibility)
+cmd.exe /c "node scripts/pre-commit-security.js"
 
 # Check exit code
 if [ $? -ne 0 ]; then

@@ -155,15 +155,19 @@ const activeProfile = computed(() => {
 const sortedProfiles = computed(() => {
   if (!Array.isArray(profiles.value)) return [];
   
-  const direct = profiles.value.find(p => p.name === 'Direct');
-  const autoSwitch = profiles.value.find(p => p.name === 'Auto Switch');
-  const others = profiles.value
-    .filter(p => p.name !== 'Direct' && p.name !== 'Auto Switch')
+  // Filter to only show profiles marked as visible in popup (default: true if not set)
+  const visibleProfiles = profiles.value.filter(p => p.showInPopup !== false);
+  
+  // Sort: Direct first, System Proxy second, then alphabetically
+  const direct = visibleProfiles.find(p => p.profileType === 'DirectProfile');
+  const system = visibleProfiles.find(p => p.profileType === 'SystemProfile');
+  const others = visibleProfiles
+    .filter(p => p.profileType !== 'DirectProfile' && p.profileType !== 'SystemProfile')
     .sort((a, b) => a.name.localeCompare(b.name));
   
   const sorted = [];
   if (direct) sorted.push(direct);
-  if (autoSwitch) sorted.push(autoSwitch);
+  if (system) sorted.push(system);
   sorted.push(...others);
   
   return sorted;
@@ -477,6 +481,9 @@ async function handleProfileSwitch(profile: Profile) {
       profileColor: profile.color || 'blue',
     });
     Logger.info('Profile switch complete');
+    
+    // Check for conflicts after switching to update UI
+    setTimeout(() => checkProxyConflict(), 500);
   } catch (error) {
     Logger.error('Failed to switch profile', error);
     activeProfileId.value = previousProfile; // Rollback

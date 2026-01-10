@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SwitchyMalaccamax",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Modern proxy switcher with intelligent pattern matching and security-first design",
   "permissions": [
     "proxy",

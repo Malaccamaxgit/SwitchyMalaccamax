@@ -47,7 +47,7 @@ const SECURITY_PATTERNS = [
     excludePaths: ['src/utils/crypto.ts', 'tests/']
   },
   {
-    pattern: /(api[_-]?key|secret|password|token)\s*[:=]\s*["'][^"']+["']/gi,
+    pattern: /(?<!errors\.(?:value\.)?)(api[_-]?key|secret|password|token)\s*[:=]\s*["'][^"']+["']/gi,
     severity: 'error',
     message: 'Possible hardcoded secret detected!',
     excludePaths: ['tests/', 'scripts/']

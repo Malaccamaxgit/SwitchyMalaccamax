@@ -121,10 +121,13 @@ export interface ProxyServer {
  * Base profile interface - all profiles extend this
  */
 export interface BaseProfile {
+  id?: string; // Unique identifier
   name: string; // Profile display name
   profileType: string; // Discriminator for profile type
   color?: string; // Hex color for UI (#RRGGBB)
   revision?: string; // Version/revision identifier
+  showInPopup?: boolean; // Whether to show in popup quick-switch menu (default: true)
+  isBuiltIn?: boolean; // Whether this is a built-in profile (cannot be deleted)
 }
 
 /**

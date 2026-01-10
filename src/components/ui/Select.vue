@@ -56,9 +56,14 @@
               @click="selectOption(option)"
               @mouseenter="highlightedIndex = index"
             >
-              <span class="flex-1 text-left truncate">
-                {{ getOptionLabel(option) }}
-              </span>
+              <div class="flex-1 text-left">
+                <div class="truncate">
+                  {{ getOptionLabel(option) }}
+                </div>
+                <div v-if="getOptionDescription(option)" class="text-xs text-text-tertiary mt-0.5">
+                  {{ getOptionDescription(option) }}
+                </div>
+              </div>
               <Check v-if="isSelected(option)" class="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
             </button>
             
@@ -90,7 +95,7 @@ import { onClickOutside } from '@vueuse/core';
 import { ChevronDown, Check, Search, AlertCircle } from 'lucide-vue-next';
 import { generateId } from '@/lib/utils';
 
-export type SelectOption = string | number | { label: string; value: string | number; disabled?: boolean };
+export type SelectOption = string | number | { label: string; value: string | number; disabled?: boolean; description?: string };
 
 interface Props {
   modelValue?: string | number;
@@ -207,6 +212,10 @@ function isOptionDisabled(option: SelectOption): boolean {
 
 function isSelected(option: SelectOption): boolean {
   return getOptionValue(option) === props.modelValue;
+}
+
+function getOptionDescription(option: SelectOption): string {
+  return typeof option === 'object' && 'description' in option ? option.description || '' : '';
 }
 
 function getOptionClass(option: SelectOption, index: number) {
