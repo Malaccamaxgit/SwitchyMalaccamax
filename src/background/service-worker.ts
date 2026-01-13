@@ -258,6 +258,30 @@ initializeIconColor();
 // Apply startup profile
 applyStartupProfile();
 
+// Listen for network errors to capture failed requests and aid debugging
+// Note: Requires "webRequest" permission and appropriate host permissions in manifest
+try {
+  if (chrome.webRequest && chrome.webRequest.onErrorOccurred && chrome.webRequest.onErrorOccurred.addListener) {
+    chrome.webRequest.onErrorOccurred.addListener((details: any) => {
+      try {
+        Logger.warn('Request failed', {
+          url: details.url,
+          error: details.error,
+          method: details.method,
+          tabId: details.tabId,
+          frameId: details.frameId,
+          requestId: details.requestId,
+          timeStamp: details.timeStamp
+        });
+      } catch (err) {
+        Logger.error('Error logging request failure', err);
+      }
+    }, { urls: ['<all_urls>'] });
+  }
+} catch (e) {
+  Logger.error('Failed to register webRequest.onErrorOccurred listener', e);
+}
+
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {

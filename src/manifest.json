@@ -5,7 +5,11 @@
   "description": "Modern proxy switcher with intelligent pattern matching and security-first design",
   "permissions": [
     "proxy",
-    "storage"
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",

@@ -19,6 +19,9 @@ import type { Condition } from './schema';
 import { WildcardMatcher } from './security/wildcardMatcher';
 import { RegexValidator } from './security/regexSafe';
 import { Address4, Address6 } from 'ip-address';
+import { Logger } from '@/utils/Logger';
+
+const log = Logger.scope('Conditions');
 
 /**
  * Request context for condition matching
@@ -61,38 +64,61 @@ export class ConditionMatcher {
    * @returns Match result
    */
   static match(condition: Condition, context: RequestContext): MatchResult {
-    switch (condition.conditionType) {
-      case 'BypassCondition':
-        return this.matchBypass(condition.pattern, context);
+    // Debug: log attempts to evaluate conditions
+    try {
+      log.debug('Evaluating condition', { conditionType: condition.conditionType, pattern: (condition as any).pattern, url: context.url, host: context.host });
 
-      case 'HostWildcardCondition':
-        return this.matchHostWildcard(condition.pattern, context);
+      let result = null as unknown as MatchResult;
 
-      case 'HostRegexCondition':
-        return this.matchHostRegex(condition.pattern, context);
+      switch (condition.conditionType) {
+        case 'BypassCondition':
+          result = this.matchBypass(condition.pattern, context);
+          break;
 
-      case 'HostLevelsCondition':
-        return this.matchHostLevels(
-          condition.minValue ?? 1,
-          condition.maxValue ?? -1,
-          context
-        );
+        case 'HostWildcardCondition':
+          result = this.matchHostWildcard(condition.pattern, context);
+          break;
 
-      case 'UrlWildcardCondition':
-        return this.matchUrlWildcard(condition.pattern, context);
+        case 'HostRegexCondition':
+          result = this.matchHostRegex(condition.pattern, context);
+          break;
 
-      case 'UrlRegexCondition':
-        return this.matchUrlRegex(condition.pattern, context);
+        case 'HostLevelsCondition':
+          result = this.matchHostLevels(
+            condition.minValue ?? 1,
+            condition.maxValue ?? -1,
+            context
+          );
+          break;
 
-      case 'KeywordCondition':
-        return this.matchKeyword(condition.pattern, context);
+        case 'UrlWildcardCondition':
+          result = this.matchUrlWildcard(condition.pattern, context);
+          break;
 
-      default:
-        return {
-          matched: false,
-          reason: `Unknown condition type: ${(condition as any).conditionType}`,
-          conditionType: (condition as any).conditionType,
-        };
+        case 'UrlRegexCondition':
+          result = this.matchUrlRegex(condition.pattern, context);
+          break;
+
+        case 'KeywordCondition':
+          result = this.matchKeyword(condition.pattern, context);
+          break;
+
+        default:
+          result = {
+            matched: false,
+            reason: `Unknown condition type: ${(condition as any).conditionType}`,
+            conditionType: (condition as any).conditionType,
+          };
+      }
+
+      // Debug: log the outcome
+      log.debug('Condition result', { conditionType: condition.conditionType, matched: result.matched, reason: result.reason });
+
+      return result;
+    } catch (error) {
+      // Ensure any unexpected error is logged for diagnostics
+      log.error('Condition match error', { error: String(error), conditionType: (condition as any).conditionType, url: context.url, host: context.host });
+      return { matched: false, reason: 'Error during evaluation', conditionType: (condition as any).conditionType };
     }
   }
 
