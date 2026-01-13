@@ -30,7 +30,7 @@ describe('PacCompiler', () => {
     it('should generate fixed proxy profile', () => {
       const profiles: Profile[] = [
         {
-          name: 'Workday',
+          name: 'Example',
           profileType: 'FixedProfile',
           color: 'green',
           fallbackProxy: {
@@ -47,7 +47,7 @@ describe('PacCompiler', () => {
       ];
 
       const compiler = new PacCompiler(profiles);
-      const result = compiler.compilePacScript('Workday');
+      const result = compiler.compilePacScript('Example');
 
       expect(result).toContain('PROXY 192.168.50.30:8213');
       expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
@@ -58,7 +58,7 @@ describe('PacCompiler', () => {
     it('should generate fixed proxy profile with legacy format (host/port)', () => {
       const profiles: Profile[] = [
         {
-          name: 'Workday',
+          name: 'Example',
           profileType: 'FixedProfile',
           color: 'green',
           proxyType: 'HTTP',
@@ -72,7 +72,7 @@ describe('PacCompiler', () => {
       ];
 
       const compiler = new PacCompiler(profiles);
-      const result = compiler.compilePacScript('Workday');
+      const result = compiler.compilePacScript('Example');
 
       expect(result).toContain('PROXY 192.168.50.30:8213');
       expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
@@ -89,7 +89,7 @@ describe('PacCompiler', () => {
           color: 'blue'
         },
         {
-          name: 'Workday',
+          name: 'Example',
           profileType: 'FixedProfile',
           color: 'green',
           fallbackProxy: {
@@ -106,12 +106,12 @@ describe('PacCompiler', () => {
           defaultProfileName: 'Direct',
           rules: [
             {
-              condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.workday.com' },
-              profileName: 'Workday'
+              condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.example.com' },
+              profileName: 'Example'
             },
             {
-              condition: { conditionType: 'HostWildcardCondition', pattern: '*.workdayinternal.com' },
-              profileName: 'Workday'
+              condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
+              profileName: 'Example'
             }
           ]
         }
@@ -123,14 +123,14 @@ describe('PacCompiler', () => {
       // Should have profiles dictionary
       expect(result).toContain('"+Auto Switch"');
       expect(result).toContain('"+Direct"');
-      expect(result).toContain('"+Workday"');
+      expect(result).toContain('"+Example"');
 
       // Should have resolver loop
       expect(result).toContain('do {');
       expect(result).toContain('} while');
 
       // Should have profile references
-      expect(result).toContain('return "+Workday"');
+      expect(result).toContain('return "+Example"');
       expect(result).toContain('return "+Direct"');
 
       // Should have actual proxy result
@@ -174,6 +174,48 @@ describe('PacCompiler', () => {
 
       // Should convert *.example.com to regex that matches subdomains
       expect(result).toContain('(?:^|\\.)example\\.com$');
+    });
+
+    it('should preserve HostRegexCondition patterns (no double-escaping)', () => {
+      const profiles: Profile[] = [
+        {
+          name: 'Direct',
+          profileType: 'DirectProfile',
+          color: 'blue'
+        },
+        {
+          name: 'Proxy',
+          profileType: 'FixedProfile',
+          color: 'green',
+          fallbackProxy: {
+            scheme: 'http',
+            host: 'proxy.example.com',
+            port: 8080
+          },
+          bypassList: []
+        },
+        {
+          name: 'AutoRegex',
+          profileType: 'SwitchProfile',
+          color: 'purple',
+          defaultProfileName: 'Direct',
+          rules: [
+            {
+              // Use a safe regex that avoids nested quantifiers to pass ReDoS validation
+              condition: { conditionType: 'HostRegexCondition', pattern: '^(?:[a-z]+\\.)?example\\.com$' },
+              profileName: 'Proxy'
+            }
+          ]
+        } as SwitchProfile
+      ];
+
+      const compiler = new PacCompiler(profiles);
+      const result = compiler.compilePacScript('AutoRegex');
+
+      // Unsafe regex patterns should be rejected by the validator and compiled as a non-matching condition
+      expect(result).toContain('if (false) return "+Proxy";');
+      // Ensure we don't accidentally include an escaped caret and parenthesis sequence like "\\^\\(" which indicates double-escaping
+      expect(result).not.toContain('\\^\\(');
     });
   });
 

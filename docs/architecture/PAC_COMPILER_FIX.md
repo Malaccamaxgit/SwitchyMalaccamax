@@ -38,7 +38,7 @@ But the actual storage format (in OptionsApp.vue and Chrome storage) uses:
 
 ### Before Fix (INCORRECT)
 ```javascript
-"+Workday": function(url, host, scheme) {
+"+Example": function(url, host, scheme) {
     "use strict";
     if (/^127\.0\.0\.1$/.test(host)) return "DIRECT";
     if (/^localhost$/.test(host)) return "DIRECT";
@@ -48,7 +48,7 @@ But the actual storage format (in OptionsApp.vue and Chrome storage) uses:
 
 ### After Fix (CORRECT)
 ```javascript
-"+Workday": function(url, host, scheme) {
+"+Example": function(url, host, scheme) {
     "use strict";
     if (/^127\.0\.0\.1$/.test(host)) return "DIRECT";
     if (/^localhost$/.test(host)) return "DIRECT";
@@ -99,7 +99,7 @@ Added test for legacy format:
 ```typescript
 it('should generate fixed proxy profile with legacy format (host/port)', () => {
   const profiles: Profile[] = [{
-    name: 'Workday',
+    name: 'Example',
     profileType: 'FixedProfile',
     proxyType: 'HTTP',  // ← Legacy format
     host: '192.168.50.30',
@@ -107,7 +107,7 @@ it('should generate fixed proxy profile with legacy format (host/port)', () => {
     bypassList: [...]
   } as any];
 
-  const result = compiler.compilePacScript('Workday');
+  const result = compiler.compilePacScript('Example');
   expect(result).toContain('PROXY 192.168.50.30:8213');  // ✅ Passes
 });
 ```

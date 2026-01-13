@@ -28,7 +28,7 @@ var FindProxyForURL = function(init, profiles) {
     };
 }("+Auto Switch", {
     "+Auto Switch": function(url, host, scheme) { ... },
-    "+Workday": function(url, host, scheme) { ... },
+    "+Example": function(url, host, scheme) { ... },
     "+Direct": function(url, host, scheme) { ... }
 });
 ```
@@ -59,9 +59,9 @@ function(url, host, scheme) {
 ```javascript
 function(url, host, scheme) {
     "use strict";
-    if (/^confluence\.workday\.com$/.test(host)) return "+Workday";
-    if (/^jira2\.workday\.com$/.test(host)) return "+Workday";
-    if (/(?:^|\.)workdayinternal\.com$/.test(host)) return "+Workday";
+    if (/^confluence\.example\.com$/.test(host)) return "+Example";
+    if (/^jira2\.example\.com$/.test(host)) return "+Example";
+    if (/(?:^|\.)example\.com$/.test(host)) return "+Example";
     return "+Direct";
 }
 ```
@@ -142,7 +142,7 @@ const profiles: Profile[] = [
     color: 'blue'
   },
   {
-    name: 'Workday',
+    name: 'Example',
     profileType: 'FixedProfile',
     color: 'green',
     fallbackProxy: {
@@ -162,12 +162,12 @@ const profiles: Profile[] = [
     defaultProfileName: 'Direct',
     rules: [
       {
-        condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.workday.com' },
-        profileName: 'Workday'
+        condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.example.com' },
+        profileName: 'Example'
       },
       {
-        condition: { conditionType: 'HostWildcardCondition', pattern: '*.workdayinternal.com' },
-        profileName: 'Workday'
+        condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
+        profileName: 'Example'
       }
     ]
   }
@@ -186,8 +186,8 @@ fs.writeFileSync('proxy.pac', pacScript);
 ### Old Implementation (Simple)
 ```javascript
 function FindProxyForURL(url, host) {
-  // Rule 1: HostWildcardCondition -> "Workday" (FixedProfile)
-  if (shExpMatch(host, "confluence.workday.com")) {
+  // Rule 1: HostWildcardCondition -> "Example" (FixedProfile)
+  if (shExpMatch(host, "confluence.example.com")) {
     return "PROXY 192.168.50.30:8213";  // ❌ Hardcoded - no nesting
   }
   
@@ -212,10 +212,10 @@ var FindProxyForURL = function(init, profiles) {
 }("+Auto Switch", {
     "+Auto Switch": function(url, host, scheme) {
         "use strict";
-        if (/^confluence\.workday\.com$/.test(host)) return "+Workday";  // ✅ Profile reference
+        if (/^confluence\.example\.com$/.test(host)) return "+Example";  // ✅ Profile reference
         return "+Direct";
     },
-    "+Workday": function(url, host, scheme) {
+    "+Example": function(url, host, scheme) {
         "use strict";
         if (/^127\.0\.0\.1$/.test(host)) return "DIRECT";  // ✅ Bypass rules
         return "PROXY 192.168.50.30:8213";

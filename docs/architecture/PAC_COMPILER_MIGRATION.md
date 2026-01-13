@@ -101,13 +101,13 @@ The legacy API is fully backward compatible. Existing code will work without mod
 ### Before (Old Output)
 ```javascript
 function FindProxyForURL(url, host) {
-  // Rule 1: HostWildcardCondition -> "Workday" (FixedProfile)
-  if (shExpMatch(host, "confluence.workday.com")) {
+  // Rule 1: HostWildcardCondition -> "Example" (FixedProfile)
+  if (shExpMatch(host, "confluence.example.com")) {
     return "PROXY 192.168.50.30:8213";
   }
   
-  // Rule 2: HostWildcardCondition -> "Workday" (FixedProfile)
-  if (shExpMatch(host, "*.workdayinternal.com")) {
+  // Rule 2: HostWildcardCondition -> "Example" (FixedProfile)
+  if (shExpMatch(host, "*.example.com")) {
     return "PROXY 192.168.50.30:8213";
   }
 
@@ -132,11 +132,11 @@ var FindProxyForURL = function(init, profiles) {
 }("+Auto Switch", {
     "+Auto Switch": function(url, host, scheme) {
         "use strict";
-        if (/^confluence\.workday\.com$/.test(host)) return "+Workday";
-        if (/(?:^|\.)workdayinternal\.com$/.test(host)) return "+Workday";
+        if (/^confluence\.example\.com$/.test(host)) return "+Example";
+        if (/(?:^|\.)example\.com$/.test(host)) return "+Example";
         return "+Direct";
     },
-    "+Workday": function(url, host, scheme) {
+    "+Example": function(url, host, scheme) {
         "use strict";
         if (/^127\.0\.0\.1$/.test(host)) return "DIRECT";
         if (/^localhost$/.test(host)) return "DIRECT";

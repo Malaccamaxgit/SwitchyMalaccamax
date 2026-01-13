@@ -24,7 +24,7 @@ describe('PacCompiler', () => {
         it('should generate fixed proxy profile', () => {
             const profiles = [
                 {
-                    name: 'Workday',
+                    name: 'Example',
                     profileType: 'FixedProfile',
                     color: 'green',
                     fallbackProxy: {
@@ -40,7 +40,7 @@ describe('PacCompiler', () => {
                 }
             ];
             const compiler = new PacCompiler(profiles);
-            const result = compiler.compilePacScript('Workday');
+            const result = compiler.compilePacScript('Example');
             expect(result).toContain('PROXY 192.168.50.30:8213');
             expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
             expect(result).toContain('localhost');
@@ -49,7 +49,7 @@ describe('PacCompiler', () => {
         it('should generate fixed proxy profile with legacy format (host/port)', () => {
             const profiles = [
                 {
-                    name: 'Workday',
+                    name: 'Example',
                     profileType: 'FixedProfile',
                     color: 'green',
                     proxyType: 'HTTP',
@@ -62,7 +62,7 @@ describe('PacCompiler', () => {
                 }
             ];
             const compiler = new PacCompiler(profiles);
-            const result = compiler.compilePacScript('Workday');
+            const result = compiler.compilePacScript('Example');
             expect(result).toContain('PROXY 192.168.50.30:8213');
             expect(result).toContain('127\\.0\\.0\\.1'); // Escaped in regex
             expect(result).toContain('localhost');
@@ -77,7 +77,7 @@ describe('PacCompiler', () => {
                     color: 'blue'
                 },
                 {
-                    name: 'Workday',
+                    name: 'Example',
                     profileType: 'FixedProfile',
                     color: 'green',
                     fallbackProxy: {
@@ -94,12 +94,12 @@ describe('PacCompiler', () => {
                     defaultProfileName: 'Direct',
                     rules: [
                         {
-                            condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.workday.com' },
-                            profileName: 'Workday'
+                            condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.example.com' },
+                            profileName: 'Example'
                         },
                         {
-                            condition: { conditionType: 'HostWildcardCondition', pattern: '*.workdayinternal.com' },
-                            profileName: 'Workday'
+                            condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
+                            profileName: 'Example'
                         }
                     ]
                 }
@@ -109,12 +109,12 @@ describe('PacCompiler', () => {
             // Should have profiles dictionary
             expect(result).toContain('"+Auto Switch"');
             expect(result).toContain('"+Direct"');
-            expect(result).toContain('"+Workday"');
+            expect(result).toContain('"+Example"');
             // Should have resolver loop
             expect(result).toContain('do {');
             expect(result).toContain('} while');
             // Should have profile references
-            expect(result).toContain('return "+Workday"');
+            expect(result).toContain('return "+Example"');
             expect(result).toContain('return "+Direct"');
             // Should have actual proxy result
             expect(result).toContain('PROXY 192.168.50.30:8213');

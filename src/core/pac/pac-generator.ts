@@ -11,6 +11,7 @@
 
 import type { Profile, FixedProfile, SwitchProfile, PacProfile, Condition, ProxyServer } from '../schema';
 import { Logger } from '@/utils/Logger';
+import { RegexValidator } from '@/core/security/regexSafe';
 
 // Create scoped logger for PAC compiler
 const log = Logger.scope('PAC Compiler');
@@ -216,7 +217,7 @@ ${bypassCode}        return "${proxyResult}";
       const condition = this.generateConditionCheck(rule.condition);
       const targetProfile = rule.profileName;
       
-      // Return profile reference (e.g., "+Workday")
+      // Return profile reference (e.g., "+Example")
       const safeTargetProfile = this.sanitizeProfileName(targetProfile);
       rules.push(`        if (${condition}) return "+${safeTargetProfile}";`);
     }
@@ -308,11 +309,29 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
         return `${regex}.test(url)`;
       }
 
-      case 'HostRegexCondition':
-        return `/${this.escapeRegexPattern(condition.pattern)}/.test(host)`;
+      case 'HostRegexCondition': {
+        const pattern = condition.pattern || '';
+        const validation = RegexValidator.validate(pattern);
+        if (!validation.safe) {
+          log.warn('Rejecting unsafe HostRegexCondition pattern in PAC generation', { pattern, reason: validation.reason });
+          // Return a condition that never matches
+          return 'false';
+        }
+        // Preserve regex semantics by constructing RegExp from a JS string (escape for JS string)
+        const escapedPattern = this.escapeString(pattern);
+        return `new RegExp("${escapedPattern}", "i").test(host)`;
+      }
 
-      case 'UrlRegexCondition':
-        return `/${this.escapeRegexPattern(condition.pattern)}/.test(url)`;
+      case 'UrlRegexCondition': {
+        const pattern = condition.pattern || '';
+        const validation = RegexValidator.validate(pattern);
+        if (!validation.safe) {
+          log.warn('Rejecting unsafe UrlRegexCondition pattern in PAC generation', { pattern, reason: validation.reason });
+          return 'false';
+        }
+        const escapedPattern = this.escapeString(pattern);
+        return `new RegExp("${escapedPattern}", "i").test(url)`;
+      }
 
       case 'KeywordCondition':
         return `url.indexOf("${this.escapeString(condition.pattern)}") !== -1`;

@@ -1,3 +1,10 @@
+# FILE READING RULES
+1. **ALWAYS READ THE FULL FILE**: When a user references a file, you must read the ENTIRE content in one go.
+2. **NEVER** use `startLine: 1` and `endLine: 100`.
+3. **NEVER** say "Let me continue reading".
+4. If you need to search a file, use the `read_file` tool with `startLine: 1` and `endLine: 20000` immediately.
+5. You have a 128k context window. Do NOT conserve space.
+
 # SwitchyMalaccamax AI Coding Instructions
 
 ## Project Overview
@@ -65,7 +72,7 @@ npm run format     # Prettier formatting
 **Profile Selection Verification**:
 - **Always verify** that selecting a profile actually applies the correct proxy configuration
 - Test flow: Select profile → Check `chrome.proxy.settings.get()` → Verify mode, host, port
-- Example: Selecting "Workday" should result in `mode: 'fixed_servers'` with correct proxy server
+- Example: Selecting "Example" should result in `mode: 'fixed_servers'` with correct proxy server
 - Test both immediate application AND persistence after browser restart
 
 ## Project-Specific Conventions

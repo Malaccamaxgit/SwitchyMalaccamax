@@ -75,6 +75,16 @@ describe('WildcardMatcher - Deterministic Matching', () => {
       expect(WildcardMatcher.matchPattern('**.example.com', 'deep.sub.example.com')).toBe(true);
       expect(WildcardMatcher.matchPattern('**.example.com', 'example.com')).toBe(true);
     });
+
+    it('should match real-world example: *.example.io -> cdt.example.io', () => {
+      // Correct TLD must be used (io vs com)
+      expect(WildcardMatcher.matchPattern('*.example.io', 'cdt.example.io')).toBe(true);
+      expect(WildcardMatcher.matchPattern('*.example.io', 'example.io')).toBe(false);
+
+      // Leading/trailing whitespace in pattern is treated literally (no auto-trim)
+      expect(WildcardMatcher.matchPattern(' *.example.io', 'cdt.example.io')).toBe(false);
+      expect(WildcardMatcher.matchPattern('*.example.io ', 'cdt.example.io')).toBe(false);
+    });
   });
 
   describe('Complex Pattern Matching', () => {

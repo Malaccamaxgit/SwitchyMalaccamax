@@ -10,7 +10,7 @@ const profiles: Profile[] = [
     color: 'blue'
   },
   {
-    name: 'Workday',
+    name: 'Example',
     profileType: 'FixedProfile',
     color: 'green',
     fallbackProxy: {
@@ -31,12 +31,12 @@ const profiles: Profile[] = [
     defaultProfileName: 'Direct',
     rules: [
       {
-        condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.workday.com' },
-        profileName: 'Workday'
+        condition: { conditionType: 'HostWildcardCondition', pattern: 'confluence.example.com' },
+        profileName: 'Example'
       },
       {
-        condition: { conditionType: 'HostWildcardCondition', pattern: '*.workdayinternal.com' },
-        profileName: 'Workday'
+        condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
+        profileName: 'Example'
       }
     ]
   }
@@ -60,15 +60,15 @@ var FindProxyForURL = function(init, profiles) {
 }("+Auto Switch", {
     "+Auto Switch": function(url, host, scheme) {
         "use strict";
-        if (/^confluence\.workday\.com$/.test(host)) return "+Workday";
-        if (/(?:^|\.)workdayinternal\.com$/.test(host)) return "+Workday";
+        if (/^confluence\.example\.com$/.test(host)) return "+Example";
+        if (/(?:^|\.)example\.com$/.test(host)) return "+Example";
         return "+Direct";
     },
     "+Direct": function(url, host, scheme) {
         "use strict";
         return "DIRECT";
     },
-    "+Workday": function(url, host, scheme) {
+    "+Example": function(url, host, scheme) {
         "use strict";
         if (/^127\.0\.0\.1$/.test(host)) return "DIRECT";
         if (/^127\.0\.0\.1$/.test(host) || /^::1$/.test(host) || /^localhost$/.test(host)) return "DIRECT";
@@ -80,25 +80,25 @@ var FindProxyForURL = function(init, profiles) {
 
 ## Execution Flow Example
 
-### Request 1: `https://confluence.workday.com/wiki`
+### Request 1: `https://confluence.example.com/wiki`
 
 1. **Start**: `result = "+Auto Switch"`
 2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host matches `/^confluence\.workday\.com$/`
-   - Returns `"+Workday"`
-3. **Second iteration**: Execute `profiles["+Workday"](url, host, scheme)`
+   - Host matches `/^confluence\.example\.com$/`
+   - Returns `"+Example"`
+3. **Second iteration**: Execute `profiles["+Example"](url, host, scheme)`
    - Host does not match `127.0.0.1`
    - Host does not match bypass conditions
    - Returns `"PROXY 192.168.50.30:8213"`
 4. **Result**: `"PROXY 192.168.50.30:8213"`
 
-### Request 2: `https://docs.workdayinternal.com/api`
+### Request 2: `https://docs.example.com/api`
 
 1. **Start**: `result = "+Auto Switch"`
 2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host matches `/(?:^|\.)workdayinternal\.com$/`
-   - Returns `"+Workday"`
-3. **Second iteration**: Execute `profiles["+Workday"](url, host, scheme)`
+   - Host matches `/(?:^|\.)example\.com$/`
+   - Returns `"+Example"`
+3. **Second iteration**: Execute `profiles["+Example"](url, host, scheme)`
    - Host does not match bypass conditions
    - Returns `"PROXY 192.168.50.30:8213"`
 4. **Result**: `"PROXY 192.168.50.30:8213"`
@@ -123,17 +123,17 @@ var FindProxyForURL = function(init, profiles) {
    - Returns `"DIRECT"`
 4. **Result**: `"DIRECT"`
 
-**Note**: If the request to `192.168.2.50` was routed to Workday profile instead:
-1. **Start**: `result = "+Workday"`
-2. **First iteration**: Execute `profiles["+Workday"](url, host, scheme)`
+**Note**: If the request to `192.168.2.50` was routed to Example profile instead:
+1. **Start**: `result = "+Example"`
+2. **First iteration**: Execute `profiles["+Example"](url, host, scheme)`
    - Host matches `isInNet(host, "192.168.2.0", "255.255.255.0")`
    - Returns `"DIRECT"` (bypass rule)
 3. **Result**: `"DIRECT"`
 
 ## Key Features Demonstrated
 
-1. ✅ **Recursive Resolution**: Multiple profile lookups ("+Auto Switch" → "+Workday")
+1. ✅ **Recursive Resolution**: Multiple profile lookups ("+Auto Switch" → "+Example")
 2. ✅ **Bypass List**: Checks bypass conditions before returning proxy
-3. ✅ **Wildcard Patterns**: Converts `*.workdayinternal.com` to regex
+3. ✅ **Wildcard Patterns**: Converts `*.example.com` to regex
 4. ✅ **CIDR Support**: Uses `isInNet()` for IP range matching
 5. ✅ **Loop Termination**: Stops when result is a string not starting with '+' (charCodeAt(0) !== 43)
