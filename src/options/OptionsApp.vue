@@ -270,7 +270,7 @@
             </div>
           </div>
 
-          <div class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[400px] max-h-[400px] overflow-y-auto">
+          <div ref="logsContainer" class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[400px] max-h-[400px] overflow-y-auto">
             <div v-if="logs.length === 0" class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600">
               No logs captured yet. Actions will be logged here.
             </div>
@@ -803,7 +803,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useDark } from '@vueuse/core';
 import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
@@ -855,6 +855,43 @@ const bypassListText = ref<string>('');
 const logs = ref<Array<{ timestamp: string; level: string; component: string; message: string; data?: any }>>([]);
 const maxLogs = 500;
 const logExportRowCount = ref(100);
+
+// Auto-refresh / tailing for Log Viewer
+const logsContainer = ref<HTMLElement | null>(null);
+const logAutoRefreshTimer = ref<number | null>(null);
+
+function refreshLogs() {
+  try {
+    const buffer = Logger.getLogBuffer();
+    logs.value = buffer;
+    if (logs.value.length > maxLogs) {
+      logs.value = logs.value.slice(0, maxLogs);
+    }
+
+    // Tailing behavior: newest logs are at the top (logs[0]), so scroll to top
+    nextTick(() => {
+      if (currentView.value === 'debug' && logsContainer.value) {
+        logsContainer.value.scrollTop = 0;
+      }
+    });
+  } catch (error) {
+    Logger.error('Failed to refresh logs', error);
+  }
+}
+
+function startLogAutoRefresh() {
+  if (logAutoRefreshTimer.value !== null) return;
+  // Immediate refresh
+  refreshLogs();
+  logAutoRefreshTimer.value = window.setInterval(() => refreshLogs(), 1000);
+}
+
+function stopLogAutoRefresh() {
+  if (logAutoRefreshTimer.value !== null) {
+    clearInterval(logAutoRefreshTimer.value);
+    logAutoRefreshTimer.value = null;
+  }
+}
 const testConflictActive = ref(false);
 const storageUsed = ref('Calculating...');
 const currentLogLevel = ref<LogLevel>(LogLevel.INFO);
@@ -1442,6 +1479,11 @@ onMounted(async () => {
   } catch (error) {
     Logger.error('Failed to load data', error);
   }
+
+  // Start auto-refresh if we're already on the debug view
+  if (currentView.value === 'debug') {
+    startLogAutoRefresh();
+  }
 });
 
 async function toggleShowInPopup(profile: Profile) {
@@ -1833,4 +1875,17 @@ watch(profiles, () => {
   hasUnsavedChanges.value = true;
   Logger.debug('Profiles changed');
 }, { deep: true });
+
+// Watcher to start/stop log auto-refresh when user navigates to Debug view
+watch(currentView, (newVal) => {
+  if (newVal === 'debug') {
+    startLogAutoRefresh();
+  } else {
+    stopLogAutoRefresh();
+  }
+});
+
+onBeforeUnmount(() => {
+  stopLogAutoRefresh();
+});
 </script>
