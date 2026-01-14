@@ -20,5 +20,7 @@ jobs:
       uses: actions/dependency-review-action@v4
       with:
         fail-on-severity: moderate
-        deny-licenses: GPL-3.0, AGPL-3.0
+        # NOTE: `deny-licenses` is deprecated and scheduled for removal in a future major release.
+        # See: https://github.com/actions/dependency-review-action/issues/997
+        # Removed to avoid deprecation warnings; reintroduce via an alternative if/when supported.
         comment-summary-in-pr: always
