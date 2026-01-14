@@ -1287,20 +1287,32 @@ async function exportLogsToFile() {
     ].join('\n');
     
     const blob = new Blob([logText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
     const filename = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-    
-    // Use <a download> to trigger save dialog
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    
-    // Clean up the blob URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-    
-    Logger.info('Logs exported to file', { count: logsToExport.length, filename });
-    toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
+
+    try {
+      // Use File System Access API when available (prompts for destination)
+      const { saveBlobToFile } = await import('@/lib/fileSaver');
+      await saveBlobToFile(blob, filename, 'text/plain');
+      Logger.info('Logs exported via file picker', { count: logsToExport.length, filename });
+      toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
+    } catch (err) {
+      // If user cancelled (AbortError), just return silently
+      if (err && typeof err === 'object' && (err as any).name === 'AbortError') {
+        Logger.info('User cancelled export');
+        return;
+      }
+
+      // Otherwise fallback to download (anchor) as previously
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+
+      Logger.info('Logs exported to file (fallback download)', { count: logsToExport.length, filename });
+      toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
+    }
   } catch (error) {
     Logger.error('Failed to export logs', error);
     toastRef.value?.error('Failed to export logs', 'Error');
@@ -2037,21 +2049,33 @@ async function exportProfileAsPac(profile: Profile) {
     const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
     const filename = `${safeName}.pac`;
     
-    // Create blob and download with save dialog
+    // Use File System Access API where available to let user choose destination
     const blob = new Blob([pacScript], { type: 'application/x-ns-proxy-autoconfig' });
-    const url = URL.createObjectURL(blob);
-    
-    // Use <a download> to trigger save dialog
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    
-    // Clean up the blob URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-    
-    toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
-    Logger.info('PAC export successful', { filename });
+
+    try {
+      const { saveBlobToFile } = await import('@/lib/fileSaver');
+      await saveBlobToFile(blob, filename, 'application/x-ns-proxy-autoconfig');
+      toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
+      Logger.info('PAC export successful (file picker)', { filename });
+    } catch (err) {
+      if (err && typeof err === 'object' && (err as any).name === 'AbortError') {
+        Logger.info('PAC export cancelled by user');
+        return;
+      }
+
+      // Fallback to download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+
+      toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
+      Logger.info('PAC export successful (fallback download)', { filename });
+    }
   } catch (error) {
     Logger.error('Failed to export PAC', error);
     toastRef.value?.error('Failed to export PAC script', 'Error');
