@@ -1,0 +1,8 @@
+﻿2026-01-14T21:29:28.6805256Z ##[group]Run echo "🔍 Running npm audit..."
+2026-01-14T21:29:28.6805601Z [36;1mecho "🔍 Running npm audit..."[0m
+2026-01-14T21:29:28.6805913Z [36;1mnpm audit --production --audit-level=moderate[0m
+2026-01-14T21:29:28.6825672Z shell: /usr/bin/bash -e {0}
+2026-01-14T21:29:28.6826499Z ##[endgroup]
+2026-01-14T21:29:28.6871693Z 🔍 Running npm audit...
+2026-01-14T21:29:28.7640306Z npm warn config production Use `--omit=dev` instead.
+2026-01-14T21:29:29.1641009Z found 0 vulnerabilities

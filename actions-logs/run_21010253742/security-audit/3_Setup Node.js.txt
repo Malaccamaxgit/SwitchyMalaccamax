@@ -1,0 +1,22 @@
+﻿2026-01-14T21:29:20.3526680Z ##[group]Run actions/setup-node@v4
+2026-01-14T21:29:20.3527563Z with:
+2026-01-14T21:29:20.3528157Z   node-version: 20
+2026-01-14T21:29:20.3528798Z   cache: npm
+2026-01-14T21:29:20.3529426Z   always-auth: false
+2026-01-14T21:29:20.3530111Z   check-latest: false
+2026-01-14T21:29:20.3531176Z   token: ***
+2026-01-14T21:29:20.3531813Z ##[endgroup]
+2026-01-14T21:29:20.5184082Z Found in cache @ /opt/hostedtoolcache/node/20.19.6/x64
+2026-01-14T21:29:20.5189990Z ##[group]Environment details
+2026-01-14T21:29:22.8972226Z node: v20.19.6
+2026-01-14T21:29:22.8972918Z npm: 10.8.2
+2026-01-14T21:29:22.8973300Z yarn: 1.22.22
+2026-01-14T21:29:22.8974239Z ##[endgroup]
+2026-01-14T21:29:22.8993068Z [command]/opt/hostedtoolcache/node/20.19.6/x64/bin/npm config get cache
+2026-01-14T21:29:23.1345216Z /home/runner/.npm
+2026-01-14T21:29:23.2763821Z Cache hit for: node-cache-Linux-x64-npm-9b39c804d7baf5648f83fc6b54bc56f8b3896c9125dcf8f4e33f83bbdd17c09a
+2026-01-14T21:29:24.0249506Z Received 51242350 of 51242350 (100.0%), 77.1 MBs/sec
+2026-01-14T21:29:24.0250341Z Cache Size: ~49 MB (51242350 B)
+2026-01-14T21:29:24.0280876Z [command]/usr/bin/tar -xf /home/runner/work/_temp/84496f8a-a626-4287-886f-dd93a1107957/cache.tzst -P -C /home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax --use-compress-program unzstd
+2026-01-14T21:29:24.1109073Z Cache restored successfully
+2026-01-14T21:29:24.1178459Z Cache restored from key: node-cache-Linux-x64-npm-9b39c804d7baf5648f83fc6b54bc56f8b3896c9125dcf8f4e33f83bbdd17c09a
