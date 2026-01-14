@@ -7,11 +7,23 @@ describe('fileSaver', () => {
 
   beforeEach(() => {
     originalShowSave = (global as any).showSaveFilePicker;
+    // Provide a minimal document for the fallback path tests
+    (global as any).document = (global as any).document || {
+      createElement: () => ({ href: '', download: '', click: () => {}, style: {}, setAttribute: () => {}, remove: () => {} }),
+      body: { appendChild: () => {}, removeChild: () => {} }
+    };
   });
 
   afterEach(() => {
     (global as any).showSaveFilePicker = originalShowSave;
     vi.restoreAllMocks();
+    // Clean up document stub
+    // @ts-ignore
+    if ((global as any).document && (global as any).document.createElement && (global as any).document.createElement.toString().includes('native code')) {
+      // leave real document
+    } else {
+      delete (global as any).document;
+    }
   });
 
   it('should use showSaveFilePicker when available', async () => {

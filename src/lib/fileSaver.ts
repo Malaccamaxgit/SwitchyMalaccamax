@@ -6,8 +6,9 @@
 export async function saveBlobToFile(blob: Blob, filename: string, mimeType?: string): Promise<void> {
   // Try File System Access API first
   try {
-    // @ts-ignore - showSaveFilePicker is available in Chromium-based browsers
-    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    // Prefer File System Access API if present (window or globalThis)
+    const picker = (typeof window !== 'undefined' && (window as any).showSaveFilePicker) || (globalThis as any).showSaveFilePicker;
+    if (picker) {
       const opts: any = {
         suggestedName: filename,
         types: [
@@ -17,8 +18,7 @@ export async function saveBlobToFile(blob: Blob, filename: string, mimeType?: st
           }
         ]
       };
-      // @ts-ignore
-      const handle = await (window as any).showSaveFilePicker(opts);
+      const handle = await picker(opts);
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
