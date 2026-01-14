@@ -4,6 +4,8 @@
  */
 import { Logger } from '../utils/Logger';
 import { migrateToEncryptedStorage } from '../utils/migration';
+import { generatePacScript } from '@/core/pac/pac-generator';
+import type { Profile } from '@/core/schema';
 
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
@@ -32,8 +34,8 @@ type ExtensionMessage = SetProxyMessage | CheckConflictsMessage;
 const ALLOWED_ACTIONS = ['setProxy', 'checkConflicts'] as const;
 type AllowedAction = typeof ALLOWED_ACTIONS[number];
 
-function isAllowedAction(action: any): action is AllowedAction {
-  return ALLOWED_ACTIONS.includes(action);
+function isAllowedAction(action: unknown): action is AllowedAction {
+  return typeof action === 'string' && ALLOWED_ACTIONS.includes(action as AllowedAction);
 }
 
 // Rate limiting map: senderId -> last message timestamp
@@ -52,31 +54,34 @@ migrateToEncryptedStorage().catch(error => {
 /**
  * Validate proxy configuration structure
  */
-function isValidProxyConfig(config: any): config is chrome.proxy.ProxyConfig {
+function isValidProxyConfig(config: unknown): config is chrome.proxy.ProxyConfig {
   if (!config || typeof config !== 'object') return false;
-  
+
+  const cfg = config as Record<string, unknown>;
+
   // Must have valid mode
   const validModes = ['direct', 'auto_detect', 'pac_script', 'fixed_servers', 'system'];
-  if (!config.mode || !validModes.includes(config.mode)) return false;
-  
+  if (!cfg.mode || typeof cfg.mode !== 'string' || !validModes.includes(cfg.mode)) return false;
+
   // pac_script mode requires pacScript
-  if (config.mode === 'pac_script') {
-    if (!config.pacScript || typeof config.pacScript !== 'object') return false;
-    if (!config.pacScript.data && !config.pacScript.url) return false;
+  if (cfg.mode === 'pac_script') {
+    const pac = cfg.pacScript as Record<string, unknown> | undefined;
+    if (!pac || typeof pac !== 'object') return false;
+    if (!pac.data && !pac.url) return false;
   }
-  
+
   // fixed_servers mode requires rules
-  if (config.mode === 'fixed_servers') {
-    if (!config.rules || typeof config.rules !== 'object') return false;
+  if (cfg.mode === 'fixed_servers') {
+    if (!cfg.rules || typeof cfg.rules !== 'object') return false;
   }
-  
+
   return true;
 }
 
 /**
  * Validate color value (must be from allowed set)
  */
-function isValidColor(color: any): boolean {
+function isValidColor(color: unknown): boolean {
   const allowedColors = ['gray', 'blue', 'green', 'red', 'yellow', 'purple'];
   return typeof color === 'string' && allowedColors.includes(color);
 }
@@ -93,11 +98,11 @@ async function initializeIconColor(): Promise<void> {
     const syncResult = await chrome.storage.sync.get(['activeProfileId']);
     const localResult = await chrome.storage.local.get(['profiles']);
     const profiles = localResult.profiles || [];
-    const activeProfile = profiles.find((p: any) => p.id === syncResult.activeProfileId);
+    const activeProfile = (profiles as Array<Record<string, unknown>>).find(p => (p.id as string) === syncResult.activeProfileId);
     
-    if (activeProfile?.color) {
-      updateIconColor(activeProfile.color);
-      Logger.info('Initialized icon with profile color', { color: activeProfile.color });
+    if (activeProfile && (activeProfile as unknown as Record<string, unknown>).color) {
+      updateIconColor((activeProfile as unknown as Record<string, unknown>).color as string);
+      Logger.info('Initialized icon with profile color', { color: (activeProfile as unknown as Record<string, unknown>).color });
     } else {
       updateIconColor('blue'); // Default color
       Logger.info('Initialized icon with default color: blue');
@@ -194,7 +199,7 @@ async function applyStartupProfile(): Promise<void> {
     
     // If there's a startup profile set and it's different from current, apply it
     if (startupProfileId && startupProfileId !== syncResult.activeProfileId) {
-      const startupProfile = profiles.find((p: any) => p.id === startupProfileId);
+      const startupProfile = (profiles as Profile[]).find(p => p.id === startupProfileId);
       
       if (startupProfile) {
         Logger.info('Applying startup profile', { name: startupProfile.name });
@@ -210,26 +215,58 @@ async function applyStartupProfile(): Promise<void> {
         } else if (startupProfile.profileType === 'SystemProfile') {
           config = { mode: 'system' };
         } else if (startupProfile.profileType === 'FixedProfile') {
+          // Support both modern (fallbackProxy) and legacy (host/port/proxyType) fixed profiles
           const bypassList: string[] = [];
-          if (startupProfile.bypassList && Array.isArray(startupProfile.bypassList)) {
-            startupProfile.bypassList.forEach((condition: any) => {
-              if (condition.conditionType === 'BypassCondition' && condition.pattern) {
-                bypassList.push(condition.pattern);
+          const sp = startupProfile as unknown as Record<string, unknown>;
+
+          if (sp.bypassList && Array.isArray(sp.bypassList)) {
+            (sp.bypassList as Array<Record<string, unknown>>).forEach((condition) => {
+              if ((condition as { conditionType?: string; pattern?: string }).conditionType === 'BypassCondition' && (condition as { pattern?: string }).pattern) {
+                bypassList.push((condition as { pattern?: string }).pattern!);
               }
             });
           }
-          
+
+          // Prefer schema-compliant fallbackProxy if present
+          const fallback = sp.fallbackProxy as { scheme?: string; host?: string; port?: number } | undefined;
+          let scheme = 'http';
+          let host = 'localhost';
+          let port = 8080;
+
+          if (fallback && fallback.host && fallback.port) {
+            scheme = (fallback.scheme || 'http').toLowerCase();
+            host = fallback.host;
+            port = fallback.port;
+          } else if (sp.host && sp.port) {
+            // Legacy storage format
+            scheme = (sp.proxyType as string || 'http').toLowerCase();
+            host = sp.host as string;
+            port = sp.port as number;
+          }
+
           config = {
             mode: 'fixed_servers',
             rules: {
               singleProxy: {
-                scheme: startupProfile.proxyType?.toLowerCase() || 'http',
-                host: startupProfile.host || 'localhost',
-                port: startupProfile.port || 8080,
+                scheme,
+                host,
+                port,
               },
               bypassList: bypassList.length > 0 ? bypassList : undefined,
             },
           };
+        } else if (startupProfile.profileType === 'SwitchProfile') {
+          // Generate PAC script for switch profile
+          try {
+            const pacScript = generatePacScript(startupProfile, profiles);
+            config = {
+              mode: 'pac_script',
+              pacScript: { data: pacScript }
+            };
+          } catch (err) {
+            Logger.error('Failed to generate PAC for startup SwitchProfile', err);
+            config = { mode: 'direct' };
+          }
         } else {
           config = { mode: 'direct' };
         }
@@ -262,7 +299,7 @@ applyStartupProfile();
 // Note: Requires "webRequest" permission and appropriate host permissions in manifest
 try {
   if (chrome.webRequest && chrome.webRequest.onErrorOccurred && chrome.webRequest.onErrorOccurred.addListener) {
-    chrome.webRequest.onErrorOccurred.addListener((details: any) => {
+    chrome.webRequest.onErrorOccurred.addListener((details: { url?: string; error?: string; method?: string; tabId?: number; frameId?: number; requestId?: string; timeStamp?: number }) => {
       try {
         Logger.warn('Request failed', {
           url: details.url,
@@ -303,6 +340,8 @@ chrome.runtime.onInstalled.addListener((details) => {
 // Listen for messages from popup/options
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   // Security: Validate sender is from this extension
+  const receivedAction = (message as unknown as Record<string, unknown>)['action'];
+  Logger.debug('Received runtime message', { action: receivedAction, senderId: sender.id });
   if (sender.id !== chrome.runtime.id) {
     Logger.warn('Rejected message from unknown sender', { senderId: sender.id });
     sendResponse({ success: false, error: 'Invalid sender' });
@@ -344,7 +383,7 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
       return false;
     }
     
-    (async () => {
+    (async (): Promise<void> => {
       try {
         await handleSetProxy(message.config);
         if (message.profileColor) {
@@ -367,7 +406,7 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
 });
 
 // Monitor proxy settings changes (with delay to allow changes to propagate)
-chrome.proxy.settings.onChange.addListener((details: any) => {
+chrome.proxy.settings.onChange.addListener((details: { levelOfControl?: string; value?: unknown }) => {
   Logger.debug('Proxy settings changed', { 
     levelOfControl: details.levelOfControl 
   });
@@ -409,7 +448,7 @@ setInterval(() => {
  */
 async function checkProxyConflicts(): Promise<void> {
   try {
-    const proxySettings = await chrome.proxy.settings.get({}) as any;
+    const proxySettings = await chrome.proxy.settings.get({}) as unknown as Record<string, unknown>;
     const levelOfControl = proxySettings.levelOfControl;
     
     Logger.debug('Conflict check', { 
@@ -456,11 +495,12 @@ async function checkProxyConflicts(): Promise<void> {
  */
 async function handleSetProxy(config: chrome.proxy.ProxyConfig): Promise<void> {
   try {
+    Logger.debug('Setting proxy', { mode: config.mode, pacScriptSize: config.pacScript?.data?.length });
     await chrome.proxy.settings.set({
       value: config,
       scope: 'regular',
     });
-    Logger.info('Proxy set successfully');
+    Logger.info('Proxy set successfully', { mode: config.mode });
     
     // Check for conflicts immediately and again after a delay
     await checkProxyConflicts();

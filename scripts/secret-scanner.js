@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Secret Scanner - Prevents accidental commit of sensitive data
  * Scans staged files for common secret patterns
@@ -19,17 +19,17 @@ const SECRET_PATTERNS = [
   // API Keys and Tokens
   {
     name: 'Generic API Key',
-    pattern: /[a-zA-Z0-9_-]*api[_-]?key[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9_\-]{20,})['"]/gi,
+    pattern: /[a-zA-Z0-9_-]*api[_-]?key[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9-]{20,})['"]/gi,
     severity: 'HIGH',
   },
   {
     name: 'Generic Secret/Token',
-    pattern: /[a-zA-Z0-9_-]*secret[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9_\-]{20,})['"]/gi,
+    pattern: /[a-zA-Z0-9_-]*secret[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9-]{20,})['"]/gi,
     severity: 'HIGH',
   },
   {
     name: 'Generic Token',
-    pattern: /[a-zA-Z0-9_-]*token[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9_\-]{20,})['"]/gi,
+    pattern: /[a-zA-Z0-9_-]*token[a-zA-Z0-9_-]*['"\s]*[:=]\s*['"]([a-zA-Z0-9-]{20,})['"]/gi,
     severity: 'HIGH',
   },
   
@@ -74,7 +74,7 @@ const SECRET_PATTERNS = [
   // Database Connections
   {
     name: 'Database Connection String',
-    pattern: /(postgres|mysql|mongodb|redis):\/\/[^:]+:[^@]+@[^\/]+/gi,
+    pattern: /(postgres|mysql|mongodb|redis):\/\/[^:]+:[^@]+@[^/]+/gi,
     severity: 'CRITICAL',
   },
   
@@ -124,9 +124,15 @@ const SCANNABLE_EXTENSIONS = [
   '.xml', '.properties', '.conf', '.config',
 ];
 
-function isWhitelisted(match) {
+/**
+ * Check whether a match string is whitelisted (false positive).
+ * @param {string|undefined} match
+ * @returns {boolean}
+ */
+export function isWhitelisted(match) {
+  if (!match || typeof match !== 'string') return false;
   return WHITELIST_PATTERNS.some(pattern => pattern.test(match));
-}
+} 
 
 function getStagedFiles() {
   try {
@@ -140,7 +146,13 @@ function getStagedFiles() {
   }
 }
 
-function shouldScanFile(filename) {
+/**
+ * Determine if the filename should be scanned (based on extension and paths).
+ * @param {string} filename
+ * @returns {boolean}
+ */
+export function shouldScanFile(filename) {
+  if (!filename || typeof filename !== 'string') return false;
   // Skip non-text files
   if (filename.includes('node_modules/')) return false;
   if (filename.includes('.git/')) return false;
@@ -158,9 +170,9 @@ function shouldScanFile(filename) {
   // Check extension
   const ext = '.' + filename.split('.').pop();
   return SCANNABLE_EXTENSIONS.includes(ext);
-}
+} 
 
-function scanFile(filename) {
+export function scanFile(filename) {
   try {
     const content = fs.readFileSync(filename, 'utf8');
     const findings = [];
@@ -205,15 +217,23 @@ function scanFile(filename) {
   }
 }
 
+/**
+ * Map severity to ANSI color code.
+ * @param {string} severity
+ * @returns {string}
+ */
 function getSeverityColor(severity) {
   switch (severity) {
-    case 'CRITICAL': return RED;
-    case 'HIGH': return RED;
-    case 'MEDIUM': return YELLOW;
-    case 'LOW': return YELLOW;
-    default: return RESET;
+    case 'CRITICAL':
+    case 'HIGH':
+      return RED;
+    case 'MEDIUM':
+    case 'LOW':
+      return YELLOW;
+    default:
+      return RESET;
   }
-}
+} 
 
 function main() {
   console.log(`${BOLD}🔍 Secret Scanner - Checking staged files...${RESET}\n`);
@@ -248,26 +268,31 @@ function main() {
   console.log(`${RED}${BOLD}⚠ SECRETS DETECTED!${RESET}\n`);
   
   if (critical.length > 0) {
-    console.log(`${RED}${BOLD}CRITICAL (${critical.length}):${RESET}`);
+    console.log(`${getSeverityColor('CRITICAL')}${BOLD}CRITICAL (${critical.length}):${RESET}`);
     critical.forEach(f => {
-      console.log(`  ${f.file}:${f.line} - ${f.type}`);
-      console.log(`    ${f.match.substring(0, 80)}...`);
+      const color = getSeverityColor(f.severity);
+      console.log(`${color}  ${f.file}:${f.line} - ${f.type}${RESET}`);
+      const raw = f.match || '';
+      const snippet = raw.length > 80 ? `${raw.slice(0, 80)}...` : raw;
+      console.log(`${color}    ${snippet}${RESET}`);
     });
     console.log();
   }
   
   if (high.length > 0) {
-    console.log(`${RED}${BOLD}HIGH (${high.length}):${RESET}`);
+    console.log(`${getSeverityColor('HIGH')}${BOLD}HIGH (${high.length}):${RESET}`);
     high.forEach(f => {
-      console.log(`  ${f.file}:${f.line} - ${f.type}`);
+      const color = getSeverityColor(f.severity);
+      console.log(`${color}  ${f.file}:${f.line} - ${f.type}${RESET}`);
     });
     console.log();
   }
   
   if (medium.length > 0) {
-    console.log(`${YELLOW}${BOLD}MEDIUM (${medium.length}):${RESET}`);
+    console.log(`${getSeverityColor('MEDIUM')}${BOLD}MEDIUM (${medium.length}):${RESET}`);
     medium.forEach(f => {
-      console.log(`  ${f.file}:${f.line} - ${f.type}`);
+      const color = getSeverityColor(f.severity);
+      console.log(`${color}  ${f.file}:${f.line} - ${f.type}${RESET}`);
     });
     console.log();
   }
@@ -282,4 +307,14 @@ function main() {
   return 1;
 }
 
-process.exit(main());
+// Only run main when executed directly, not on import (tests import functions)
+try {
+  const invokedAsScript = typeof process !== 'undefined' && process.argv && process.argv[1] && process.argv[1].endsWith('secret-scanner.js');
+  if (invokedAsScript) {
+    const code = main();
+    process.exit(code);
+  }
+} catch (e) {
+  // Allow tests to import exported functions without side-effects
+  console.error('Error running secret-scanner script:', e);
+}

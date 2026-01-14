@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Production Build Logger Cleanup
  * Removes console.log calls from Logger.ts for production builds

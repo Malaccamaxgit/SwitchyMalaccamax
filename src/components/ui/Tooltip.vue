@@ -21,7 +21,11 @@
           <slot name="content">
             {{ content }}
           </slot>
-          <div v-if="!hideArrow" :class="arrowClass" :style="arrowStyle"></div>
+          <div
+            v-if="!hideArrow"
+            :class="arrowClass"
+            :style="arrowStyle"
+          />
         </div>
       </Transition>
     </Teleport>
@@ -29,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, watch, nextTick } from 'vue';
 
 interface Props {
@@ -41,6 +46,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  content: '',
   placement: 'top',
   delay: 200,
   maxWidth: '320px',

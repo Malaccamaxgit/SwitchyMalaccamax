@@ -23,11 +23,11 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
             get: mockGet
           }
         }
-      } as any;
+      } as unknown as typeof chrome;
       
       // Simulate conflict check
       const proxySettings = await chrome.proxy.settings.get({});
-      const levelOfControl = (proxySettings as any).levelOfControl;
+      const levelOfControl = (proxySettings as unknown as Record<string, unknown>).levelOfControl;
       
       expect(levelOfControl).toBe('controlled_by_other_extensions');
       expect(mockGet).toHaveBeenCalledWith({});
@@ -45,10 +45,10 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
             get: mockGet
           }
         }
-      } as any;
+      } as unknown as typeof chrome;
       
       const proxySettings = await chrome.proxy.settings.get({});
-      const levelOfControl = (proxySettings as any).levelOfControl;
+      const levelOfControl = (proxySettings as unknown as Record<string, unknown>).levelOfControl;
       
       expect(levelOfControl).toBe('not_controllable');
     });
@@ -65,10 +65,10 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
             get: mockGet
           }
         }
-      } as any;
+      } as unknown as typeof chrome;
       
       const proxySettings = await chrome.proxy.settings.get({});
-      const levelOfControl = (proxySettings as any).levelOfControl;
+      const levelOfControl = (proxySettings as unknown as Record<string, unknown>).levelOfControl;
       
       expect(levelOfControl).toBe('controlled_by_this_extension');
     });
@@ -98,7 +98,7 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
             get: mockGet
           }
         }
-      } as any;
+      } as unknown as typeof chrome;
       
       // Simulate profile switch
       const config = {
@@ -124,9 +124,13 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
         value: config,
         scope: 'regular'
       });
-      expect((result as any).value.mode).toBe('fixed_servers');
-      expect((result as any).value.rules.singleProxy.host).toBe('192.168.50.30');
-      expect((result as any).value.rules.singleProxy.port).toBe(8213);
+      const resultObj = result as unknown as Record<string, unknown>;
+      const value = resultObj.value as unknown as Record<string, unknown>;
+      expect(value.mode).toBe('fixed_servers');
+      const rules = value.rules as unknown as Record<string, unknown>;
+      const singleProxy = rules.singleProxy as unknown as Record<string, unknown>;
+      expect(singleProxy.host).toBe('192.168.50.30');
+      expect(singleProxy.port).toBe(8213);
     });
     
     it('should verify DirectProfile applies DIRECT mode', async () => {
@@ -143,7 +147,7 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
             get: mockGet
           }
         }
-      } as any;
+      } as unknown as typeof chrome;
       
       const config = { mode: 'direct' as const };
       
@@ -158,7 +162,9 @@ describe('Edge Case: Profile Selection Not Taking Effect', () => {
         value: config,
         scope: 'regular'
       });
-      expect((result as any).value.mode).toBe('direct');
+      const resultObj2 = result as unknown as Record<string, unknown>;
+      const value2 = resultObj2.value as unknown as Record<string, unknown>;
+      expect(value2.mode).toBe('direct');
     });
   });
 });
@@ -238,7 +244,7 @@ describe('Edge Case: Auto Switch Profile UI Restrictions', () => {
       };
       
       // Verify: bypass rules are not set at SwitchProfile level
-      expect((switchProfile as any).bypassList).toBeUndefined();
+      expect((switchProfile as unknown as Record<string, unknown>).bypassList).toBeUndefined();
       
       // Bypass rules should only exist on the target FixedProfile
       const targetFixedProfile = {

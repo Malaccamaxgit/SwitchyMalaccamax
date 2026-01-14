@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { encryptData, decryptData, isEncrypted, encryptProfile, decryptProfile } from '../../src/utils/crypto';
 
 // Mock chrome API for testing
-const mockStorage: Record<string, any> = {};
+const mockStorage: Record<string, unknown> = {};
 global.chrome = {
   runtime: {
     id: 'test-extension-id-12345',
@@ -11,18 +11,18 @@ global.chrome = {
     local: {
       get: async (key: string | string[]) => {
         const keys = Array.isArray(key) ? key : [key];
-        const result: Record<string, any> = {};
+        const result: Record<string, unknown> = {};
         keys.forEach(k => {
           if (mockStorage[k]) result[k] = mockStorage[k];
         });
         return result;
       },
-      set: async (items: Record<string, any>) => {
+      set: async (items: Record<string, unknown>) => {
         Object.assign(mockStorage, items);
       },
     },
   },
-} as any;
+} as unknown as typeof chrome;
 
 describe('Crypto Utilities', () => {
   describe('encryptData / decryptData', () => {
@@ -124,8 +124,8 @@ describe('Crypto Utilities', () => {
 
       expect(encrypted.username).not.toBe(testProfile.username);
       expect(encrypted.password).not.toBe(testProfile.password);
-      expect(isEncrypted(encrypted.username)).toBe(true);
-      expect(isEncrypted(encrypted.password)).toBe(true);
+      expect(isEncrypted(encrypted.username as string | undefined)).toBe(true);
+      expect(isEncrypted(encrypted.password as string | undefined)).toBe(true);
 
       // Other fields unchanged
       expect(encrypted.id).toBe(testProfile.id);

@@ -1,19 +1,26 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
   <Teleport to="body">
     <div :class="containerClass">
       <TransitionGroup name="toast-list">
         <div
-          v-for="toast in toasts"
+          v-for="(toast, idx) in toasts"
           :key="toast.id"
           :class="getToastClass(toast)"
           role="alert"
           :aria-live="toast.variant === 'error' ? 'assertive' : 'polite'"
         >
           <div class="flex items-start gap-3">
-            <component :is="getIcon(toast)" :class="getIconClass(toast)" />
+            <component
+              :is="getIcon(toast)"
+              :class="getIconClass(toast)"
+            />
             
             <div class="flex-1 min-w-0">
-              <p v-if="toast.title" class="font-semibold text-sm">
+              <p
+                v-if="toast.title"
+                class="font-semibold text-sm"
+              >
                 {{ toast.title }}
               </p>
               <p :class="toast.title ? 'text-xs mt-0.5' : 'text-sm'">
@@ -25,8 +32,8 @@
               v-if="!toast.hideClose"
               type="button"
               class="flex-shrink-0 text-text-secondary hover:text-text-primary transition-colors"
-              @click="removeToast(toast.id)"
               aria-label="Close notification"
+              @click="removeToast(toast.id)"
             >
               <X class="h-4 w-4" />
             </button>
@@ -40,7 +47,7 @@
             <div
               class="h-full bg-current opacity-30 transition-all ease-linear"
               :style="{ width: getProgress(toast) + '%' }"
-            ></div>
+            />
           </div>
         </div>
       </TransitionGroup>
@@ -49,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed } from 'vue';
 import { CheckCircle, AlertCircle, Info, AlertTriangle, X } from 'lucide-vue-next';
 

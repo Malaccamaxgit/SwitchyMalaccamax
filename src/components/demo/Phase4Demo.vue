@@ -4,26 +4,41 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-bold mb-2">Phase 4 Demo - Profile Management</h1>
-          <p class="text-text-secondary">Editor, Import/Export, Templates components</p>
+          <h1 class="text-3xl font-bold mb-2">
+            Phase 4 Demo - Profile Management
+          </h1>
+          <p class="text-text-secondary">
+            Editor, Import/Export, Templates components
+          </p>
         </div>
-        <ThemeToggle variant="ghost" size="md" />
+        <ThemeToggle
+          variant="ghost"
+          size="md"
+        />
       </div>
 
       <!-- Quick Actions -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Profile Actions</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Profile Actions
+        </h2>
         <Card padding="lg">
           <div class="flex flex-wrap gap-3">
             <Button @click="showEditor = true">
               <Plus class="h-4 w-4" />
               Create New Profile
             </Button>
-            <Button variant="secondary" @click="showTemplates = true">
+            <Button
+              variant="secondary"
+              @click="showTemplates = true"
+            >
               <Sparkles class="h-4 w-4" />
               Use Template
             </Button>
-            <Button variant="outline" @click="editSampleProfile">
+            <Button
+              variant="outline"
+              @click="editSampleProfile"
+            >
               <Edit class="h-4 w-4" />
               Edit Sample Profile
             </Button>
@@ -52,8 +67,12 @@
       <!-- Current Profiles -->
       <section>
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Current Profiles</h2>
-          <Badge variant="secondary">{{ profiles.length }} profiles</Badge>
+          <h2 class="text-xl font-semibold">
+            Current Profiles
+          </h2>
+          <Badge variant="secondary">
+            {{ profiles.length }} profiles
+          </Badge>
         </div>
         
         <ProfileList
@@ -68,21 +87,27 @@
 
       <!-- Import/Export Section -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Import & Export</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Import & Export
+        </h2>
         <ProfileImportExport
           :profiles="profiles"
           @import="handleImportProfiles"
-          @exportComplete="handleExportComplete"
+          @export-complete="handleExportComplete"
         />
       </section>
 
       <!-- Toast Notifications -->
-      <Toast ref="toastRef" position="bottom-right" />
+      <Toast
+        ref="toastRef"
+        position="bottom-right"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref } from 'vue';
 import { Plus, Sparkles, Edit } from 'lucide-vue-next';
 import { Card, Button, Badge, Dialog, Toast } from '@/components/ui';

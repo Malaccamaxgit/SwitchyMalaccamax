@@ -128,7 +128,7 @@ ${profileFunctions.join(',\n')}
         return this.compilePacProfile(profile as PacProfile);
 
       default:
-        log.warn('Unknown profile type', { type: (profile as any).profileType });
+        log.warn('Unknown profile type', { type: profile.profileType });
         return 'function() { return "DIRECT"; }';
     }
   }
@@ -176,22 +176,25 @@ ${profileFunctions.join(',\n')}
     if (profile.fallbackProxy) {
       // Schema-compliant format: { fallbackProxy: { scheme, host, port } }
       proxyResult = this.proxyServerToString(profile.fallbackProxy);
-    } else if ((profile as any).host && (profile as any).port) {
-      // Legacy/storage format: { proxyType, host, port }
-      const scheme = ((profile as any).proxyType || 'http').toLowerCase();
-      const host = (profile as any).host;
-      const port = (profile as any).port;
-      
-      proxyResult = this.proxyServerToString({
-        scheme: scheme as 'http' | 'https' | 'socks4' | 'socks5',
-        host,
-        port
-      });
-      
-      log.debug('Using legacy format', { scheme, host, port, proxyResult });
     } else {
-      log.error('FixedProfile missing proxy configuration', { name: profile.name, profile });
-      throw new Error(`FixedProfile "${profile.name}" is missing required proxy configuration (fallbackProxy or host/port)`);
+      // Legacy/storage format support: older profiles used top-level host/port fields
+      const legacy = profile as unknown as { proxyType?: string; host?: string; port?: number };
+      if (legacy.host && legacy.port) {
+        const scheme = (legacy.proxyType || 'http').toLowerCase();
+        const host = legacy.host;
+        const port = legacy.port;
+
+        proxyResult = this.proxyServerToString({
+          scheme: scheme as 'http' | 'https' | 'socks4' | 'socks5',
+          host,
+          port
+        });
+
+        log.debug('Using legacy format', { scheme, host, port, proxyResult });
+      } else {
+        log.error('FixedProfile missing proxy configuration', { name: profile.name, profile });
+        throw new Error(`FixedProfile "${profile.name}" is missing required proxy configuration (fallbackProxy or host/port)`);
+      }
     }
 
     log.debug('FixedProfile proxy result', { name: profile.name, proxyResult });
@@ -214,12 +217,21 @@ ${bypassCode}        return "${proxyResult}";
 
     // Generate each rule
     for (const rule of profile.rules) {
-      const condition = this.generateConditionCheck(rule.condition);
+      // Trim pattern defensively
+      if (rule.condition && 'pattern' in rule.condition && typeof (rule.condition as { pattern?: unknown }).pattern === 'string') {
+        (rule.condition as { pattern: string }).pattern = (rule.condition as { pattern: string }).pattern.trim();
+      }
+
+      const conditionCode = this.generateConditionCheck(rule.condition);
       const targetProfile = rule.profileName;
       
       // Return profile reference (e.g., "+Example")
       const safeTargetProfile = this.sanitizeProfileName(targetProfile);
-      rules.push(`        if (${condition}) return "+${safeTargetProfile}";`);
+
+      // Add debug log about the compiled rule
+      log.debug('Compiling switch rule', { pattern: (rule.condition as { pattern?: string }).pattern, conditionCode, targetProfile: safeTargetProfile });
+
+      rules.push(`        if (${conditionCode}) return "+${safeTargetProfile}";`);
     }
 
     // Default profile
@@ -300,17 +312,19 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
   private generateConditionCheck(condition: Condition): string {
     switch (condition.conditionType) {
       case 'HostWildcardCondition': {
-        const regex = this.wildcardToRegex(condition.pattern);
+        const pattern = (condition.pattern || '').trim();
+        const regex = this.wildcardToRegex(pattern);
         return `${regex}.test(host)`;
       }
 
       case 'UrlWildcardCondition': {
-        const regex = this.wildcardToRegex(condition.pattern);
+        const pattern = (condition.pattern || '').trim();
+        const regex = this.wildcardToRegex(pattern);
         return `${regex}.test(url)`;
       }
 
       case 'HostRegexCondition': {
-        const pattern = condition.pattern || '';
+        const pattern = (condition.pattern || '').trim();
         const validation = RegexValidator.validate(pattern);
         if (!validation.safe) {
           log.warn('Rejecting unsafe HostRegexCondition pattern in PAC generation', { pattern, reason: validation.reason });
@@ -319,11 +333,12 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
         }
         // Preserve regex semantics by constructing RegExp from a JS string (escape for JS string)
         const escapedPattern = this.escapeString(pattern);
+        // Avoid double-escaping: use direct RegExp creation for PAC (string-escaped)
         return `new RegExp("${escapedPattern}", "i").test(host)`;
       }
 
       case 'UrlRegexCondition': {
-        const pattern = condition.pattern || '';
+        const pattern = (condition.pattern || '').trim();
         const validation = RegexValidator.validate(pattern);
         if (!validation.safe) {
           log.warn('Rejecting unsafe UrlRegexCondition pattern in PAC generation', { pattern, reason: validation.reason });
@@ -362,13 +377,13 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
     // **.example.com matches all subdomains INCLUDING example.com
     
     if (pattern.startsWith('*.')) {
-      // *.example.com → /(?:^|\.)example\.com$/
+      // *.example.com → /(?:^|\.)example\.com$/ (matches subdomains only)
       const domain = pattern.substring(2);
       const escaped = this.escapeRegexPattern(domain);
       return `/(?:^|\\.)${escaped}$/`;
-    } else if (pattern.startsWith('**')) {
-      // Already includes base domain
-      const domain = pattern.substring(2);
+    } else if (pattern.startsWith('**.')) {
+      // **.example.com → /(?:^|\.)example\.com$/ (matches subdomains AND base)
+      const domain = pattern.substring(3);
       const escaped = this.escapeRegexPattern(domain);
       return `/(?:^|\\.)${escaped}$/`;
     } else if (pattern.includes('*') || pattern.includes('?')) {
@@ -410,7 +425,8 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
       .replace(/\n/g, '\\n')
       .replace(/\r/g, '\\r')
       .replace(/\t/g, '\\t')
-      .replace(/[\x00-\x1F\x7F]/g, '');
+      // Remove control characters using Unicode property escape (Cc = control)
+      .replace(/\p{Cc}/gu, '');
   }
 
   /**

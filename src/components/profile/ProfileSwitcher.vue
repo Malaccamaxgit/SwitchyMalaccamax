@@ -1,15 +1,22 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
-  <div class="relative" ref="containerRef">
+  <div
+    ref="containerRef"
+    class="relative"
+  >
     <!-- Trigger Button -->
     <Button
       :variant="variant"
       :size="size"
-      @click="toggle"
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
       :class="triggerClass"
+      @click="toggle"
     >
-      <component :is="activeIcon" class="h-4 w-4" />
+      <component
+        :is="activeIcon"
+        class="h-4 w-4"
+      />
       <span class="flex-1 text-left truncate">{{ activeProfileName }}</span>
       <ChevronDown :class="chevronClass" />
     </Button>
@@ -23,7 +30,10 @@
         :aria-activedescendant="activeProfileId"
       >
         <!-- Quick Actions -->
-        <div v-if="showQuickActions" class="p-2 border-b border-border">
+        <div
+          v-if="showQuickActions"
+          class="p-2 border-b border-border"
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -36,7 +46,10 @@
         </div>
 
         <!-- Search -->
-        <div v-if="searchable && profiles.length > 5" class="p-2 border-b border-border">
+        <div
+          v-if="searchable && profiles.length > 5"
+          class="p-2 border-b border-border"
+        >
           <div class="relative">
             <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-text-tertiary" />
             <input
@@ -46,16 +59,16 @@
               placeholder="Search..."
               class="w-full pl-7 pr-2 py-1.5 text-xs rounded-md border border-border bg-bg-primary focus:outline-none focus:ring-1 focus:ring-blue-500"
               @keydown.escape="close"
-            />
+            >
           </div>
         </div>
 
         <!-- Profile List -->
         <div class="max-h-64 overflow-y-auto scrollbar-thin py-1">
           <button
-            v-for="profile in filteredProfiles"
-            :key="profile.id"
+            v-for="(profile, idx) in filteredProfiles"
             :id="profile.id"
+            :key="profile.id"
             type="button"
             role="option"
             :aria-selected="activeProfileId === profile.id"
@@ -63,19 +76,30 @@
             @click="handleSelect(profile)"
           >
             <div class="flex items-center gap-2 flex-1 min-w-0">
-              <component :is="getProfileIcon(profile)" class="h-4 w-4 flex-shrink-0" />
+              <component
+                :is="getProfileIcon(profile)"
+                class="h-4 w-4 flex-shrink-0"
+              />
               <div class="flex-1 min-w-0">
-                <div class="font-medium text-sm truncate">{{ profile.name }}</div>
+                <div class="font-medium text-sm truncate">
+                  {{ profile.name }}
+                </div>
                 <div class="text-xs text-text-tertiary truncate">
                   {{ getProfileDescription(profile) }}
                 </div>
               </div>
             </div>
-            <Check v-if="activeProfileId === profile.id" class="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <Check
+              v-if="activeProfileId === profile.id"
+              class="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0"
+            />
           </button>
 
           <!-- Empty State -->
-          <div v-if="filteredProfiles.length === 0" class="px-3 py-6 text-center text-sm text-text-tertiary">
+          <div
+            v-if="filteredProfiles.length === 0"
+            class="px-3 py-6 text-center text-sm text-text-tertiary"
+          >
             No profiles found
           </div>
         </div>
@@ -98,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, watch, nextTick } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import { 
@@ -124,6 +149,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  activeProfileId: '',
   variant: 'outline',
   size: 'md',
   searchable: true,

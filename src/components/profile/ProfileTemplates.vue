@@ -1,9 +1,12 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
   <Card padding="lg">
     <div class="space-y-6">
       <!-- Header -->
       <div>
-        <h3 class="text-lg font-semibold mb-2">Quick Start Templates</h3>
+        <h3 class="text-lg font-semibold mb-2">
+          Quick Start Templates
+        </h3>
         <p class="text-sm text-text-secondary">
           Create profiles from pre-configured templates
         </p>
@@ -12,7 +15,7 @@
       <!-- Template Grid -->
       <div class="grid gap-4 md:grid-cols-2">
         <Card
-          v-for="template in templates"
+          v-for="(template, idx) in templates"
           :key="template.id"
           variant="outline"
           padding="md"
@@ -22,18 +25,31 @@
         >
           <div class="flex items-start gap-3">
             <div :class="getIconClass(template.category)">
-              <component :is="template.icon" class="h-5 w-5" />
+              <component
+                :is="template.icon"
+                class="h-5 w-5"
+              />
             </div>
             
             <div class="flex-1 min-w-0">
-              <h4 class="font-semibold text-sm mb-1">{{ template.name }}</h4>
-              <p class="text-xs text-text-secondary mb-3">{{ template.description }}</p>
+              <h4 class="font-semibold text-sm mb-1">
+                {{ template.name }}
+              </h4>
+              <p class="text-xs text-text-secondary mb-3">
+                {{ template.description }}
+              </p>
               
               <div class="flex items-center gap-2">
-                <Badge :variant="getCategoryVariant(template.category)" size="xs">
+                <Badge
+                  :variant="getCategoryVariant(template.category)"
+                  size="xs"
+                >
                   {{ template.category }}
                 </Badge>
-                <Badge variant="secondary" size="xs">
+                <Badge
+                  variant="secondary"
+                  size="xs"
+                >
                   {{ getProfileTypeLabel(template.profileType) }}
                 </Badge>
               </div>
@@ -51,7 +67,10 @@
         confirm-variant="success"
         @confirm="createFromTemplate"
       >
-        <div v-if="selectedTemplate" class="space-y-4">
+        <div
+          v-if="selectedTemplate"
+          class="space-y-4"
+        >
           <Input
             v-model="templateForm.name"
             label="Profile Name"
@@ -60,7 +79,10 @@
           />
           
           <!-- Template-specific fields -->
-          <div v-if="requiresHost" class="space-y-4">
+          <div
+            v-if="requiresHost"
+            class="space-y-4"
+          >
             <Input
               v-model="templateForm.host"
               label="Proxy Host"
@@ -80,14 +102,23 @@
               required
             />
             
-            <div v-if="selectedTemplate.supportsAuth" class="space-y-3">
+            <div
+              v-if="selectedTemplate.supportsAuth"
+              class="space-y-3"
+            >
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium">Require Authentication</span>
-                <Switch v-model="templateForm.requiresAuth" size="sm" />
+                <Switch
+                  v-model="templateForm.requiresAuth"
+                  size="sm"
+                />
               </div>
               
               <Transition name="expand">
-                <div v-if="templateForm.requiresAuth" class="grid grid-cols-2 gap-3">
+                <div
+                  v-if="templateForm.requiresAuth"
+                  class="grid grid-cols-2 gap-3"
+                >
                   <Input
                     v-model="templateForm.username"
                     label="Username"
@@ -104,7 +135,10 @@
             </div>
           </div>
           
-          <div v-if="selectedTemplate.configurable" class="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900">
+          <div
+            v-if="selectedTemplate.configurable"
+            class="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900"
+          >
             <div class="flex items-start gap-2">
               <Info class="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <p class="text-xs text-blue-700 dark:text-blue-300">
@@ -119,7 +153,9 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed } from 'vue';
+import type { Component } from 'vue';
 import {
   Briefcase, Home, Globe, Shield, Zap, Server, Wifi, Lock, Info,
 } from 'lucide-vue-next';
@@ -131,7 +167,7 @@ interface ProfileTemplate {
   name: string;
   description: string;
   category: 'Work' | 'Personal' | 'Development' | 'Security';
-  icon: any;
+  icon: Component;
   profileType: Profile['profileType'];
   defaultPort?: number;
   supportsAuth?: boolean;

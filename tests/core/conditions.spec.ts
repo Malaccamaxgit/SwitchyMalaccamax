@@ -569,7 +569,7 @@ describe('ConditionMatcher', () => {
       const condition = {
         conditionType: 'UnknownCondition',
         pattern: 'test',
-      } as any;
+      } as unknown as import('@/core/schema').Condition;
       const ctx = createContext('http://example.com/');
 
       const result = ConditionMatcher.match(condition, ctx);
