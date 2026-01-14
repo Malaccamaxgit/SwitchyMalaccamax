@@ -4,15 +4,24 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-bold mb-2">Phase 3 Demo - Essential Primitives</h1>
-          <p class="text-text-secondary">Input, Select, Switch, Dialog, Tooltip, Toast components</p>
+          <h1 class="text-3xl font-bold mb-2">
+            Phase 3 Demo - Essential Primitives
+          </h1>
+          <p class="text-text-secondary">
+            Input, Select, Switch, Dialog, Tooltip, Toast components
+          </p>
         </div>
-        <ThemeToggle variant="ghost" size="md" />
+        <ThemeToggle
+          variant="ghost"
+          size="md"
+        />
       </div>
 
       <!-- Input Components -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Input Component</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Input Component
+        </h2>
         <Card padding="lg">
           <div class="grid gap-6 md:grid-cols-2">
             <Input
@@ -72,20 +81,22 @@
           </div>
           
           <div class="mt-6 pt-6 border-t border-border">
-            <h3 class="text-sm font-semibold mb-3">Input States</h3>
+            <h3 class="text-sm font-semibold mb-3">
+              Input States
+            </h3>
             <div class="grid gap-4 md:grid-cols-3">
               <Input
-                modelValue="Disabled input"
+                model-value="Disabled input"
                 label="Disabled"
                 disabled
               />
               <Input
-                modelValue="Read-only value"
+                model-value="Read-only value"
                 label="Read Only"
                 readonly
               />
               <Input
-                modelValue="Error state"
+                model-value="Error state"
                 label="With Error"
                 error="This field is required"
               />
@@ -96,7 +107,9 @@
 
       <!-- Select Component -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Select Component</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Select Component
+        </h2>
         <Card padding="lg">
           <div class="grid gap-6 md:grid-cols-2">
             <Select
@@ -132,10 +145,12 @@
           </div>
           
           <div class="mt-6 pt-6 border-t border-border">
-            <h3 class="text-sm font-semibold mb-3">Select States</h3>
+            <h3 class="text-sm font-semibold mb-3">
+              Select States
+            </h3>
             <div class="grid gap-4 md:grid-cols-2">
               <Select
-                modelValue="HTTP"
+                model-value="HTTP"
                 :options="['HTTP', 'HTTPS']"
                 label="Disabled"
                 disabled
@@ -153,63 +168,105 @@
 
       <!-- Switch Component -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Switch Component</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Switch Component
+        </h2>
         <Card padding="lg">
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <div>
-                <p class="font-medium">Enable Auto Switch</p>
-                <p class="text-sm text-text-secondary">Automatically switch based on rules</p>
+                <p class="font-medium">
+                  Enable Auto Switch
+                </p>
+                <p class="text-sm text-text-secondary">
+                  Automatically switch based on rules
+                </p>
               </div>
               <Switch v-model="settings.autoSwitch" />
             </div>
             
             <div class="flex items-center justify-between">
               <div>
-                <p class="font-medium">Dark Mode</p>
-                <p class="text-sm text-text-secondary">Use dark theme for the interface</p>
+                <p class="font-medium">
+                  Dark Mode
+                </p>
+                <p class="text-sm text-text-secondary">
+                  Use dark theme for the interface
+                </p>
               </div>
               <Switch v-model="settings.darkMode" />
             </div>
             
             <div class="flex items-center justify-between">
               <div>
-                <p class="font-medium">Show Notifications</p>
-                <p class="text-sm text-text-secondary">Display toast notifications for status changes</p>
+                <p class="font-medium">
+                  Show Notifications
+                </p>
+                <p class="text-sm text-text-secondary">
+                  Display toast notifications for status changes
+                </p>
               </div>
               <Switch v-model="settings.notifications" />
             </div>
             
             <div class="flex items-center justify-between">
               <div>
-                <p class="font-medium">Sync Settings</p>
-                <p class="text-sm text-text-secondary">Synchronize settings across devices</p>
+                <p class="font-medium">
+                  Sync Settings
+                </p>
+                <p class="text-sm text-text-secondary">
+                  Synchronize settings across devices
+                </p>
               </div>
-              <Switch v-model="settings.sync" size="sm" />
+              <Switch
+                v-model="settings.sync"
+                size="sm"
+              />
             </div>
             
             <div class="flex items-center justify-between opacity-50">
               <div>
-                <p class="font-medium">Disabled Switch</p>
-                <p class="text-sm text-text-secondary">This setting is locked</p>
+                <p class="font-medium">
+                  Disabled Switch
+                </p>
+                <p class="text-sm text-text-secondary">
+                  This setting is locked
+                </p>
               </div>
-              <Switch :modelValue="true" disabled />
+              <Switch
+                :model-value="true"
+                disabled
+              />
             </div>
           </div>
           
           <div class="mt-6 pt-6 border-t border-border">
-            <h3 class="text-sm font-semibold mb-3">Switch Sizes</h3>
+            <h3 class="text-sm font-semibold mb-3">
+              Switch Sizes
+            </h3>
             <div class="flex items-center gap-6">
               <div class="flex items-center gap-2">
-                <Switch v-model="sizeDemo.sm" size="sm" aria-label="Small switch" />
+                <Switch
+                  v-model="sizeDemo.sm"
+                  size="sm"
+                  aria-label="Small switch"
+                />
                 <span class="text-sm">Small</span>
               </div>
               <div class="flex items-center gap-2">
-                <Switch v-model="sizeDemo.md" size="md" aria-label="Medium switch" />
+                <Switch
+                  v-model="sizeDemo.md"
+                  size="md"
+                  aria-label="Medium switch"
+                />
                 <span class="text-sm">Medium</span>
               </div>
               <div class="flex items-center gap-2">
-                <Switch v-model="sizeDemo.lg" size="lg" aria-label="Large switch" />
+                <Switch
+                  v-model="sizeDemo.lg"
+                  size="lg"
+                  aria-label="Large switch"
+                />
                 <span class="text-sm">Large</span>
               </div>
             </div>
@@ -219,19 +276,30 @@
 
       <!-- Dialog Component -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Dialog Component</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Dialog Component
+        </h2>
         <Card padding="lg">
           <div class="flex flex-wrap gap-3">
             <Button @click="showDialog = true">
               Open Dialog
             </Button>
-            <Button variant="destructive" @click="showDeleteDialog = true">
+            <Button
+              variant="destructive"
+              @click="showDeleteDialog = true"
+            >
               Delete Confirmation
             </Button>
-            <Button variant="secondary" @click="showFormDialog = true">
+            <Button
+              variant="secondary"
+              @click="showFormDialog = true"
+            >
               Form Dialog
             </Button>
-            <Button variant="ghost" @click="showLargeDialog = true">
+            <Button
+              variant="ghost"
+              @click="showLargeDialog = true"
+            >
               Large Dialog
             </Button>
           </div>
@@ -315,8 +383,12 @@
               </p>
               <div class="border-2 border-dashed border-border rounded-lg p-12 text-center">
                 <Upload class="h-12 w-12 mx-auto text-text-tertiary mb-4" />
-                <p class="text-sm font-medium mb-2">Drop files here or click to upload</p>
-                <p class="text-xs text-text-tertiary">Supports JSON format only</p>
+                <p class="text-sm font-medium mb-2">
+                  Drop files here or click to upload
+                </p>
+                <p class="text-xs text-text-tertiary">
+                  Supports JSON format only
+                </p>
               </div>
             </div>
           </Dialog>
@@ -325,38 +397,63 @@
 
       <!-- Tooltip Component -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Tooltip Component</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Tooltip Component
+        </h2>
         <Card padding="lg">
           <div class="grid gap-8 md:grid-cols-2">
             <div>
-              <h3 class="text-sm font-semibold mb-4">Tooltip Positions</h3>
+              <h3 class="text-sm font-semibold mb-4">
+                Tooltip Positions
+              </h3>
               <div class="flex flex-col items-center gap-8 py-8">
-                <Tooltip content="This tooltip appears on top" placement="top">
+                <Tooltip
+                  content="This tooltip appears on top"
+                  placement="top"
+                >
                   <Button>Hover (Top)</Button>
                 </Tooltip>
                 
                 <div class="flex items-center gap-8">
-                  <Tooltip content="Left aligned tooltip" placement="left">
-                    <Button variant="secondary">Hover (Left)</Button>
+                  <Tooltip
+                    content="Left aligned tooltip"
+                    placement="left"
+                  >
+                    <Button variant="secondary">
+                      Hover (Left)
+                    </Button>
                   </Tooltip>
                   
-                  <Tooltip content="Right aligned tooltip" placement="right">
-                    <Button variant="secondary">Hover (Right)</Button>
+                  <Tooltip
+                    content="Right aligned tooltip"
+                    placement="right"
+                  >
+                    <Button variant="secondary">
+                      Hover (Right)
+                    </Button>
                   </Tooltip>
                 </div>
                 
-                <Tooltip content="Bottom positioned tooltip" placement="bottom">
+                <Tooltip
+                  content="Bottom positioned tooltip"
+                  placement="bottom"
+                >
                   <Button>Hover (Bottom)</Button>
                 </Tooltip>
               </div>
             </div>
             
             <div>
-              <h3 class="text-sm font-semibold mb-4">Interactive Elements</h3>
+              <h3 class="text-sm font-semibold mb-4">
+                Interactive Elements
+              </h3>
               <div class="space-y-4">
                 <div class="flex items-center gap-2">
                   <Tooltip content="Enable automatic proxy switching based on rules">
-                    <Button variant="ghost" size="icon">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                    >
                       <HelpCircle class="h-4 w-4" />
                     </Button>
                   </Tooltip>
@@ -371,8 +468,14 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                  <Tooltip content="Click to copy proxy URL to clipboard" :delay="100">
-                    <Button size="sm" variant="outline">
+                  <Tooltip
+                    content="Click to copy proxy URL to clipboard"
+                    :delay="100"
+                  >
+                    <Button
+                      size="sm"
+                      variant="outline"
+                    >
                       <Copy class="h-3 w-3" />
                       Copy URL
                     </Button>
@@ -386,26 +489,40 @@
 
       <!-- Toast Component -->
       <section>
-        <h2 class="text-xl font-semibold mb-4">Toast Notifications</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Toast Notifications
+        </h2>
         <Card padding="lg">
           <div class="flex flex-wrap gap-3">
             <Button @click="showSuccessToast">
               <CheckCircle class="h-4 w-4" />
               Success Toast
             </Button>
-            <Button variant="destructive" @click="showErrorToast">
+            <Button
+              variant="destructive"
+              @click="showErrorToast"
+            >
               <AlertCircle class="h-4 w-4" />
               Error Toast
             </Button>
-            <Button variant="secondary" @click="showWarningToast">
+            <Button
+              variant="secondary"
+              @click="showWarningToast"
+            >
               <AlertTriangle class="h-4 w-4" />
               Warning Toast
             </Button>
-            <Button variant="ghost" @click="showInfoToast">
+            <Button
+              variant="ghost"
+              @click="showInfoToast"
+            >
               <Info class="h-4 w-4" />
               Info Toast
             </Button>
-            <Button variant="outline" @click="showMultipleToasts">
+            <Button
+              variant="outline"
+              @click="showMultipleToasts"
+            >
               Multiple Toasts
             </Button>
           </div>
@@ -413,12 +530,17 @@
       </section>
 
       <!-- Toast Container -->
-      <Toast ref="toastRef" position="bottom-right" :max-toasts="5" />
+      <Toast
+        ref="toastRef"
+        position="bottom-right"
+        :max-toasts="5"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref } from 'vue';
 import { 
   Server, Search, Upload, HelpCircle, Info, Copy,

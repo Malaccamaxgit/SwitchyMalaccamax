@@ -1,0 +1,65 @@
+name: Check Dependency Review deprecation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-deprecation:
+    name: Check Dependency Review logs for deprecated options
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Dependency Review run to complete
+        env:
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.head_ref }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Waiting for Dependency Review workflow run on branch $BRANCH..."
+          for i in $(seq 1 30); do
+            echo "Attempt $i..."
+            runs=$(curl -s -H "Authorization: token $TOKEN" "https://api.github.com/repos/$REPO/actions/runs?branch=$BRANCH&event=pull_request&per_page=50")
+            run_id=$(echo "$runs" | jq -r '.workflow_runs[] | select(.path == ".github/workflows/dependency-review.yml") | .id' | head -n 1)
+            if [ -n "$run_id" ]; then
+              # check status of that run
+              status=$(echo "$runs" | jq -r --arg id "$run_id" '.workflow_runs[] | select(.id == ($id|tonumber)) | .status')
+              if [ "$status" = "completed" ]; then
+                echo "Found completed Dependency Review run: $run_id"
+                echo $run_id > run_id.txt
+                break
+              fi
+            fi
+            sleep 10
+          done
+          if [ ! -f run_id.txt ]; then
+            echo "Dependency Review run not found/completed within timeout" >&2
+            exit 1
+          fi
+
+      - name: Download logs and scan for deprecation warning
+        env:
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          run_id=$(cat run_id.txt)
+          echo "Downloading logs for run $run_id..."
+          curl -sL -H "Authorization: token $TOKEN" "https://api.github.com/repos/$REPO/actions/runs/$run_id/logs" -o logs.zip
+          unzip -q logs.zip -d logs
+          # Search for the exact deprecation message emitted by the Dependency Review action
+          if grep -R -i "Deprecation Warning: The deny-licenses option" logs; then
+            echo "Deprecation warning FOUND in Dependency Review logs" >&2
+            exit 1
+          else
+            echo "No deprecation warning found in Dependency Review logs. ✅"
+          fi
+
+      - name: Upload logs for debugging (artifact)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-review-logs
+          path: logs

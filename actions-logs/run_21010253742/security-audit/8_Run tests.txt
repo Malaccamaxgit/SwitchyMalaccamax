@@ -1,0 +1,160 @@
+﻿2026-01-14T21:29:31.3447148Z ##[group]Run echo "🧪 Running test suite..."
+2026-01-14T21:29:31.3447728Z [36;1mecho "🧪 Running test suite..."[0m
+2026-01-14T21:29:31.3448208Z [36;1mnpm test -- --run[0m
+2026-01-14T21:29:31.3477381Z shell: /usr/bin/bash -e {0}
+2026-01-14T21:29:31.3477792Z ##[endgroup]
+2026-01-14T21:29:31.3532019Z 🧪 Running test suite...
+2026-01-14T21:29:31.4497649Z 
+2026-01-14T21:29:31.4499292Z > switchymalaccamax@0.1.5 test
+2026-01-14T21:29:31.4499892Z > vitest run --run
+2026-01-14T21:29:31.4500143Z 
+2026-01-14T21:29:31.8534761Z 
+2026-01-14T21:29:31.8536695Z [1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax[39m
+2026-01-14T21:29:31.8537101Z 
+2026-01-14T21:29:32.3419990Z  [32m✓[39m tests/core/schema.spec.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+2026-01-14T21:29:32.4042215Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mDirectProfile[2m > [22m[2mshould generate DIRECT profile
+2026-01-14T21:29:32.4045541Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Direct'[39m }
+2026-01-14T21:29:32.4046573Z 
+2026-01-14T21:29:32.4058937Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mFixedProfile[2m > [22m[2mshould generate fixed proxy profile
+2026-01-14T21:29:32.4061913Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Example'[39m }
+2026-01-14T21:29:32.4071203Z 
+2026-01-14T21:29:32.4073032Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mFixedProfile[2m > [22m[2mshould generate fixed proxy profile with legacy format (host/port)
+2026-01-14T21:29:32.4075176Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Example'[39m }
+2026-01-14T21:29:32.4076046Z 
+2026-01-14T21:29:32.4094061Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mSwitchProfile[2m > [22m[2mshould generate switch profile with nested references
+2026-01-14T21:29:32.4096276Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Auto Switch'[39m }
+2026-01-14T21:29:32.4097274Z 
+2026-01-14T21:29:32.4103950Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mSwitchProfile[2m > [22m[2mshould handle wildcard patterns correctly
+2026-01-14T21:29:32.4106105Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Auto'[39m }
+2026-01-14T21:29:32.4107637Z 
+2026-01-14T21:29:32.4157151Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mSwitchProfile[2m > [22m[2mshould preserve HostRegexCondition patterns (no double-escaping)
+2026-01-14T21:29:32.4159381Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'AutoRegex'[39m }
+2026-01-14T21:29:32.4174949Z [90mstderr[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mSwitchProfile[2m > [22m[2mshould preserve HostRegexCondition patterns (no double-escaping)
+2026-01-14T21:29:32.4178662Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Rejecting unsafe HostRegexCondition pattern in PAC generation {
+2026-01-14T21:29:32.4179806Z   pattern: [32m'^(?:[a-z]+\\.)?example\\.com$'[39m,
+2026-01-14T21:29:32.4180818Z   reason: [32m'Pattern contains catastrophic backtracking vulnerability'[39m
+2026-01-14T21:29:32.4181431Z }
+2026-01-14T21:29:32.4181568Z 
+2026-01-14T21:29:32.4181586Z 
+2026-01-14T21:29:32.4182711Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mLegacy API[2m > [22m[2mshould work with generatePacScript function
+2026-01-14T21:29:32.4184156Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Auto'[39m }
+2026-01-14T21:29:32.4184705Z 
+2026-01-14T21:29:32.4232568Z [90mstdout[2m | tests/core/pac-compiler.spec.ts[2m > [22m[2mPacCompiler[2m > [22m[2mProfile Reference Resolution[2m > [22m[2mshould only include referenced profiles
+2026-01-14T21:29:32.4235544Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Auto'[39m }
+2026-01-14T21:29:32.4236373Z 
+2026-01-14T21:29:32.4323830Z  [32m✓[39m tests/core/pac-compiler.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+2026-01-14T21:29:32.4810181Z  [32m✓[39m tests/core/conditions.spec.ts [2m([22m[2m50 tests[22m[2m | [22m[33m2 skipped[39m[2m)[22m[32m 52[2mms[22m[39m
+2026-01-14T21:29:32.5364749Z [90mstdout[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptData / decryptData[2m > [22m[2mshould encrypt and decrypt simple text
+2026-01-14T21:29:32.5369327Z [22m[39m21:29:32 [SwitchyMalaccamax:Crypto] Generated new user-specific encryption salt
+2026-01-14T21:29:32.5371972Z 
+2026-01-14T21:29:32.6128140Z  [32m✓[39m tests/edge-cases/profile-switching.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+2026-01-14T21:29:32.6510780Z [90mstderr[2m | tests/security/wildcardMatcher.spec.ts[2m > [22m[2mWildcardMatcher - Deterministic Matching[2m > [22m[2mMultiple Pattern Matching[2m > [22m[2mshould return false for invalid patterns
+2026-01-14T21:29:32.6512802Z [22m[39m21:29:32 [SwitchyMalaccamax:WildcardMatcher] Invalid patterns { reason: [32m'Too many patterns (51/50)'[39m }
+2026-01-14T21:29:32.6513400Z 
+2026-01-14T21:29:32.6573321Z  [32m✓[39m tests/security/wildcardMatcher.spec.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+2026-01-14T21:29:32.8131832Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mProfile Name Injection Tests[2m > [22m[2mshould sanitize malicious JavaScript in profile name
+2026-01-14T21:29:32.8134895Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'"); alert("XSS"); //'[39m }
+2026-01-14T21:29:32.8135820Z 
+2026-01-14T21:29:32.8172975Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mProfile Name Injection Tests[2m > [22m[2mshould handle Unicode and emoji in profile names
+2026-01-14T21:29:32.8174996Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Proxy 🚀 测试'[39m }
+2026-01-14T21:29:32.8175662Z 
+2026-01-14T21:29:32.8177847Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mProfile Name Injection Tests[2m > [22m[2mshould prevent script tag injection in profile name
+2026-01-14T21:29:32.8180400Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'<script>alert(1)</script>'[39m }
+2026-01-14T21:29:32.8181301Z 
+2026-01-14T21:29:32.8183127Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mProfile Name Injection Tests[2m > [22m[2mshould handle newlines and control characters in profile name
+2026-01-14T21:29:32.8185523Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Test\nProxy\r\nWith\tControls'[39m }
+2026-01-14T21:29:32.8186656Z 
+2026-01-14T21:29:32.8188406Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mBypass Pattern Injection Tests[2m > [22m[2mshould sanitize malicious regex in bypass patterns
+2026-01-14T21:29:32.8190704Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Bypass Test'[39m }
+2026-01-14T21:29:32.8201637Z 
+2026-01-14T21:29:32.8203543Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mBypass Pattern Injection Tests[2m > [22m[2mshould handle extremely long bypass patterns
+2026-01-14T21:29:32.8205597Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Long Pattern'[39m }
+2026-01-14T21:29:32.8206537Z 
+2026-01-14T21:29:32.8208139Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mHost/URL Pattern Injection Tests[2m > [22m[2mshould sanitize JavaScript in URL patterns
+2026-01-14T21:29:32.8209867Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'URL Test'[39m }
+2026-01-14T21:29:32.8210492Z 
+2026-01-14T21:29:32.8233039Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mNested Profile Injection[2m > [22m[2mshould prevent circular reference exploitation
+2026-01-14T21:29:32.8234862Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Switch 1'[39m }
+2026-01-14T21:29:32.8235447Z 
+2026-01-14T21:29:32.8236880Z [90mstdout[2m | tests/security/pac-fuzzing.spec.ts[2m > [22m[2mPacGenerator - Security Fuzzing[2m > [22m[2mPAC Function Execution Safety[2m > [22m[2mshould generate valid JavaScript syntax
+2026-01-14T21:29:32.8238744Z [22m[39m21:29:32 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Syntax Test'[39m }
+2026-01-14T21:29:32.8239365Z 
+2026-01-14T21:29:32.8240105Z  [32m✓[39m tests/security/pac-fuzzing.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+2026-01-14T21:29:32.8720802Z [90mstderr[2m | tests/security/regexSafe.spec.ts[2m > [22m[2mRegexValidator - ReDoS Prevention[2m > [22m[2mMalicious Pattern Rejection[2m > [22m[2mshould handle adversarial input in < 50ms
+2026-01-14T21:29:32.8723158Z [22m[39m21:29:32 [SwitchyMalaccamax:RegexValidator] Rejected unsafe pattern {
+2026-01-14T21:29:32.8724274Z   pattern: [32m'^(a+)+$'[39m,
+2026-01-14T21:29:32.8727532Z   reason: [32m'Pattern contains catastrophic backtracking vulnerability'[39m
+2026-01-14T21:29:32.8728397Z }
+2026-01-14T21:29:32.8728677Z 
+2026-01-14T21:29:32.9056789Z [90mstderr[2m | tests/security/regexSafe.spec.ts[2m > [22m[2mRegexValidator - ReDoS Prevention[2m > [22m[2mFail-Closed Behavior[2m > [22m[2mshould return non-matching regex for unsafe patterns
+2026-01-14T21:29:32.9071933Z [22m[39m21:29:32 [SwitchyMalaccamax:RegexValidator] Rejected unsafe pattern {
+2026-01-14T21:29:32.9073096Z   pattern: [32m'^(a+)+$'[39m,
+2026-01-14T21:29:32.9074149Z   reason: [32m'Pattern contains catastrophic backtracking vulnerability'[39m
+2026-01-14T21:29:32.9074940Z }
+2026-01-14T21:29:32.9075293Z 
+2026-01-14T21:29:32.9076994Z [90mstderr[2m | tests/security/regexSafe.spec.ts[2m > [22m[2mRegexValidator - ReDoS Prevention[2m > [22m[2mFail-Closed Behavior[2m > [22m[2mshould return non-matching regex on compilation error
+2026-01-14T21:29:32.9078878Z [22m[39m21:29:32 [SwitchyMalaccamax:RegexValidator] Rejected unsafe pattern {
+2026-01-14T21:29:32.9079739Z   pattern: [32m'[invalid('[39m,
+2026-01-14T21:29:32.9080729Z   reason: [32m'Pattern contains catastrophic backtracking vulnerability'[39m
+2026-01-14T21:29:32.9081594Z }
+2026-01-14T21:29:32.9081909Z 
+2026-01-14T21:29:32.9086615Z  [32m✓[39m tests/security/regexSafe.spec.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+2026-01-14T21:29:33.0279824Z [90mstdout[2m | tests/core/auto-switch.spec.ts[2m > [22m[2mAuto Switch Integration[2m > [22m[2mshould route *.indemo.io to Squid Route via auto switch
+2026-01-14T21:29:33.0281877Z [22m[39m21:29:33 [SwitchyMalaccamax:PAC Compiler] Root profile { rootProfileName: [32m'Auto'[39m }
+2026-01-14T21:29:33.0284268Z 
+2026-01-14T21:29:33.0295246Z  [32m✓[39m tests/core/auto-switch.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+2026-01-14T21:29:33.0956320Z  [32m✓[39m tests/scripts/secret-scanner.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+2026-01-14T21:29:33.1011445Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptData / decryptData[2m > [22m[2mshould throw error on invalid encrypted data
+2026-01-14T21:29:33.1013608Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Decryption failed DOMException [InvalidCharacterError]: Invalid character
+2026-01-14T21:29:33.1014959Z [90m    at atob (node:buffer:1294:13)[39m
+2026-01-14T21:29:33.1016153Z     at decryptData [90m(/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39msrc/utils/crypto.ts:128:38[90m)[39m
+2026-01-14T21:29:33.1017517Z     at [90m/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mtests/utils/crypto.spec.ts:80:7
+2026-01-14T21:29:33.1019100Z     at [90mfile:///home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:915:20
+2026-01-14T21:29:33.1019991Z 
+2026-01-14T21:29:33.1333460Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptData / decryptData[2m > [22m[2mshould throw error on invalid encrypted data
+2026-01-14T21:29:33.1334631Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Decryption failed DOMException [OperationError]: The provided data is too small.
+2026-01-14T21:29:33.1335634Z [90m    at asyncAesGcmCipher (node:internal/crypto/aes:183:30)[39m
+2026-01-14T21:29:33.1336493Z [90m    at Object.aesCipher (node:internal/crypto/aes:211:28)[39m
+2026-01-14T21:29:33.1337210Z [90m    at cipherOrWrap (node:internal/crypto/webcrypto:915:10)[39m
+2026-01-14T21:29:33.1337756Z [90m    at SubtleCrypto.decrypt (node:internal/crypto/webcrypto:968:10)[39m
+2026-01-14T21:29:33.1338488Z     at decryptData [90m(/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39msrc/utils/crypto.ts:134:43[90m)[39m
+2026-01-14T21:29:33.1339274Z     at [90m/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mtests/utils/crypto.spec.ts:81:7
+2026-01-14T21:29:33.1340125Z     at [90mfile:///home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:915:20
+2026-01-14T21:29:33.1340763Z 
+2026-01-14T21:29:33.1852623Z  [32m✓[39m tests/scripts/pre-commit-security.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+2026-01-14T21:29:33.4237587Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptProfile / decryptProfile[2m > [22m[2mshould handle decryption errors gracefully
+2026-01-14T21:29:33.4238818Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Decryption failed DOMException [OperationError]: The provided data is too small.
+2026-01-14T21:29:33.4239525Z [90m    at asyncAesGcmCipher (node:internal/crypto/aes:183:30)[39m
+2026-01-14T21:29:33.4240036Z [90m    at Object.aesCipher (node:internal/crypto/aes:211:28)[39m
+2026-01-14T21:29:33.4240546Z [90m    at cipherOrWrap (node:internal/crypto/webcrypto:915:10)[39m
+2026-01-14T21:29:33.4241261Z [90m    at SubtleCrypto.decrypt (node:internal/crypto/webcrypto:968:10)[39m
+2026-01-14T21:29:33.4242008Z     at decryptData [90m(/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39msrc/utils/crypto.ts:134:43[90m)[39m
+2026-01-14T21:29:33.4242878Z     at decryptProfile [90m(/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39msrc/utils/crypto.ts:191:57[90m)[39m
+2026-01-14T21:29:33.4243702Z     at [90m/home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mtests/utils/crypto.spec.ts:179:25
+2026-01-14T21:29:33.4244855Z     at [90mfile:///home/runner/work/SwitchyMalaccamax/SwitchyMalaccamax/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:915:20
+2026-01-14T21:29:33.4245294Z 
+2026-01-14T21:29:33.4248160Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptProfile / decryptProfile[2m > [22m[2mshould handle decryption errors gracefully
+2026-01-14T21:29:33.4249364Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Failed to decrypt username, using encrypted value {
+2026-01-14T21:29:33.4249879Z   profileId: [32m'test-profile-1'[39m,
+2026-01-14T21:29:33.4250291Z   error: [32m'Error: Failed to decrypt sensitive data'[39m
+2026-01-14T21:29:33.4250699Z }
+2026-01-14T21:29:33.4250798Z 
+2026-01-14T21:29:33.4516191Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptProfile / decryptProfile[2m > [22m[2mshould handle decryption errors gracefully
+2026-01-14T21:29:33.4517955Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Decryption failed DOMException [OperationError]: The operation failed for an operation-specific reason
+2026-01-14T21:29:33.4519419Z [90m    at AESCipherJob.onDone (node:internal/crypto/util:462:19)[39m {
+2026-01-14T21:29:33.4520011Z   [cause]: [Error: Cipher job failed]
+2026-01-14T21:29:33.4520260Z }
+2026-01-14T21:29:33.4520365Z 
+2026-01-14T21:29:33.4521288Z [90mstderr[2m | tests/utils/crypto.spec.ts[2m > [22m[2mCrypto Utilities[2m > [22m[2mencryptProfile / decryptProfile[2m > [22m[2mshould handle decryption errors gracefully
+2026-01-14T21:29:33.4522228Z [22m[39m21:29:33 [SwitchyMalaccamax:Crypto] Failed to decrypt password, using encrypted value {
+2026-01-14T21:29:33.4522713Z   profileId: [32m'test-profile-1'[39m,
+2026-01-14T21:29:33.4523109Z   error: [32m'Error: Failed to decrypt sensitive data'[39m
+2026-01-14T21:29:33.4523398Z }
+2026-01-14T21:29:33.4523495Z 
+2026-01-14T21:29:33.9010036Z  [32m✓[39m tests/utils/crypto.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 1368[2mms[22m[39m
+2026-01-14T21:29:33.9043322Z 
+2026-01-14T21:29:33.9049472Z [2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+2026-01-14T21:29:33.9050852Z [2m      Tests [22m [1m[32m178 passed[39m[22m[2m | [22m[33m2 skipped[39m[90m (180)[39m
+2026-01-14T21:29:33.9051752Z [2m   Start at [22m 21:29:31
+2026-01-14T21:29:33.9052945Z [2m   Duration [22m 2.04s[2m (transform 553ms, setup 0ms, import 893ms, tests 1.56s, environment 6ms)[22m
+2026-01-14T21:29:33.9053674Z 

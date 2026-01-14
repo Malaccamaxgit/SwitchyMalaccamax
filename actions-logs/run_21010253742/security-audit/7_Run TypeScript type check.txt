@@ -1,0 +1,10 @@
+﻿2026-01-14T21:29:29.2122321Z ##[group]Run echo "🔧 Running TypeScript type check..."
+2026-01-14T21:29:29.2122707Z [36;1mecho "🔧 Running TypeScript type check..."[0m
+2026-01-14T21:29:29.2122991Z [36;1mnpm run typecheck[0m
+2026-01-14T21:29:29.2141002Z shell: /usr/bin/bash -e {0}
+2026-01-14T21:29:29.2141379Z ##[endgroup]
+2026-01-14T21:29:29.2176480Z 🔧 Running TypeScript type check...
+2026-01-14T21:29:29.3153357Z 
+2026-01-14T21:29:29.3153985Z > switchymalaccamax@0.1.5 typecheck
+2026-01-14T21:29:29.3154371Z > tsc --noEmit
+2026-01-14T21:29:29.3154516Z 

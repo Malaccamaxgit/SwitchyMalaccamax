@@ -1,28 +1,48 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
   <div class="w-60 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white font-sans antialiased flex flex-col">
     <!-- Header -->
     <div class="px-3 pt-4 pb-3">
       <div class="flex items-baseline gap-2">
-        <h1 class="text-[17px] font-bold tracking-tight text-slate-900 dark:text-white">Proxy Switcher</h1>
-        <div class="text-[9px] text-zinc-500 dark:text-zinc-500">{{ versionWithPrefix }}</div>
+        <h1 class="text-[17px] font-bold tracking-tight text-slate-900 dark:text-white">
+          Proxy Switcher
+        </h1>
+        <div class="text-[9px] text-zinc-500 dark:text-zinc-500">
+          {{ versionWithPrefix }}
+        </div>
       </div>
     </div>
 
     <!-- Conflict Warning -->
-    <div v-if="hasConflict" class="mx-3 mb-2">
+    <div
+      v-if="hasConflict"
+      class="mx-3 mb-2"
+    >
       <div class="px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
         <div class="flex items-start gap-2 mb-2">
-          <svg class="w-4 h-4 text-red-600 dark:text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          <svg
+            class="w-4 h-4 text-red-600 dark:text-red-500 flex-shrink-0 mt-0.5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
           </svg>
           <div class="flex-1">
-            <div class="text-[12px] font-semibold text-red-800 dark:text-red-400 mb-0.5">Proxy Conflict Detected</div>
-            <div class="text-[11px] text-red-700 dark:text-red-500">{{ conflictMessage }}</div>
+            <div class="text-[12px] font-semibold text-red-800 dark:text-red-400 mb-0.5">
+              Proxy Conflict Detected
+            </div>
+            <div class="text-[11px] text-red-700 dark:text-red-500">
+              {{ conflictMessage }}
+            </div>
           </div>
         </div>
         <button
-          @click="handleTakeControl"
           class="w-full px-3 py-1.5 rounded-md text-[12px] font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 transition-colors"
+          @click="handleTakeControl"
         >
           Take Control
         </button>
@@ -31,12 +51,14 @@
 
     <!-- Divider -->
     <div class="px-3 pb-2">
-      <div class="border-t border-gray-200 dark:border-zinc-800"></div>
+      <div class="border-t border-gray-200 dark:border-zinc-800" />
     </div>
 
     <!-- Active Profile Section Label -->
     <div class="px-3 pt-2 pb-2">
-      <h2 class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">Active Profile</h2>
+      <h2 class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">
+        Active Profile
+      </h2>
     </div>
 
     <!-- Active Profile Card -->
@@ -47,7 +69,10 @@
       >
         <div class="flex items-start gap-3">
           <div class="flex-shrink-0 mt-0.5">
-            <component :is="statusIcon" class="h-7 w-7 text-slate-900 dark:text-white" />
+            <component
+              :is="statusIcon"
+              class="h-7 w-7 text-slate-900 dark:text-white"
+            />
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-[16px] font-semibold leading-tight text-slate-900 dark:text-white mb-1">
@@ -63,18 +88,20 @@
 
     <!-- Divider -->
     <div class="px-3 pb-2">
-      <div class="border-t border-gray-200 dark:border-zinc-800"></div>
+      <div class="border-t border-gray-200 dark:border-zinc-800" />
     </div>
 
     <!-- Options Section Label -->
     <div class="px-3 pt-1 pb-2">
-      <h2 class="text-[13px] font-semibold text-slate-900 dark:text-white tracking-tight">Options</h2>
+      <h2 class="text-[13px] font-semibold text-slate-900 dark:text-white tracking-tight">
+        Options
+      </h2>
     </div>
 
     <!-- Profile List -->
     <div class="px-3 pb-3 space-y-1.5">
       <button
-        v-for="profile in sortedProfiles"
+        v-for="(profile, idx) in sortedProfiles"
         :key="profile.id"
         class="w-full px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-3 group"
         :class="getProfileButtonClass(profile)"
@@ -83,9 +110,12 @@
         <div 
           class="w-2 h-2 rounded-full flex-shrink-0"
           :style="{ backgroundColor: getProfileColor(profile) }"
-        ></div>
+        />
         <div class="flex-shrink-0">
-          <component :is="getProfileIcon(profile)" class="h-5 w-5 text-zinc-400" />
+          <component
+            :is="getProfileIcon(profile)"
+            class="h-5 w-5 text-zinc-400"
+          />
         </div>
         
         <div class="flex-1 text-left min-w-0">
@@ -103,15 +133,15 @@
     <div class="border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-neutral-900">
       <div class="flex items-center p-2.5 gap-2">
         <button
-          @click="openOptions"
           class="flex-1 px-3 py-2 rounded-lg text-[13px] font-medium text-zinc-300 bg-neutral-800 hover:bg-neutral-700 transition-colors flex items-center justify-center gap-2"
+          @click="openOptions"
         >
           <Settings class="h-3.5 w-3.5" />
           Settings
         </button>
         <button
-          @click="openAddProfile"
           class="flex-1 px-3 py-2 rounded-lg text-[13px] font-medium text-zinc-300 bg-neutral-800 hover:bg-neutral-700 transition-colors flex items-center justify-center gap-2"
+          @click="openAddProfile"
         >
           Add Profile
         </button>
@@ -121,7 +151,9 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, onMounted } from 'vue';
+import { generatePacScript } from '@/core/pac/pac-generator';
 import { Logger } from '@/utils/Logger';
 import { VERSION_PREFIXED as versionWithPrefix } from '@/utils/version';
 import { 
@@ -297,7 +329,7 @@ function getProfileColor(profile: Profile): string {
 
 async function checkProxyConflict() {
   try {
-    const proxySettings = await chrome.proxy.settings.get({}) as any;
+    const proxySettings = await chrome.proxy.settings.get({}) as unknown as Record<string, unknown>;
     const levelOfControl = proxySettings.levelOfControl;
     
     Logger.debug('Checking conflict', { levelOfControl });
@@ -329,12 +361,12 @@ async function handleTakeControl() {
     } else if (profile.profileType === 'SystemProfile') {
       config = { mode: 'system' };
     } else if (profile.profileType === 'FixedProfile' && 'host' in profile) {
-      const fixedProfile = profile as any;
+      const fixedProfile = profile as unknown as Record<string, unknown>;
       
       // Build bypass list from BypassConditions
       const bypassList: string[] = [];
       if (fixedProfile.bypassList && Array.isArray(fixedProfile.bypassList)) {
-        fixedProfile.bypassList.forEach((condition: any) => {
+        fixedProfile.bypassList.forEach((condition: { conditionType?: string; pattern?: string }) => {
           if (condition.conditionType === 'BypassCondition' && condition.pattern) {
             bypassList.push(condition.pattern);
           }
@@ -352,6 +384,18 @@ async function handleTakeControl() {
           bypassList: bypassList.length > 0 ? bypassList : undefined,
         },
       };
+    } else if (profile.profileType === 'SwitchProfile') {
+      // Apply PAC generated from Auto Switch
+      try {
+        const pacScript = generatePacScript(profile, profiles.value);
+        config = {
+          mode: 'pac_script',
+          pacScript: { data: pacScript }
+        };
+      } catch (err) {
+        Logger.error('Failed to generate PAC script for SwitchProfile in takeControl', err);
+        config = { mode: 'direct' };
+      }
     } else {
       // Default to direct for unsupported types
       config = { mode: 'direct' };
@@ -383,11 +427,11 @@ function getProfileSubtitle(profile: Profile): string {
       return fixed.proxyType || 'HTTP';
     }
     case 'SwitchProfile': {
-      const switchProfile = profile as any;
+      const switchProfile = profile as unknown as Record<string, unknown>;
       if (switchProfile.rules && Array.isArray(switchProfile.rules)) {
         // Get unique profile names from rules
         const profileNames = new Set<string>();
-        switchProfile.rules.forEach((rule: any) => {
+        switchProfile.rules.forEach((rule: { profileName?: string }) => {
           if (rule.profileName) {
             profileNames.add(rule.profileName);
           }
@@ -446,12 +490,12 @@ async function handleProfileSwitch(profile: Profile) {
     } else if (profile.profileType === 'SystemProfile') {
       config = { mode: 'system' };
     } else if (profile.profileType === 'FixedProfile' && 'host' in profile) {
-      const fixedProfile = profile as any;
+      const fixedProfile = profile as unknown as Record<string, unknown>;
       
       // Build bypass list from BypassConditions
       const bypassList: string[] = [];
       if (fixedProfile.bypassList && Array.isArray(fixedProfile.bypassList)) {
-        fixedProfile.bypassList.forEach((condition: any) => {
+        fixedProfile.bypassList.forEach((condition: { conditionType?: string; pattern?: string }) => {
           if (condition.conditionType === 'BypassCondition' && condition.pattern) {
             bypassList.push(condition.pattern);
           }
@@ -469,6 +513,19 @@ async function handleProfileSwitch(profile: Profile) {
           bypassList: bypassList.length > 0 ? bypassList : undefined,
         },
       };
+    } else if (profile.profileType === 'SwitchProfile') {
+      // Generate PAC script from switch rules and apply as pac_script
+      try {
+        const pacScript = generatePacScript(profile, profiles.value);
+        Logger.debug('Generated PAC script', { profile: profile.name, length: pacScript.length });
+        config = {
+          mode: 'pac_script',
+          pacScript: { data: pacScript },
+        };
+      } catch (err) {
+        Logger.error('Failed to generate PAC script for SwitchProfile', err);
+        config = { mode: 'direct' };
+      }
     } else {
       config = { mode: 'direct' };
     }

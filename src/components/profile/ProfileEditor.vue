@@ -10,10 +10,15 @@
     @confirm="handleSave"
     @cancel="handleCancel"
   >
-    <form @submit.prevent="handleSave" class="space-y-6">
+    <form
+      class="space-y-6"
+      @submit.prevent="handleSave"
+    >
       <!-- Basic Information -->
       <section>
-        <h3 class="text-sm font-semibold mb-3">Basic Information</h3>
+        <h3 class="text-sm font-semibold mb-3">
+          Basic Information
+        </h3>
         <div class="space-y-4">
           <Input
             v-model="formData.name"
@@ -39,7 +44,10 @@
           />
           
           <!-- Built-in profile type display (read-only) -->
-          <div v-if="isBuiltInProfile" class="space-y-1.5">
+          <div
+            v-if="isBuiltInProfile"
+            class="space-y-1.5"
+          >
             <label class="block text-sm font-medium text-text-primary">Profile Type</label>
             <div class="px-3 py-2 text-sm rounded-md border border-border bg-slate-100 dark:bg-slate-800 text-text-secondary">
               {{ isDirectProfile ? 'Direct Connection' : 'System Proxy' }}
@@ -61,7 +69,9 @@
           <div class="flex items-center justify-between py-2">
             <div>
               <label class="text-sm font-medium text-text-primary">Show in Popup</label>
-              <p class="text-xs text-text-tertiary">Display this profile in the quick-switch popup menu</p>
+              <p class="text-xs text-text-tertiary">
+                Display this profile in the quick-switch popup menu
+              </p>
             </div>
             <Switch v-model="formData.showInPopup" />
           </div>
@@ -70,7 +80,9 @@
 
       <!-- Fixed Server Settings -->
       <section v-if="isFixedProfile">
-        <h3 class="text-sm font-semibold mb-3">Server Settings</h3>
+        <h3 class="text-sm font-semibold mb-3">
+          Server Settings
+        </h3>
         <div class="space-y-4">
           <Select
             v-model="formData.proxyType"
@@ -107,7 +119,9 @@
           
           <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
             <div>
-              <p class="text-sm font-medium">Require Authentication</p>
+              <p class="text-sm font-medium">
+                Require Authentication
+              </p>
               <p class="text-xs text-text-tertiary">
                 {{ formData.proxyType === 'SOCKS4' ? 'SOCKS4: Username only' : 'Username and password or API token' }}
               </p>
@@ -116,7 +130,10 @@
           </div>
           
           <Transition name="expand">
-            <div v-if="formData.requiresAuth" class="pl-4 border-l-2 border-blue-500">
+            <div
+              v-if="formData.requiresAuth"
+              class="pl-4 border-l-2 border-blue-500"
+            >
               <div :class="formData.proxyType === 'SOCKS4' ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-4'">
                 <Input
                   v-model="formData.username"
@@ -148,14 +165,20 @@
               </div>
               
               <!-- Protocol-specific authentication notes -->
-              <div v-if="formData.proxyType === 'SOCKS4'" class="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-900">
+              <div
+                v-if="formData.proxyType === 'SOCKS4'"
+                class="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-900"
+              >
                 <p class="text-xs text-blue-700 dark:text-blue-300">
                   <strong>Note:</strong> SOCKS4 only supports username authentication. Password field not available.
                 </p>
               </div>
               
               <!-- API Token help for HTTP/HTTPS/SOCKS5 -->
-              <div v-if="formData.proxyType !== 'SOCKS4'" class="mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-900">
+              <div
+                v-if="formData.proxyType !== 'SOCKS4'"
+                class="mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-900"
+              >
                 <p class="text-xs text-amber-700 dark:text-amber-300">
                   <strong>💡 Using a commercial proxy?</strong> Most services (Bright Data, ScraperAPI, Oxylabs, etc.) 
                   accept API tokens in the Password field. Check your provider's documentation for the exact format.
@@ -168,7 +191,9 @@
 
       <!-- PAC Script Settings -->
       <section v-if="isPacProfile">
-        <h3 class="text-sm font-semibold mb-3">PAC Script</h3>
+        <h3 class="text-sm font-semibold mb-3">
+          PAC Script
+        </h3>
         <div class="space-y-4">
           <div class="flex gap-2 mb-2">
             <Button
@@ -212,15 +237,19 @@
               maxlength="102400"
               class="w-full px-3 py-2 text-sm font-mono rounded-md border border-border bg-bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="function FindProxyForURL(url, host) {&#10;  return 'DIRECT';&#10;}"
-            ></textarea>
-            <p class="text-xs text-text-tertiary mt-1.5">JavaScript function to determine proxy (max 100KB)</p>
+            />
+            <p class="text-xs text-text-tertiary mt-1.5">
+              JavaScript function to determine proxy (max 100KB)
+            </p>
           </div>
         </div>
       </section>
 
       <!-- Switch Profile Settings -->
       <section v-if="isSwitchProfile">
-        <h3 class="text-sm font-semibold mb-3">Auto-Switch Rules</h3>
+        <h3 class="text-sm font-semibold mb-3">
+          Auto-Switch Rules
+        </h3>
         <div class="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900">
           <div class="flex items-start gap-3">
             <Info class="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -239,18 +268,30 @@
       <!-- Advanced Settings -->
       <!-- Only show bypass list for FixedProfile (DirectProfile, SystemProfile, PacProfile don't need it) -->
       <section v-if="isFixedProfile">
-        <h3 class="text-sm font-semibold mb-3">Advanced Settings</h3>
+        <h3 class="text-sm font-semibold mb-3">
+          Advanced Settings
+        </h3>
         <div class="space-y-3">
           <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
             <div>
-              <p class="text-sm font-medium">Bypass List</p>
-              <p class="text-xs text-text-tertiary">Domains that skip proxy</p>
+              <p class="text-sm font-medium">
+                Bypass List
+              </p>
+              <p class="text-xs text-text-tertiary">
+                Domains that skip proxy
+              </p>
             </div>
-            <Switch v-model="showBypassList" size="sm" />
+            <Switch
+              v-model="showBypassList"
+              size="sm"
+            />
           </div>
           
           <Transition name="expand">
-            <div v-if="showBypassList" class="pl-4 border-l-2 border-slate-300 dark:border-slate-700">
+            <div
+              v-if="showBypassList"
+              class="pl-4 border-l-2 border-slate-300 dark:border-slate-700"
+            >
               <Input
                 v-model="formData.bypassList"
                 placeholder="localhost, 127.0.0.1, *.local"
@@ -263,7 +304,10 @@
       </section>
 
       <!-- Test Connection -->
-      <section v-if="isFixedProfile" class="pt-4 border-t border-border">
+      <section
+        v-if="isFixedProfile"
+        class="pt-4 border-t border-border"
+      >
         <div class="space-y-3">
           <div>
             <Input
@@ -292,7 +336,11 @@
               </Tooltip>
               
               <Transition name="fade">
-                <Badge v-if="testResult" :variant="testResult.success ? 'success' : 'danger'" size="sm">
+                <Badge
+                  v-if="testResult"
+                  :variant="testResult.success ? 'success' : 'danger'"
+                  size="sm"
+                >
                   {{ testResult.message }}
                 </Badge>
               </Transition>
@@ -305,6 +353,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, watch } from 'vue';
 import { Server, User, Lock, Globe, Info, Zap } from 'lucide-vue-next';
 import { Dialog, Input, Select, Switch, Button, Badge, Tooltip } from '@/components/ui';
@@ -653,10 +702,11 @@ async function testConnection() {
           };
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
+
+      const errName = (error as { name?: string } | undefined)?.name;
+      if (errName === 'AbortError') {
         testResult.value = { success: false, message: 'Connection timeout' };
       } else {
         testResult.value = { success: false, message: 'Connection failed' };
@@ -670,7 +720,7 @@ async function testConnection() {
       const { activeProfileId } = await chrome.storage.sync.get('activeProfileId');
       const { profiles } = await chrome.storage.local.get('profiles');
       if (profiles && activeProfileId) {
-        const activeProfile = profiles.find((p: any) => p.id === activeProfileId);
+        const activeProfile = (profiles as Profile[]).find((p: Profile) => p.id === activeProfileId);
         if (activeProfile) {
           // Restore active profile (implementation would need full proxy logic)
           await chrome.runtime.sendMessage({ action: 'restoreProxy' });
@@ -702,7 +752,7 @@ watch(() => props.profile, (profile) => {
       if (profile.bypassList && Array.isArray(profile.bypassList)) {
         // Convert BypassCondition array to comma-separated string
         formData.value.bypassList = profile.bypassList
-          .map((condition: any) => condition.pattern || '')
+          .map((condition: { pattern?: string }) => condition.pattern || '')
           .filter(pattern => pattern)
           .join(', ');
         showBypassList.value = profile.bypassList.length > 0;

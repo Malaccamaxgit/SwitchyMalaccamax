@@ -158,19 +158,21 @@ export function isEncrypted(value: string | undefined): boolean {
 /**
  * Encrypt sensitive fields in a proxy profile
  */
-export async function encryptProfile(profile: any): Promise<any> {
-  const encrypted = { ...profile };
+export async function encryptProfile(profile: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const encrypted: Record<string, unknown> = { ...profile };
 
   // Encrypt username if present
-  if (encrypted.username && !isEncrypted(encrypted.username)) {
-    encrypted.username = await encryptData(encrypted.username);
-    Logger.debug('Encrypted username', { profileId: profile.id });
+  const username = (encrypted as Record<string, unknown>).username;
+  if (typeof username === 'string' && !isEncrypted(username)) {
+    (encrypted as Record<string, unknown>).username = await encryptData(username);
+    Logger.debug('Encrypted username', { profileId: (profile as Record<string, unknown>).id });
   }
 
   // Encrypt password if present
-  if (encrypted.password && !isEncrypted(encrypted.password)) {
-    encrypted.password = await encryptData(encrypted.password);
-    Logger.debug('Encrypted password', { profileId: profile.id });
+  const password = (encrypted as Record<string, unknown>).password;
+  if (typeof password === 'string' && !isEncrypted(password)) {
+    (encrypted as Record<string, unknown>).password = await encryptData(password);
+    Logger.debug('Encrypted password', { profileId: (profile as Record<string, unknown>).id });
   }
 
   return encrypted;
@@ -179,24 +181,26 @@ export async function encryptProfile(profile: any): Promise<any> {
 /**
  * Decrypt sensitive fields in a proxy profile
  */
-export async function decryptProfile(profile: any): Promise<any> {
-  const decrypted = { ...profile };
+export async function decryptProfile(profile: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const decrypted: Record<string, unknown> = { ...profile };
 
   // Decrypt username if encrypted
-  if (decrypted.username && isEncrypted(decrypted.username)) {
+  const encUsername = (decrypted as Record<string, unknown>).username;
+  if (typeof encUsername === 'string' && isEncrypted(encUsername)) {
     try {
-      decrypted.username = await decryptData(decrypted.username);
+      (decrypted as Record<string, unknown>).username = await decryptData(encUsername);
     } catch (error) {
-      Logger.warn('Failed to decrypt username, using encrypted value', { profileId: profile.id });
+      Logger.warn('Failed to decrypt username, using encrypted value', { profileId: (profile as Record<string, unknown>).id, error: String(error) });
     }
   }
 
   // Decrypt password if encrypted
-  if (decrypted.password && isEncrypted(decrypted.password)) {
+  const encPassword = (decrypted as Record<string, unknown>).password;
+  if (typeof encPassword === 'string' && isEncrypted(encPassword)) {
     try {
-      decrypted.password = await decryptData(decrypted.password);
+      (decrypted as Record<string, unknown>).password = await decryptData(encPassword);
     } catch (error) {
-      Logger.warn('Failed to decrypt password, using encrypted value', { profileId: profile.id });
+      Logger.warn('Failed to decrypt password, using encrypted value', { profileId: (profile as Record<string, unknown>).id, error: String(error) });
     }
   }
 

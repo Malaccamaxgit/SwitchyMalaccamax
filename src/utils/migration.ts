@@ -36,10 +36,13 @@ export async function migrateToEncryptedStorage(): Promise<void> {
 
     // Encrypt each profile
     const encryptedProfiles = await Promise.all(
-      profiles.map(async (profile: any) => {
+      profiles.map(async (profile: Record<string, unknown>) => {
         // Check if credentials already encrypted
-        const usernameEncrypted = !profile.username || isEncrypted(profile.username);
-        const passwordEncrypted = !profile.password || isEncrypted(profile.password);
+        const username = (profile as Record<string, unknown>).username;
+        const password = (profile as Record<string, unknown>).password;
+
+        const usernameEncrypted = !username || (typeof username === 'string' && isEncrypted(username));
+        const passwordEncrypted = !password || (typeof password === 'string' && isEncrypted(password));
 
         if (usernameEncrypted && passwordEncrypted) {
           alreadyEncryptedCount++;
@@ -73,9 +76,12 @@ export async function migrateToEncryptedStorage(): Promise<void> {
 /**
  * Check if credentials in a profile need encryption
  */
-export function needsEncryption(profile: any): boolean {
-  const hasPlaintextUsername = profile.username && !isEncrypted(profile.username);
-  const hasPlaintextPassword = profile.password && !isEncrypted(profile.password);
+export function needsEncryption(profile: Record<string, unknown>): boolean {
+  const username = profile.username;
+  const password = profile.password;
+
+  const hasPlaintextUsername = typeof username === 'string' && !isEncrypted(username);
+  const hasPlaintextPassword = typeof password === 'string' && !isEncrypted(password);
   
   return hasPlaintextUsername || hasPlaintextPassword;
 }

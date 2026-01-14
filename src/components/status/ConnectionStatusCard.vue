@@ -1,27 +1,48 @@
 <template>
-  <Card :class="cardClass" padding="lg" shadow="md">
+  <Card
+    :class="cardClass"
+    padding="lg"
+    shadow="md"
+  >
     <div class="flex items-start gap-4">
       <div :class="statusIconClass">
-        <component :is="statusIcon" class="h-6 w-6" />
+        <component
+          :is="statusIcon"
+          class="h-6 w-6"
+        />
       </div>
       
       <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-semibold">{{ statusTitle }}</h3>
+        <h3 class="text-lg font-semibold">
+          {{ statusTitle }}
+        </h3>
         <p class="text-sm text-text-secondary mt-1">
           {{ statusMessage }}
         </p>
         
         <div class="flex items-center gap-3 mt-3 text-xs flex-wrap">
-          <Badge :variant="modeVariant" size="sm">
-            <component :is="modeIcon" class="h-3 w-3" />
+          <Badge
+            :variant="modeVariant"
+            size="sm"
+          >
+            <component
+              :is="modeIcon"
+              class="h-3 w-3"
+            />
             {{ connectionMode }}
           </Badge>
           
-          <span v-if="requestCount" class="text-text-tertiary">
+          <span
+            v-if="requestCount"
+            class="text-text-tertiary"
+          >
             {{ formatCompactNumber(requestCount) }} requests today
           </span>
           
-          <span v-if="lastSwitched" class="text-text-tertiary">
+          <span
+            v-if="lastSwitched"
+            class="text-text-tertiary"
+          >
             Last switch: {{ formatRelativeTime(lastSwitched) }}
           </span>
         </div>
@@ -31,32 +52,57 @@
         v-if="collapsible"
         variant="ghost"
         size="icon"
-        @click="collapsed = !collapsed"
         :aria-label="collapsed ? 'Expand details' : 'Collapse details'"
+        @click="collapsed = !collapsed"
       >
-        <ChevronUp v-if="!collapsed" class="h-4 w-4" />
-        <ChevronDown v-else class="h-4 w-4" />
+        <ChevronUp
+          v-if="!collapsed"
+          class="h-4 w-4"
+        />
+        <ChevronDown
+          v-else
+          class="h-4 w-4"
+        />
       </Button>
     </div>
     
     <Transition name="expand">
-      <div v-if="!collapsed && showDetails" class="mt-4 pt-4 border-t border-border">
+      <div
+        v-if="!collapsed && showDetails"
+        class="mt-4 pt-4 border-t border-border"
+      >
         <dl class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">Active Profile</dt>
-            <dd class="font-medium">{{ activeProfile || 'None' }}</dd>
+            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">
+              Active Profile
+            </dt>
+            <dd class="font-medium">
+              {{ activeProfile || 'None' }}
+            </dd>
           </div>
           <div>
-            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">Proxy Type</dt>
-            <dd class="font-medium">{{ proxyType || 'N/A' }}</dd>
+            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">
+              Proxy Type
+            </dt>
+            <dd class="font-medium">
+              {{ proxyType || 'N/A' }}
+            </dd>
           </div>
           <div v-if="proxyHost">
-            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">Server</dt>
-            <dd class="font-medium font-mono text-xs">{{ proxyHost }}</dd>
+            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">
+              Server
+            </dt>
+            <dd class="font-medium font-mono text-xs">
+              {{ proxyHost }}
+            </dd>
           </div>
           <div v-if="rulesCount !== undefined">
-            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">Active Rules</dt>
-            <dd class="font-medium">{{ rulesCount }} conditions</dd>
+            <dt class="text-text-tertiary text-xs uppercase tracking-wide mb-1">
+              Active Rules
+            </dt>
+            <dd class="font-medium">
+              {{ rulesCount }} conditions
+            </dd>
           </div>
         </dl>
       </div>
@@ -65,6 +111,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ref, computed } from 'vue';
 import { Activity, Zap, Circle, AlertTriangle, XCircle, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import { Card, Button, Badge } from '@/components/ui';

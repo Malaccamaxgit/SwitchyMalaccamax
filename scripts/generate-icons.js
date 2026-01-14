@@ -5,7 +5,6 @@
  * Usage: node scripts/generate-icons.js
  */
 
-import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';

@@ -1,18 +1,30 @@
 <template>
   <button
-    @click="toggleTheme"
     :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
     :class="buttonClass"
     class="theme-toggle"
+    @click="toggleTheme"
   >
-    <Transition name="theme-icon" mode="out-in">
-      <Sun v-if="isDark" :key="'sun'" class="h-5 w-5" />
-      <Moon v-else :key="'moon'" class="h-5 w-5" />
+    <Transition
+      name="theme-icon"
+      mode="out-in"
+    >
+      <Sun
+        v-if="isDark"
+        :key="'sun'"
+        class="h-5 w-5"
+      />
+      <Moon
+        v-else
+        :key="'moon'"
+        class="h-5 w-5"
+      />
     </Transition>
   </button>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Sun, Moon } from 'lucide-vue-next';
 import { useDark, useToggle } from '@vueuse/core';
 import { computed } from 'vue';

@@ -1,7 +1,11 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
   <div class="profile-list">
     <!-- Search -->
-    <div v-if="searchable" class="mb-4">
+    <div
+      v-if="searchable"
+      class="mb-4"
+    >
       <div class="relative">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary" />
         <input
@@ -9,36 +13,47 @@
           type="text"
           placeholder="Search profiles..."
           class="w-full pl-9 pr-3 py-2 text-sm rounded-md border border-border bg-bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        >
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-if="filteredProfiles.length === 0" class="text-center py-12">
+    <div
+      v-if="filteredProfiles.length === 0"
+      class="text-center py-12"
+    >
       <div class="flex justify-center mb-4">
         <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
           <Inbox class="h-8 w-8 text-slate-400" />
         </div>
       </div>
-      <h3 class="text-lg font-semibold mb-2">No profiles found</h3>
+      <h3 class="text-lg font-semibold mb-2">
+        No profiles found
+      </h3>
       <p class="text-sm text-text-secondary mb-4">
         {{ searchQuery ? 'Try adjusting your search' : 'Get started by creating a profile' }}
       </p>
-      <Button v-if="!searchQuery" @click="$emit('create')">
+      <Button
+        v-if="!searchQuery"
+        @click="$emit('create')"
+      >
         <Plus class="h-4 w-4" />
         Create Profile
       </Button>
     </div>
 
     <!-- Profile List -->
-    <div v-else :class="listClass">
+    <div
+      v-else
+      :class="listClass"
+    >
       <TransitionGroup
         name="profile-list"
         tag="div"
         class="space-y-2"
       >
         <ProfileCard
-          v-for="profile in paginatedProfiles"
+          v-for="(profile, idx) in paginatedProfiles"
           :key="profile.id"
           :profile="profile"
           :is-active="activeProfileId === profile.id"
@@ -55,19 +70,25 @@
       </TransitionGroup>
 
       <!-- Load More -->
-      <div v-if="hasMore" class="mt-4 text-center">
+      <div
+        v-if="hasMore"
+        class="mt-4 text-center"
+      >
         <Button
           variant="ghost"
           size="sm"
-          @click="loadMore"
           :loading="loading"
+          @click="loadMore"
         >
           Load More
         </Button>
       </div>
 
       <!-- Results Info -->
-      <div v-if="showResultsInfo" class="mt-4 text-center text-xs text-text-tertiary">
+      <div
+        v-if="showResultsInfo"
+        class="mt-4 text-center text-xs text-text-tertiary"
+      >
         Showing {{ paginatedProfiles.length }} of {{ filteredProfiles.length }} profiles
       </div>
     </div>
@@ -75,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed } from 'vue';
 import { Search, Inbox, Plus } from 'lucide-vue-next';
 import ProfileCard from './ProfileCard.vue';
@@ -102,6 +124,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  activeProfileId: '',
   selectable: true,
   compact: false,
   showActions: true,

@@ -16,12 +16,22 @@
             :aria-describedby="description ? `${dialogId}-description` : undefined"
           >
             <!-- Header -->
-            <div v-if="!hideHeader" class="flex items-start justify-between gap-4 px-6 pt-6 pb-5 border-b border-border">
+            <div
+              v-if="!hideHeader"
+              class="flex items-start justify-between gap-4 px-6 pt-6 pb-5 border-b border-border"
+            >
               <div class="flex-1 min-w-0">
-                <h2 :id="`${dialogId}-title`" :class="titleClass">
+                <h2
+                  :id="`${dialogId}-title`"
+                  :class="titleClass"
+                >
                   {{ title }}
                 </h2>
-                <p v-if="description" :id="`${dialogId}-description`" class="text-sm text-text-secondary mt-1">
+                <p
+                  v-if="description"
+                  :id="`${dialogId}-description`"
+                  class="text-sm text-text-secondary mt-1"
+                >
                   {{ description }}
                 </p>
               </div>
@@ -30,8 +40,8 @@
                 variant="ghost"
                 size="icon"
                 class="h-8 w-8 flex-shrink-0"
-                @click="close"
                 aria-label="Close dialog"
+                @click="close"
               >
                 <X class="h-4 w-4" />
               </Button>
@@ -43,7 +53,10 @@
             </div>
             
             <!-- Footer -->
-            <div v-if="!hideFooter || $slots.footer" :class="footerClass">
+            <div
+              v-if="!hideFooter || $slots.footer"
+              :class="footerClass"
+            >
               <slot name="footer">
                 <div class="flex items-center justify-end gap-3">
                   <Button
@@ -70,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { computed, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import Button from './Button.vue';
@@ -91,6 +105,9 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
+  title: '',
+  description: '',
   size: 'md',
   closeOnBackdrop: true,
   cancelText: 'Cancel',

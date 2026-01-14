@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
   <div class="flex min-h-screen bg-white dark:bg-[#0a0a0a] text-slate-900 dark:text-white font-sans antialiased">
     <!-- Sidebar -->
@@ -20,18 +21,22 @@
             Configuration
           </div>
           <nav class="space-y-0.5">
+            <!-- eslint-disable-next-line vue/valid-v-for -->
             <button
-              v-for="item in settingsNav"
+              v-for="(item, idx) in settingsNav"
               :key="item.id"
-              @click="currentView = item.id"
               :class="getSidebarItemClass(item.id)"
               class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 transition-all duration-200 relative"
+              @click="currentView = item.id"
             >
               <div 
                 v-if="currentView === item.id"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-emerald-500 rounded-full"
-              ></div>
-              <component :is="item.icon" class="h-3.5 w-3.5 flex-shrink-0" />
+              />
+              <component
+                :is="item.icon"
+                class="h-3.5 w-3.5 flex-shrink-0"
+              />
               <span class="tracking-tight">{{ item.label }}</span>
             </button>
           </nav>
@@ -43,32 +48,36 @@
             Profiles
           </div>
           <nav class="space-y-0.5">
+            <!-- eslint-disable-next-line vue/valid-v-for -->
             <button
-              v-for="profile in sortedProfiles"
+              v-for="(profile, idx) in sortedProfiles"
               :key="profile.id"
-              @click="selectProfile(profile)"
               :class="getSidebarItemClass(`profile-${profile.id}`)"
               class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 transition-all duration-200 group relative"
+              @click="selectProfile(profile)"
             >
               <div 
                 v-if="selectedProfile?.id === profile.id"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-emerald-500 rounded-full"
-              ></div>
+              />
               <div 
                 class="w-2 h-2 rounded-full flex-shrink-0"
                 :style="{ backgroundColor: getProfileColor(profile) }"
-              ></div>
-              <component :is="getProfileIcon(profile)" class="h-3.5 w-3.5 flex-shrink-0" />
+              />
+              <component
+                :is="getProfileIcon(profile)"
+                class="h-3.5 w-3.5 flex-shrink-0"
+              />
               <span class="tracking-tight flex-1 truncate">{{ profile.name }}</span>
               
               <!-- Show in Popup toggle -->
               <button
-                @click.stop="toggleShowInPopup(profile)"
                 :class="profile.showInPopup !== false 
                   ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' 
                   : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'"
                 class="text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors flex-shrink-0"
                 :title="profile.showInPopup !== false ? 'Click to hide from popup menu' : 'Click to show in popup menu'"
+                @click.stop="toggleShowInPopup(profile)"
               >
                 {{ profile.showInPopup !== false ? 'Visible' : 'Hidden' }}
               </button>
@@ -77,11 +86,11 @@
               <div 
                 v-if="activeProfileId === profile.id"
                 class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"
-              ></div>
+              />
             </button>
             <button
-              @click="showProfileEditor = true"
               class="w-full text-left px-2 py-1.5 rounded-md text-[13px] flex items-center gap-2 text-emerald-400 hover:bg-zinc-950/50 transition-colors"
+              @click="showProfileEditor = true"
             >
               <Plus class="h-3.5 w-3.5" />
               <span class="tracking-tight">New Profile</span>
@@ -94,17 +103,37 @@
       <div class="border-t border-zinc-900">
         <div class="p-3 space-y-1">
           <button
-            @click="applyChanges"
             :disabled="savingChanges || !hasUnsavedChanges"
             class="w-full px-2 py-1.5 rounded-md text-[12px] font-medium flex items-center justify-center gap-2 transition-colors"
             :class="hasUnsavedChanges && !savingChanges 
               ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
               : 'bg-gray-300 dark:bg-zinc-950 text-gray-500 dark:text-zinc-600 cursor-not-allowed'"
+            @click="applyChanges"
           >
-            <Check v-if="!savingChanges" class="h-3.5 w-3.5" />
-            <svg v-else class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <Check
+              v-if="!savingChanges"
+              class="h-3.5 w-3.5"
+            />
+            <svg
+              v-else
+              class="animate-spin h-3.5 w-3.5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
             </svg>
             <span>{{ savingChanges ? 'Saving...' : 'Save Changes' }}</span>
           </button>
@@ -115,15 +144,25 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto">
       <!-- Interface View -->
-      <div v-if="currentView === 'interface'" class="max-w-3xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Interface</h2>
+      <div
+        v-if="currentView === 'interface'"
+        class="max-w-3xl mx-auto p-8"
+      >
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">
+          Interface
+        </h2>
         
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Misc Options</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Misc Options
+          </h3>
           <div class="space-y-3 bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <label class="flex items-start gap-3 cursor-pointer group">
-              <input type="checkbox" v-model="settings.confirmDelete" 
-                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+              <input
+                v-model="settings.confirmDelete"
+                type="checkbox" 
+                class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-emerald-500 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              >
               <span class="text-[13px] text-slate-700 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight">
                 Confirm before deleting profiles
               </span>
@@ -132,16 +171,22 @@
         </section>
 
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Keyboard Shortcut</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Keyboard Shortcut
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-[13px] text-slate-700 dark:text-zinc-300 mb-1">Quick Switch Popup</div>
-                <div class="text-[11px] text-slate-500 dark:text-zinc-600">Default: <span class="font-mono text-slate-600 dark:text-zinc-500">Alt+Shift+O</span></div>
+                <div class="text-[13px] text-slate-700 dark:text-zinc-300 mb-1">
+                  Quick Switch Popup
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-zinc-600">
+                  Default: <span class="font-mono text-slate-600 dark:text-zinc-500">Alt+Shift+O</span>
+                </div>
               </div>
               <button
-                @click="configureShortcut"
                 class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                @click="configureShortcut"
               >
                 <Settings class="h-3.5 w-3.5" />
                 Configure
@@ -151,7 +196,9 @@
         </section>
 
         <section>
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Switch Options</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Switch Options
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-4">
             <div>
               <label class="text-[11px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-semibold mb-2 block">Startup Profile</label>
@@ -159,7 +206,14 @@
                 v-model="settings.startupProfile" 
                 class="w-full px-3 py-2 text-[13px] border border-gray-300 dark:border-zinc-900 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
               >
-                <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
+                <!-- eslint-disable-next-line vue/valid-v-for -->
+                <option
+                  v-for="p in profiles"
+                  :key="p.id"
+                  :value="p.id"
+                >
+                  {{ p.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -168,45 +222,57 @@
 
       <!-- General View -->
       <!-- Import/Export View -->
-      <div v-else-if="currentView === 'import-export'" class="max-w-3xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Import/Export</h2>
+      <div
+        v-else-if="currentView === 'import-export'"
+        class="max-w-3xl mx-auto p-8"
+      >
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">
+          Import/Export
+        </h2>
         <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-6">
           <ProfileImportExport
             :profiles="profiles"
             @import="handleImportProfiles"
-            @exportComplete="handleExportComplete"
+            @export-complete="handleExportComplete"
           />
         </div>
       </div>
 
       <!-- Theme View -->
-      <div v-else-if="currentView === 'theme'" class="max-w-3xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Theme</h2>
+      <div
+        v-else-if="currentView === 'theme'"
+        class="max-w-3xl mx-auto p-8"
+      >
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">
+          Theme
+        </h2>
         
         <section>
-          <h3 class="text-base font-medium mb-4 text-slate-700 dark:text-zinc-300">Appearance</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-700 dark:text-zinc-300">
+            Appearance
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <div class="flex gap-2 mb-4">
               <button
-                @click="setTheme('light')"
                 :class="settings.theme === 'light' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
                 class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+                @click="setTheme('light')"
               >
                 <Sun class="h-4 w-4" />
                 Light
               </button>
               <button
-                @click="setTheme('dark')"
                 :class="settings.theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
                 class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+                @click="setTheme('dark')"
               >
                 <Moon class="h-4 w-4" />
                 Dark
               </button>
               <button
-                @click="setTheme('auto')"
                 :class="settings.theme === 'auto' ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'"
                 class="flex-1 px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
+                @click="setTheme('auto')"
               >
                 <Monitor class="h-4 w-4" />
                 Auto
@@ -222,12 +288,19 @@
 
       <!-- Logs View -->
       <!-- Debug View (includes Logs) -->
-      <div v-else-if="currentView === 'debug'" class="max-w-5xl mx-auto p-8">
-        <h2 class="text-2xl font-semibold mb-8 tracking-tight">Debug & Logs</h2>
+      <div
+        v-else-if="currentView === 'debug'"
+        class="max-w-5xl mx-auto p-8"
+      >
+        <h2 class="text-2xl font-semibold mb-8 tracking-tight">
+          Debug & Logs
+        </h2>
         
         <!-- Extension Information -->
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Extension Information</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Extension Information
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 space-y-2">
             <div class="flex justify-between text-[13px]">
               <span class="text-slate-500 dark:text-zinc-500">Version:</span>
@@ -247,7 +320,9 @@
         <!-- Log Viewer Section (moved to top) -->
         <section class="mb-8">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-medium text-slate-900 dark:text-zinc-300">Log Viewer</h3>
+            <h3 class="text-base font-medium text-slate-900 dark:text-zinc-300">
+              Log Viewer
+            </h3>
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-2">
                 <label class="text-[13px] text-slate-600 dark:text-zinc-400">Export rows:</label>
@@ -258,23 +333,43 @@
                   max="1000"
                   step="10"
                   class="w-20 px-2 py-1 text-[13px] rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white"
-                />
+                >
               </div>
-              <Button variant="outline" size="sm" @click="exportLogsToFile" :disabled="logs.length === 0">
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="logs.length === 0"
+                @click="exportLogsToFile"
+              >
                 <Download class="h-4 w-4" />
                 Export to File
               </Button>
-              <Button variant="outline" size="sm" @click="clearLogs" :disabled="logs.length === 0">
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="logs.length === 0"
+                @click="clearLogs"
+              >
                 Clear
               </Button>
             </div>
           </div>
 
-          <div class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[400px] max-h-[400px] overflow-y-auto">
-            <div v-if="logs.length === 0" class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600">
+          <div
+            ref="logsContainer"
+            class="bg-gray-50 dark:bg-zinc-950/50 border border-gray-200 dark:border-zinc-900 rounded-lg p-4 min-h-[400px] max-h-[400px] overflow-y-auto"
+          >
+            <div
+              v-if="logs.length === 0"
+              class="flex items-center justify-center h-full text-slate-500 dark:text-zinc-600"
+            >
               No logs captured yet. Actions will be logged here.
             </div>
-            <div v-else class="space-y-1 font-mono text-xs">
+            <div
+              v-else
+              class="space-y-1 font-mono text-xs"
+            >
+              <!-- eslint-disable-next-line vue/valid-v-for -->
               <div 
                 v-for="(log, index) in logs" 
                 :key="index"
@@ -290,7 +385,10 @@
                 <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.level }}]</span>
                 <span class="text-slate-400 dark:text-zinc-500 ml-2">[{{ log.component }}]</span>
                 <span class="ml-2">{{ log.message }}</span>
-                <div v-if="log.data" class="ml-16 text-slate-500 dark:text-zinc-600 mt-1 break-all">
+                <div
+                  v-if="log.data"
+                  class="ml-16 text-slate-500 dark:text-zinc-600 mt-1 break-all"
+                >
                   {{ typeof log.data === 'object' ? JSON.stringify(log.data, null, 2) : log.data }}
                 </div>
               </div>
@@ -304,7 +402,9 @@
 
         <!-- Logging Configuration Section (now below Log Viewer) -->
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Logging Configuration</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Logging Configuration
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <!-- Log Level Selector - Compact Design -->
@@ -316,17 +416,21 @@
                   Control verbosity for debugging. Changes apply immediately.
                 </p>
                 <div class="space-y-1.5">
+                  <!-- eslint-disable-next-line vue/valid-v-for -->
                   <button
                     v-for="level in logLevels"
                     :key="level.value"
-                    @click="setLogLevel(level.value)"
                     class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md border transition-all text-left group"
                     :class="currentLogLevel === level.value 
                       ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' 
                       : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-gray-300 dark:hover:border-zinc-700'"
+                    @click="setLogLevel(level.value)"
                   >
                     <span class="text-base">{{ level.icon }}</span>
-                    <span class="text-[13px] font-medium flex-1" :style="{ color: level.color }">
+                    <span
+                      class="text-[13px] font-medium flex-1"
+                      :style="{ color: level.color }"
+                    >
                       {{ level.name }}
                     </span>
                     <div
@@ -357,11 +461,15 @@
                     min="10"
                     max="50000"
                     step="100"
+                    class="flex-1 px-3 py-2 text-[13px] rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     @blur="updateLogMaxLines"
                     @keyup.enter="updateLogMaxLines"
-                    class="flex-1 px-3 py-2 text-[13px] rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                  <Button variant="outline" size="sm" @click="updateLogMaxLines">
+                  >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    @click="updateLogMaxLines"
+                  >
                     Apply
                   </Button>
                 </div>
@@ -375,7 +483,9 @@
 
         <!-- Proxy Conflict Testing Section -->
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Proxy Conflict Testing</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Proxy Conflict Testing
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <div class="mb-4">
               <p class="text-[13px] text-slate-700 dark:text-zinc-400 mb-2">
@@ -386,16 +496,19 @@
               </p>
             </div>
             <button
-              @click="toggleTestConflict"
               class="w-full px-4 py-2.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2"
               :class="testConflictActive 
                 ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
                 : 'bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800'"
+              @click="toggleTestConflict"
             >
               <Bug class="h-4 w-4" />
               {{ testConflictActive ? '✓ Test Conflict Active' : 'Activate Test Conflict' }}
             </button>
-            <div v-if="testConflictActive" class="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-md">
+            <div
+              v-if="testConflictActive"
+              class="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-md"
+            >
               <p class="text-[12px] text-emerald-700 dark:text-emerald-400">
                 ✓ Test conflict is active. Open the popup to see the conflict warning banner.
               </p>
@@ -407,7 +520,9 @@
 
         <!-- Conflicts Section -->
         <section class="mb-8">
-          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Conflicts</h3>
+          <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+            Conflicts
+          </h3>
           <div class="bg-gray-50 dark:bg-zinc-950/30 border border-gray-200 dark:border-zinc-900 rounded-lg p-4">
             <p class="text-[11px] text-slate-500 dark:text-zinc-600 leading-relaxed mb-4">
               Other apps may try to control proxy settings, causing conflicts. Ad blockers and 
@@ -424,11 +539,19 @@
       </div>
 
       <!-- Profile Detail View -->
-      <div v-else-if="selectedProfile" class="max-w-4xl mx-auto p-8">
+      <div
+        v-else-if="selectedProfile"
+        class="max-w-4xl mx-auto p-8"
+      >
         <div class="flex items-center justify-between mb-8">
           <div class="flex items-center gap-3">
-            <component :is="getProfileIcon(selectedProfile)" class="h-5 w-5 text-emerald-400" />
-            <h2 class="text-2xl font-semibold tracking-tight">{{ selectedProfile.name }}</h2>
+            <component
+              :is="getProfileIcon(selectedProfile)"
+              class="h-5 w-5 text-emerald-400"
+            />
+            <h2 class="text-2xl font-semibold tracking-tight">
+              {{ selectedProfile.name }}
+            </h2>
             <div
               class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider"
               :class="getProfileTypeBadgeClass(selectedProfile)"
@@ -438,25 +561,25 @@
           </div>
           <div class="flex gap-2">
             <button
-              @click="editProfile(selectedProfile)"
               class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-gray-200 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              @click="editProfile(selectedProfile)"
             >
               <Edit class="h-3.5 w-3.5" />
               Edit
             </button>
             <button
               v-if="selectedProfile.profileType === 'FixedProfile' || selectedProfile.profileType === 'SwitchProfile'"
-              @click="exportProfileAsPac(selectedProfile)"
               class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-2"
               title="Export as PAC script"
+              @click="exportProfileAsPac(selectedProfile)"
             >
               <Download class="h-3.5 w-3.5" />
               Export PAC
             </button>
             <button
               v-if="!selectedProfile.isBuiltIn"
-              @click="deleteProfile(selectedProfile)"
               class="px-3 py-1.5 text-[12px] font-medium rounded-md bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 hover:text-red-800 dark:hover:text-red-300 transition-colors flex items-center gap-2"
+              @click="deleteProfile(selectedProfile)"
             >
               <Trash2 class="h-3.5 w-3.5" />
               Delete
@@ -468,11 +591,24 @@
         <div v-if="selectedProfile.profileType === 'SwitchProfile'">
           <section class="mb-8">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold">Switch rules</h3>
-              <Button variant="ghost" size="sm" disabled title="Coming Soon - Advanced editor">
+              <h3 class="text-lg font-semibold">
+                Switch rules
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                title="Coming Soon - Advanced editor"
+              >
                 <Code class="h-4 w-4" />
                 Edit source code
-                <Badge variant="secondary" size="xs" class="ml-2">Beta</Badge>
+                <Badge
+                  variant="secondary"
+                  size="xs"
+                  class="ml-2"
+                >
+                  Beta
+                </Badge>
               </Button>
             </div>
 
@@ -481,18 +617,25 @@
               <table class="w-full">
                 <thead class="bg-bg-secondary border-b border-border">
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-16">Sort</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-16">
+                      Sort
+                    </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                       Condition Type
                     </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                       Condition Details
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Profile</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-24">Actions</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                      Profile
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-24">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
+                  <!-- eslint-disable-next-line vue/valid-v-for -->
                   <tr 
                     v-for="(rule, index) in switchProfileRules" 
                     :key="index" 
@@ -508,17 +651,33 @@
                     <td class="px-4 py-3">
                       <select 
                         :value="rule.condition.conditionType"
-                        @change="updateRuleConditionType(index, ($event.target as HTMLSelectElement).value)"
                         class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                        @change="updateRuleConditionType(index, ($event.target as HTMLSelectElement).value)"
                       >
-                        <option value="">Select an option</option>
-                        <option value="HostWildcardCondition">Host wildcard</option>
-                        <option value="HostRegexCondition">Host regex</option>
-                        <option value="UrlWildcardCondition">URL wildcard</option>
-                        <option value="UrlRegexCondition">URL regex</option>
-                        <option value="KeywordCondition">Keyword</option>
-                        <option value="HostLevelsCondition">Host levels</option>
-                        <option value="BypassCondition">Bypass</option>
+                        <option value="">
+                          Select an option
+                        </option>
+                        <option value="HostWildcardCondition">
+                          Host wildcard
+                        </option>
+                        <option value="HostRegexCondition">
+                          Host regex
+                        </option>
+                        <option value="UrlWildcardCondition">
+                          URL wildcard
+                        </option>
+                        <option value="UrlRegexCondition">
+                          URL regex
+                        </option>
+                        <option value="KeywordCondition">
+                          Keyword
+                        </option>
+                        <option value="HostLevelsCondition">
+                          Host levels
+                        </option>
+                        <option value="BypassCondition">
+                          Bypass
+                        </option>
                       </select>
                     </td>
                     <td class="px-4 py-3">
@@ -526,36 +685,51 @@
                         v-if="'pattern' in rule.condition"
                         type="text"
                         :value="rule.condition.pattern"
-                        @input="updateRulePattern(index, ($event.target as HTMLInputElement).value)"
                         placeholder="Enter pattern..."
                         class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                      <div v-else-if="rule.condition.conditionType === 'HostLevelsCondition'" class="flex gap-2">
+                        @input="updateRulePattern(index, ($event.target as HTMLInputElement).value)"
+                      >
+                      <div
+                        v-else-if="rule.condition.conditionType === 'HostLevelsCondition'"
+                        class="flex gap-2"
+                      >
                         <input
                           type="number"
                           :value="rule.condition.minValue ?? -1"
-                          @input="updateRuleHostLevels(index, 'min', ($event.target as HTMLInputElement).value)"
                           placeholder="Min"
                           class="w-20 px-2 py-1 text-sm border border-border rounded bg-bg-primary"
-                        />
+                          @input="updateRuleHostLevels(index, 'min', ($event.target as HTMLInputElement).value)"
+                        >
                         <input
                           type="number"
                           :value="rule.condition.maxValue ?? -1"
-                          @input="updateRuleHostLevels(index, 'max', ($event.target as HTMLInputElement).value)"
                           placeholder="Max"
                           class="w-20 px-2 py-1 text-sm border border-border rounded bg-bg-primary"
-                        />
+                          @input="updateRuleHostLevels(index, 'max', ($event.target as HTMLInputElement).value)"
+                        >
                       </div>
-                      <span v-else class="text-xs text-text-tertiary">No details needed</span>
+                      <span
+                        v-else
+                        class="text-xs text-text-tertiary"
+                      >No details needed</span>
                     </td>
                     <td class="px-4 py-3">
                       <select
                         :value="rule.profileName"
-                        @change="updateRuleProfile(index, ($event.target as HTMLSelectElement).value)"
                         class="w-full px-2 py-1 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                        @change="updateRuleProfile(index, ($event.target as HTMLSelectElement).value)"
                       >
-                        <option value="">Select an option</option>
-                        <option v-for="p in profiles" :key="p.id" :value="p.name">{{ p.name }}</option>
+                        <option value="">
+                          Select an option
+                        </option>
+                        <!-- eslint-disable-next-line vue/valid-v-for -->
+                        <option
+                          v-for="p in profiles"
+                          :key="p.id"
+                          :value="p.name"
+                        >
+                          {{ p.name }}
+                        </option>
                       </select>
                     </td>
                     <td class="px-4 py-3">
@@ -564,9 +738,9 @@
                           variant="ghost" 
                           size="icon" 
                           class="h-7 w-7"
-                          @click="moveRuleUp(index)"
                           :disabled="index === 0"
                           title="Move up"
+                          @click="moveRuleUp(index)"
                         >
                           <ArrowUp class="h-3 w-3" />
                         </Button>
@@ -574,9 +748,9 @@
                           variant="ghost" 
                           size="icon" 
                           class="h-7 w-7"
-                          @click="moveRuleDown(index)"
                           :disabled="index === switchProfileRules.length - 1"
                           title="Move down"
+                          @click="moveRuleDown(index)"
                         >
                           <ArrowDown class="h-3 w-3" />
                         </Button>
@@ -584,8 +758,8 @@
                           variant="ghost" 
                           size="icon" 
                           class="h-7 w-7 text-red-600"
-                          @click="deleteRule(index)"
                           title="Delete rule"
+                          @click="deleteRule(index)"
                         >
                           <Trash2 class="h-3 w-3" />
                         </Button>
@@ -596,22 +770,39 @@
               </table>
             </div>
 
-            <Button variant="outline" size="sm" class="mt-3" @click="addNewRule">
+            <Button
+              variant="outline"
+              size="sm"
+              class="mt-3"
+              @click="addNewRule"
+            >
               <Plus class="h-4 w-4" />
               Add condition
             </Button>
           </section>
 
           <section class="mb-8">
-            <h3 class="text-lg font-semibold mb-4">Default</h3>
-            <p class="text-sm text-text-secondary mb-2">Profile to use when no rules match</p>
+            <h3 class="text-lg font-semibold mb-4">
+              Default
+            </h3>
+            <p class="text-sm text-text-secondary mb-2">
+              Profile to use when no rules match
+            </p>
             <select
               :value="switchProfileDefault"
-              @change="updateDefaultProfile(($event.target as HTMLSelectElement).value)"
               class="w-full max-w-xs px-3 py-2 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              @change="updateDefaultProfile(($event.target as HTMLSelectElement).value)"
             >
-              <option value="">Select an option</option>
-              <option v-for="p in profiles" :key="p.id" :value="p.name">{{ p.name }}</option>
+              <option value="">
+                Select an option
+              </option>
+              <option
+                v-for="p in profiles"
+                :key="p.id"
+                :value="p.name"
+              >
+                {{ p.name }}
+              </option>
             </select>
           </section>
         </div>
@@ -621,55 +812,93 @@
           <Card padding="lg">
             <div class="space-y-6">
               <div>
-                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">Proxy servers</h3>
+                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+                  Proxy servers
+                </h3>
                 <div class="grid grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium mb-2">Protocol</label>
                     <select 
-                      v-model="(selectedProfile as any).proxyType"
+                      v-model="(selectedProfile as unknown as Record<string, unknown>).proxyType"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
-                      <option value="HTTP">HTTP</option>
-                      <option value="HTTPS">HTTPS</option>
-                      <option value="SOCKS4">SOCKS4</option>
-                      <option value="SOCKS5">SOCKS5</option>
+                      <option value="HTTP">
+                        HTTP
+                      </option>
+                      <option value="HTTPS">
+                        HTTPS
+                      </option>
+                      <option value="SOCKS4">
+                        SOCKS4
+                      </option>
+                      <option value="SOCKS5">
+                        SOCKS5
+                      </option>
                     </select>
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Server</label>
                     <input
+                      v-model="(selectedProfile as unknown as Record<string, unknown>).host"
                       type="text"
-                      v-model="(selectedProfile as any).host"
                       placeholder="192.168.50.30"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
-                    />
+                    >
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Port</label>
                     <input
+                      v-model="(selectedProfile as unknown as Record<string, unknown>).port"
                       type="number"
-                      v-model="(selectedProfile as any).port"
                       placeholder="8213"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
-                    />
+                    >
                   </div>
                 </div>
               </div>
               
               <!-- Authentication Status -->
               <div>
-                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Authentication</h3>
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">
+                  Authentication
+                </h3>
                 <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900">
-                  <div v-if="(selectedProfile as any).username || (selectedProfile as any).password" class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div
+                    v-if="(selectedProfile as unknown as Record<string, unknown>).username || (selectedProfile as unknown as Record<string, unknown>).password"
+                    class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     <span class="font-medium">Enabled</span>
-                    <span class="text-xs text-slate-500 dark:text-zinc-500 ml-2">Username: {{ (selectedProfile as any).username }}</span>
+                    <span class="text-xs text-slate-500 dark:text-zinc-500 ml-2">Username: {{ (selectedProfile as unknown as Record<string, unknown>).username }}</span>
                   </div>
-                  <div v-else class="flex items-center gap-2 text-slate-500 dark:text-zinc-500">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div
+                    v-else
+                    class="flex items-center gap-2 text-slate-500 dark:text-zinc-500"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     <span>Not configured</span>
                   </div>
@@ -677,19 +906,25 @@
               </div>
               
               <div>
-                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Bypass List</h3>
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">
+                  Bypass List
+                </h3>
                 <p class="text-sm text-zinc-600 dark:text-zinc-500 mb-3">
                   Servers for which you do not want to use any proxy: (One server on each line.)
                 </p>
                 <textarea
                   v-model="bypassListText"
-                  @input="updateBypassList"
                   rows="8"
                   placeholder="192.168.2.0/24&#10;192.168.50.0/24&#10;127.0.0.1&#10;::1&#10;localhost&#10;<local>"
                   class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white font-mono text-sm"
-                ></textarea>
+                  @input="updateBypassList"
+                />
                 <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                  <a href="https://developer.chrome.com/docs/extensions/reference/api/proxy#bypass_list" target="_blank" class="hover:underline">
+                  <a
+                    href="https://developer.chrome.com/docs/extensions/reference/api/proxy#bypass_list"
+                    target="_blank"
+                    class="hover:underline"
+                  >
                     Wildcards and CIDR notation available
                   </a>
                 </p>
@@ -703,22 +938,24 @@
           <Card padding="lg">
             <div class="space-y-6">
               <div>
-                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">PAC Script</h3>
+                <h3 class="text-base font-medium mb-4 text-slate-900 dark:text-zinc-300">
+                  PAC Script
+                </h3>
                 <div class="space-y-4">
-                  <div v-if="(selectedProfile as any).pacUrl">
+                  <div v-if="(selectedProfile as unknown as Record<string, unknown>).pacUrl">
                     <label class="block text-sm font-medium mb-2">PAC URL</label>
                     <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white break-all">
-                      {{ (selectedProfile as any).pacUrl }}
+                      {{ (selectedProfile as unknown as Record<string, unknown>).pacUrl }}
                     </div>
                   </div>
-                  <div v-else-if="(selectedProfile as any).pacScript">
+                  <div v-else-if="(selectedProfile as unknown as Record<string, unknown>).pacScript">
                     <label class="block text-sm font-medium mb-2">PAC Script</label>
                     <textarea
-                      :value="(selectedProfile as any).pacScript"
+                      :value="(selectedProfile as unknown as Record<string, unknown>).pacScript"
                       readonly
                       rows="12"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white font-mono text-sm"
-                    ></textarea>
+                    />
                   </div>
                   <div v-else>
                     <p class="text-sm text-amber-600 dark:text-amber-400">
@@ -728,8 +965,10 @@
                 </div>
               </div>
               
-              <div v-if="(selectedProfile as any).fallbackProxy">
-                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">Fallback Proxy</h3>
+              <div v-if="(selectedProfile as unknown as Record<string, unknown>).fallbackProxy">
+                <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">
+                  Fallback Proxy
+                </h3>
                 <p class="text-sm text-zinc-600 dark:text-zinc-500 mb-3">
                   Used when PAC script fails or is unavailable
                 </p>
@@ -737,19 +976,19 @@
                   <div>
                     <label class="block text-sm font-medium mb-2">Protocol</label>
                     <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
-                      {{ (selectedProfile as any).fallbackProxy.scheme.toUpperCase() }}
+                      {{ ((selectedProfile as unknown as Record<string, unknown>).fallbackProxy as Record<string, unknown>).scheme.toUpperCase() }}
                     </div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Server</label>
                     <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
-                      {{ (selectedProfile as any).fallbackProxy.host }}
+                      {{ ((selectedProfile as unknown as Record<string, unknown>).fallbackProxy as Record<string, unknown>).host }}
                     </div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Port</label>
                     <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900 text-slate-900 dark:text-white">
-                      {{ (selectedProfile as any).fallbackProxy.port }}
+                      {{ ((selectedProfile as unknown as Record<string, unknown>).fallbackProxy as Record<string, unknown>).port }}
                     </div>
                   </div>
                 </div>
@@ -798,12 +1037,17 @@
 
 
 
-    <Toast ref="toastRef" position="bottom-right" />
+    <Toast
+      ref="toastRef"
+      position="bottom-right"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+import type { ConnectionStatus } from '@/components/status';
 import { useDark } from '@vueuse/core';
 import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
@@ -852,9 +1096,46 @@ const selectedProfile = ref<Profile | undefined>();
 const savingChanges = ref(false);
 const hasUnsavedChanges = ref(false);
 const bypassListText = ref<string>('');
-const logs = ref<Array<{ timestamp: string; level: string; component: string; message: string; data?: any }>>([]);
+const logs = ref<Array<{ timestamp: string; level: string; component: string; message: string; data?: unknown }>>([]);
 const maxLogs = 500;
 const logExportRowCount = ref(100);
+
+// Auto-refresh / tailing for Log Viewer
+const logsContainer = ref<HTMLElement | null>(null);
+const logAutoRefreshTimer = ref<number | null>(null);
+
+function refreshLogs() {
+  try {
+    const buffer = Logger.getLogBuffer();
+    logs.value = buffer;
+    if (logs.value.length > maxLogs) {
+      logs.value = logs.value.slice(0, maxLogs);
+    }
+
+    // Tailing behavior: newest logs are at the top (logs[0]), so scroll to top
+    nextTick(() => {
+      if (currentView.value === 'debug' && logsContainer.value) {
+        logsContainer.value.scrollTop = 0;
+      }
+    });
+  } catch (error) {
+    Logger.error('Failed to refresh logs', error);
+  }
+}
+
+function startLogAutoRefresh() {
+  if (logAutoRefreshTimer.value !== null) return;
+  // Immediate refresh
+  refreshLogs();
+  logAutoRefreshTimer.value = window.setInterval(() => refreshLogs(), 1000);
+}
+
+function stopLogAutoRefresh() {
+  if (logAutoRefreshTimer.value !== null) {
+    clearInterval(logAutoRefreshTimer.value);
+    logAutoRefreshTimer.value = null;
+  }
+}
 const testConflictActive = ref(false);
 const storageUsed = ref('Calculating...');
 const currentLogLevel = ref<LogLevel>(LogLevel.INFO);
@@ -1220,11 +1501,13 @@ function updateRuleConditionType(index: number, conditionType: string) {
 }
 
 function updateRulePattern(index: number, pattern: string) {
-  Logger.debug('Update rule pattern', { index, pattern });
+  // Trim whitespace to avoid accidental non-matching patterns
+  const trimmed = typeof pattern === 'string' ? pattern.trim() : pattern;
+  Logger.debug('Update rule pattern', { index, pattern: trimmed });
   const rules = [...switchProfileRules.value];
   const rule = rules[index];
   if ('pattern' in rule.condition) {
-    rule.condition.pattern = pattern;
+    rule.condition.pattern = trimmed;
   }
   switchProfileRules.value = rules;
 }
@@ -1353,7 +1636,7 @@ onMounted(async () => {
       
       // Migration: Update profile name capitalization
       let needsSave = false;
-      profiles.value.forEach((p: any) => {
+      profiles.value.forEach((p: Profile) => {
         if (p.name === 'auto switch') {
           p.name = 'Auto Switch';
           needsSave = true;
@@ -1367,7 +1650,7 @@ onMounted(async () => {
       });
       
       // Migrate defaultProfileName in SwitchProfiles
-      profiles.value.forEach((p: any) => {
+      profiles.value.forEach((p: Profile) => {
         if (p.profileType === 'SwitchProfile' && p.defaultProfileName === 'Builtin') {
           p.defaultProfileName = 'Direct';
           needsSave = true;
@@ -1385,7 +1668,7 @@ onMounted(async () => {
       }
       
       // Log bypass lists
-      result.profiles.forEach((p: any, i: number) => {
+      result.profiles.forEach((p: Profile, i: number) => {
         if (p.profileType === 'FixedProfile' && p.bypassList) {
           const bypassMsg = `Profile "${p.name}" has ${p.bypassList.length} bypass rules`;
           Logger.debug(bypassMsg, p.bypassList);
@@ -1442,6 +1725,11 @@ onMounted(async () => {
   } catch (error) {
     Logger.error('Failed to load data', error);
   }
+
+  // Start auto-refresh if we're already on the debug view
+  if (currentView.value === 'debug') {
+    startLogAutoRefresh();
+  }
 });
 
 async function toggleShowInPopup(profile: Profile) {
@@ -1472,8 +1760,8 @@ async function saveProfiles() {
   // Log each profile with bypass list details
   profiles.value.forEach((p, i) => {
     if (p.profileType === 'FixedProfile') {
-      const msg = `Profile ${i}: ${p.name} - bypassList: ${(p as any).bypassList?.length || 0} items`;
-      Logger.debug(msg, (p as any).bypassList);
+      const msg = `Profile ${i}: ${p.name} - bypassList: ${((p as unknown as Record<string, unknown>).bypassList as Array<unknown>)?.length || 0} items`; 
+      Logger.debug(msg, (p as unknown as Record<string, unknown>).bypassList);
     }
   });
   
@@ -1503,7 +1791,7 @@ async function saveProfiles() {
     Logger.info(`Verification - profiles count: ${saved.profiles?.length || 0}`);
     
     if (saved.profiles && saved.profiles.length > 0) {
-      saved.profiles.forEach((p: any, i: number) => {
+      saved.profiles.forEach((p: Profile, i: number) => {
         if (p.profileType === 'FixedProfile') {
           const msg = `Verified profile ${i}: ${p.name} - bypassList: ${p.bypassList?.length || 0} items`;
           Logger.debug(msg, p.bypassList);
@@ -1668,7 +1956,7 @@ function loadBypassListText(profile: FixedProfile) {
   if (profile.bypassList && Array.isArray(profile.bypassList)) {
     // Convert BypassCondition array to text (one pattern per line)
     bypassListText.value = profile.bypassList
-      .map((condition: any) => condition.pattern || '')
+      .map((condition: { pattern?: string }) => condition.pattern || '')
       .filter(pattern => pattern)
       .join('\n');
   } else {
@@ -1696,7 +1984,7 @@ function updateBypassList() {
   
   const msg = `Updated bypass list for ${selectedProfile.value.name}: ${bypassList.length} items`;
   Logger.info(msg, lines);
-  (selectedProfile.value as any).bypassList = bypassList;
+  (selectedProfile.value as unknown as Record<string, unknown>).bypassList = bypassList;
 }
 
 function setTheme(theme: 'light' | 'dark' | 'auto') {
@@ -1833,4 +2121,17 @@ watch(profiles, () => {
   hasUnsavedChanges.value = true;
   Logger.debug('Profiles changed');
 }, { deep: true });
+
+// Watcher to start/stop log auto-refresh when user navigates to Debug view
+watch(currentView, (newVal) => {
+  if (newVal === 'debug') {
+    startLogAutoRefresh();
+  } else {
+    stopLogAutoRefresh();
+  }
+});
+
+onBeforeUnmount(() => {
+  stopLogAutoRefresh();
+});
 </script>

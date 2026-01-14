@@ -19,6 +19,9 @@ import type { Condition } from './schema';
 import { WildcardMatcher } from './security/wildcardMatcher';
 import { RegexValidator } from './security/regexSafe';
 import { Address4, Address6 } from 'ip-address';
+import { Logger } from '@/utils/Logger';
+
+const log = Logger.scope('Conditions');
 
 /**
  * Request context for condition matching
@@ -61,38 +64,70 @@ export class ConditionMatcher {
    * @returns Match result
    */
   static match(condition: Condition, context: RequestContext): MatchResult {
-    switch (condition.conditionType) {
-      case 'BypassCondition':
-        return this.matchBypass(condition.pattern, context);
+    // Debug: log attempts to evaluate conditions
+    try {
+      // Trim pattern if present (defensive: handle leading/trailing whitespace stored in UI)
+      let pattern: string | undefined;
+      if ('pattern' in condition && typeof (condition as { pattern?: unknown }).pattern === 'string') {
+        pattern = (condition as { pattern: string }).pattern = (condition as { pattern: string }).pattern.trim();
+      }
 
-      case 'HostWildcardCondition':
-        return this.matchHostWildcard(condition.pattern, context);
+      const condType = (condition as { conditionType?: string } | undefined)?.conditionType ?? 'Unknown';
+      log.debug('Evaluating condition', { conditionType: condType, pattern, url: context.url, host: context.host });
 
-      case 'HostRegexCondition':
-        return this.matchHostRegex(condition.pattern, context);
+      let result: MatchResult;
 
-      case 'HostLevelsCondition':
-        return this.matchHostLevels(
-          condition.minValue ?? 1,
-          condition.maxValue ?? -1,
-          context
-        );
+      switch (condition.conditionType) {
+        case 'BypassCondition':
+          result = this.matchBypass(pattern ?? '', context);
+          break;
 
-      case 'UrlWildcardCondition':
-        return this.matchUrlWildcard(condition.pattern, context);
+        case 'HostWildcardCondition':
+          result = this.matchHostWildcard(pattern ?? '', context);
+          break;
 
-      case 'UrlRegexCondition':
-        return this.matchUrlRegex(condition.pattern, context);
+        case 'HostRegexCondition':
+          result = this.matchHostRegex(pattern ?? '', context);
+          break;
 
-      case 'KeywordCondition':
-        return this.matchKeyword(condition.pattern, context);
+        case 'HostLevelsCondition': {
+          const levelsCond = condition as unknown as { minValue?: number; maxValue?: number };
+          result = this.matchHostLevels(
+            levelsCond.minValue ?? 1,
+            levelsCond.maxValue ?? -1,
+            context
+          );
+          break;
+        }
 
-      default:
-        return {
-          matched: false,
-          reason: `Unknown condition type: ${(condition as any).conditionType}`,
-          conditionType: (condition as any).conditionType,
-        };
+        case 'UrlWildcardCondition':
+          result = this.matchUrlWildcard(pattern ?? '', context);
+          break;
+
+        case 'UrlRegexCondition':
+          result = this.matchUrlRegex(pattern ?? '', context);
+          break;
+
+        case 'KeywordCondition':
+          result = this.matchKeyword(pattern ?? '', context);
+          break;
+
+        default:
+          result = {
+            matched: false,
+            reason: `Unknown condition type: ${condType}`,
+            conditionType: condType,
+          };
+      }
+
+      // Debug: log the outcome
+      log.debug('Condition result', { conditionType: condType, matched: result.matched, reason: result.reason });
+
+      return result;
+    } catch (error) {
+      // Ensure any unexpected error is logged for diagnostics
+      log.error('Condition match error', { error: String(error), conditionType: condition?.conditionType ?? 'Unknown', url: context.url, host: context.host });
+      return { matched: false, reason: 'Error during evaluation', conditionType: condition?.conditionType ?? 'Unknown' };
     }
   }
 
@@ -132,7 +167,7 @@ export class ConditionMatcher {
           reason: matched ? `Host matches CIDR ${pattern}` : `Host not in CIDR ${pattern}`,
           conditionType,
         };
-      } catch (error) {
+      } catch {
         return {
           matched: false,
           reason: `Invalid CIDR pattern: ${pattern}`,
@@ -435,7 +470,7 @@ export function createContext(url: string): RequestContext {
       scheme: parsed.protocol.replace(':', ''),
       path: parsed.pathname + parsed.search + parsed.hash,
     };
-  } catch (error) {
+  } catch {
     // Fallback for invalid URLs
     return {
       url,

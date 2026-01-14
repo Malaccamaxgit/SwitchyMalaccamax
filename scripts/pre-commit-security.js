@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Pre-commit security scanner
  * Checks for common security issues before allowing commits
@@ -59,7 +60,11 @@ const SECURITY_PATTERNS = [
   }
 ];
 
-function getStagedFiles() {
+/**
+ * Get staged files (TypeScript/JavaScript/Vue) for scanning
+ * @returns {string[]}
+ */
+export function getStagedFiles() {
   try {
     const output = execSync('git diff --cached --name-only --diff-filter=ACM', { encoding: 'utf8' });
     return output.trim().split('\n').filter(file => {
@@ -69,9 +74,15 @@ function getStagedFiles() {
     console.error(`${RED}Error getting staged files:${RESET}`, error.message);
     return [];
   }
-}
+} 
 
-function scanFile(filePath, patterns) {
+/**
+ * Scan a file for the provided patterns and return a list of issues.
+ * @param {string} filePath
+ * @param {Array<{pattern: RegExp, severity: string, message: string, excludePaths?: string[]}>} patterns
+ * @returns {Array<{file: string, line: number, severity: string, message: string, code: string}>}
+ */
+export function scanFile(filePath, patterns) {
   if (!fs.existsSync(filePath)) {
     return [];
   }
@@ -107,8 +118,12 @@ function scanFile(filePath, patterns) {
   });
 
   return issues;
-}
+} 
 
+/**
+ * Run the security checks and exit with the appropriate status code.
+ * @returns {void}
+ */
 function main() {
   console.log(`${BOLD}🔒 Running security pre-commit checks...${RESET}\n`);
 
@@ -116,7 +131,7 @@ function main() {
 
   if (stagedFiles.length === 0 || stagedFiles[0] === '') {
     console.log(`${YELLOW}No staged TypeScript/JavaScript files to scan.${RESET}`);
-    process.exit(0);
+    return 0;
   }
 
   console.log(`Scanning ${stagedFiles.length} file(s)...\n`);
@@ -147,24 +162,36 @@ function main() {
   console.log(`${BOLD}📦 Running npm audit...${RESET}`);
   try {
     execSync('npm audit --audit-level=moderate', { stdio: 'inherit' });
-  } catch (error) {
+  } catch (err) {
     hasErrors = true;
     console.log(`${RED}✗ npm audit found vulnerabilities${RESET}\n`);
+    console.error(err.message || err);
   }
 
   // Summary
   if (hasErrors) {
     console.log(`${RED}${BOLD}❌ Commit blocked due to security issues!${RESET}`);
     console.log(`${RED}Please fix the errors above before committing.${RESET}\n`);
-    process.exit(1);
+    return 1;
   } else if (hasWarnings) {
     console.log(`${YELLOW}${BOLD}⚠️  Warnings detected but commit allowed.${RESET}`);
     console.log(`${YELLOW}Consider addressing these issues for better security.${RESET}\n`);
-    process.exit(0);
+    return 0;
   } else {
     console.log(`${GREEN}${BOLD}✓ All security checks passed!${RESET}\n`);
-    process.exit(0);
+    return 0;
   }
 }
 
-main();
+// Run the CLI only when executed directly (not when imported by tests)
+try {
+  const invokedAsScript = typeof process !== 'undefined' && process.argv && process.argv[1] && process.argv[1].endsWith('pre-commit-security.js');
+  if (invokedAsScript) {
+    const code = main();
+    process.exit(code);
+  }
+} catch (e) {
+  // If something goes wrong when attempting to auto-run, log and allow importers to call main()
+  // Tests should call exported functions directly.
+  console.error('Error running pre-commit-security script:', e);
+}

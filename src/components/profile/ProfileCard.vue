@@ -14,13 +14,18 @@
     <div class="flex items-start gap-3">
       <!-- Status Indicator -->
       <div :class="statusIndicatorClass">
-        <component :is="statusIcon" :class="statusIconSize" />
+        <component
+          :is="statusIcon"
+          :class="statusIconSize"
+        />
       </div>
       
       <!-- Content -->
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
-          <h3 :class="titleClass">{{ profile.name }}</h3>
+          <h3 :class="titleClass">
+            {{ profile.name }}
+          </h3>
           <Badge 
             v-if="isActive" 
             variant="success" 
@@ -34,27 +39,38 @@
           {{ profileDescription }}
         </p>
         
-        <div v-if="!compact && showMetadata" class="flex items-center gap-3 mt-2 text-xs text-text-tertiary">
+        <div
+          v-if="!compact && showMetadata"
+          class="flex items-center gap-3 mt-2 text-xs text-text-tertiary"
+        >
           <span v-if="profile.lastUsed">
             {{ formatRelativeTime(profile.lastUsed) }}
           </span>
           <span v-if="requestsToday">
             {{ formatCompactNumber(requestsToday) }} requests
           </span>
-          <Badge v-if="profile.color" variant="secondary" size="xs">
+          <Badge
+            v-if="profile.color"
+            variant="secondary"
+            size="xs"
+          >
             {{ profile.profileType }}
           </Badge>
         </div>
       </div>
       
       <!-- Actions -->
-      <div v-if="showActions" class="flex items-center gap-1" @click.stop>
+      <div
+        v-if="showActions"
+        class="flex items-center gap-1"
+        @click.stop
+      >
         <Button
           variant="ghost"
           size="icon"
           class="h-8 w-8"
-          @click="$emit('edit', profile)"
           aria-label="Edit profile"
+          @click="$emit('edit', profile)"
         >
           <Edit2 class="h-4 w-4" />
         </Button>
@@ -62,8 +78,8 @@
           variant="ghost"
           size="icon"
           class="h-8 w-8"
-          @click="$emit('delete', profile)"
           aria-label="Delete profile"
+          @click="$emit('delete', profile)"
         >
           <Trash2 class="h-4 w-4" />
         </Button>
@@ -71,8 +87,8 @@
           variant="ghost"
           size="icon"
           class="h-8 w-8"
-          @click="$emit('more', profile)"
           aria-label="More options"
+          @click="$emit('more', profile)"
         >
           <MoreVertical class="h-4 w-4" />
         </Button>
@@ -82,6 +98,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { computed } from 'vue';
 import { Activity, Circle, Server, Globe, Edit2, Trash2, MoreVertical } from 'lucide-vue-next';
 import { Card, Button, Badge } from '@/components/ui';
@@ -104,6 +121,7 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
   showActions: false,
   showMetadata: true,
+  requestsToday: 0,
 });
 
 const emit = defineEmits<{

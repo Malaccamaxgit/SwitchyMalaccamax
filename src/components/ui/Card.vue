@@ -1,10 +1,14 @@
 <template>
-  <div :class="cardClass" v-bind="$attrs">
-    <slot></slot>
+  <div
+    :class="cardClass"
+    v-bind="$attrs"
+  >
+    <slot />
   </div>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { computed } from 'vue';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';

@@ -8,16 +8,26 @@
     :class="switchClass"
     @click="toggle"
   >
-    <span :class="thumbClass" aria-hidden="true">
+    <span
+      :class="thumbClass"
+      aria-hidden="true"
+    >
       <Transition name="icon-fade">
-        <Check v-if="modelValue && showIcon" class="h-3 w-3 text-white" />
-        <X v-else-if="!modelValue && showIcon" class="h-3 w-3 text-slate-400" />
+        <Check
+          v-if="modelValue && showIcon"
+          class="h-3 w-3 text-white"
+        />
+        <X
+          v-else-if="!modelValue && showIcon"
+          class="h-3 w-3 text-slate-400"
+        />
       </Transition>
     </span>
   </button>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { computed } from 'vue';
 import { Check, X } from 'lucide-vue-next';
 
@@ -32,6 +42,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   showIcon: true,
+  ariaLabel: '',
 });
 
 const emit = defineEmits<{

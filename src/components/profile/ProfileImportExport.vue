@@ -1,9 +1,15 @@
+<!-- eslint-disable vue/valid-v-for -->
 <template>
-  <Card padding="lg" class="profile-import-export">
+  <Card
+    padding="lg"
+    class="profile-import-export"
+  >
     <div class="space-y-6">
       <!-- Header -->
       <div>
-        <h3 class="text-lg font-semibold mb-2">Import & Export Profiles</h3>
+        <h3 class="text-lg font-semibold mb-2">
+          Import & Export Profiles
+        </h3>
         <p class="text-sm text-text-secondary">
           Backup your profiles or import from another device
         </p>
@@ -19,30 +25,44 @@
         <div class="space-y-3">
           <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
             <div>
-              <p class="text-sm font-medium">Include all profiles</p>
-              <p class="text-xs text-text-tertiary">Export {{ exportableCount }} profile(s)</p>
-              <p class="text-xs text-slate-500 dark:text-zinc-600">Direct profile is excluded (always present)</p>
+              <p class="text-sm font-medium">
+                Include all profiles
+              </p>
+              <p class="text-xs text-text-tertiary">
+                Export {{ exportableCount }} profile(s)
+              </p>
+              <p class="text-xs text-slate-500 dark:text-zinc-600">
+                Direct profile is excluded (always present)
+              </p>
             </div>
             <Switch v-model="exportAll" />
           </div>
           
           <Transition name="expand">
-            <div v-if="!exportAll" class="pl-4 border-l-2 border-blue-500">
-              <p class="text-xs text-text-tertiary mb-2">Select profiles to export:</p>
+            <div
+              v-if="!exportAll"
+              class="pl-4 border-l-2 border-blue-500"
+            >
+              <p class="text-xs text-text-tertiary mb-2">
+                Select profiles to export:
+              </p>
               <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
                 <label
-                  v-for="profile in exportableProfiles"
+                  v-for="(profile, idx) in exportableProfiles"
                   :key="profile.id"
                   class="flex items-center gap-2 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded cursor-pointer"
                 >
                   <input
+                    v-model="selectedProfiles"
                     type="checkbox"
                     :value="profile.id"
-                    v-model="selectedProfiles"
                     class="rounded"
-                  />
+                  >
                   <span class="text-sm">{{ profile.name }}</span>
-                  <Badge :variant="getProfileBadgeVariant(profile)" size="xs">
+                  <Badge
+                    :variant="getProfileBadgeVariant(profile)"
+                    size="xs"
+                  >
                     {{ getProfileTypeLabel(profile.profileType) }}
                   </Badge>
                 </label>
@@ -52,16 +72,16 @@
           
           <div class="flex gap-2">
             <Button
-              @click="exportProfiles('json')"
               :disabled="!exportAll && selectedProfiles.length === 0"
+              @click="exportProfiles('json')"
             >
               <Download class="h-4 w-4" />
               Export as JSON
             </Button>
             <Button
               variant="outline"
-              @click="exportProfiles('bak')"
               :disabled="!exportAll && selectedProfiles.length === 0"
+              @click="exportProfiles('bak')"
             >
               <Download class="h-4 w-4" />
               Export as .BAK (Legacy)
@@ -70,8 +90,8 @@
               <Button
                 variant="ghost"
                 size="icon"
-                @click="copyToClipboard"
                 :disabled="!exportAll && selectedProfiles.length === 0"
+                @click="copyToClipboard"
               >
                 <Copy class="h-4 w-4" />
               </Button>
@@ -80,7 +100,7 @@
         </div>
       </section>
 
-      <div class="border-t border-border"></div>
+      <div class="border-t border-border" />
 
       <!-- Import Section -->
       <section>
@@ -104,7 +124,7 @@
               accept=".json,.bak"
               class="hidden"
               @change="handleFileSelect"
-            />
+            >
             
             <div class="text-center">
               <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-4">
@@ -122,13 +142,21 @@
           
           <!-- File Info -->
           <Transition name="fade">
-            <Card v-if="selectedFile" variant="outline" padding="md">
+            <Card
+              v-if="selectedFile"
+              variant="outline"
+              padding="md"
+            >
               <div class="flex items-start justify-between">
                 <div class="flex items-start gap-3">
                   <FileJson class="h-8 w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <div>
-                    <p class="text-sm font-medium">{{ selectedFile.name }}</p>
-                    <p class="text-xs text-text-tertiary">{{ formatFileSize(selectedFile.size) }}</p>
+                    <p class="text-sm font-medium">
+                      {{ selectedFile.name }}
+                    </p>
+                    <p class="text-xs text-text-tertiary">
+                      {{ formatFileSize(selectedFile.size) }}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -145,7 +173,10 @@
           
           <!-- Parse Results -->
           <Transition name="fade">
-            <div v-if="parseResult" class="space-y-3">
+            <div
+              v-if="parseResult"
+              class="space-y-3"
+            >
               <Card
                 :variant="parseResult.success ? 'default' : 'outline'"
                 :class="parseResult.success ? 'border-green-500' : 'border-red-500'"
@@ -161,7 +192,10 @@
                     <p class="text-sm font-medium">
                       {{ parseResult.message }}
                     </p>
-                    <p v-if="parseResult.profiles.length > 0" class="text-xs text-text-tertiary mt-1">
+                    <p
+                      v-if="parseResult.profiles.length > 0"
+                      class="text-xs text-text-tertiary mt-1"
+                    >
                       Found {{ parseResult.profiles.length }} profile(s)
                     </p>
                   </div>
@@ -169,23 +203,32 @@
               </Card>
               
               <!-- Profile Preview -->
-              <div v-if="parseResult.success && parseResult.profiles.length > 0" class="space-y-2">
+              <div
+                v-if="parseResult.success && parseResult.profiles.length > 0"
+                class="space-y-2"
+              >
                 <p class="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                   Profiles to import:
                 </p>
                 <div class="max-h-48 overflow-y-auto scrollbar-thin space-y-2">
                   <Card
                     v-for="(profile, index) in parseResult.profiles"
-                    :key="index"
+                    :key="profile.id"
                     variant="outline"
                     padding="sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2">
-                        <component :is="getProfileIcon(profile.profileType)" class="h-4 w-4 text-text-tertiary" />
+                        <component
+                          :is="getProfileIcon(profile.profileType)"
+                          class="h-4 w-4 text-text-tertiary"
+                        />
                         <span class="text-sm font-medium">{{ profile.name }}</span>
                       </div>
-                      <Badge :variant="getProfileBadgeVariant(profile)" size="xs">
+                      <Badge
+                        :variant="getProfileBadgeVariant(profile)"
+                        size="xs"
+                      >
                         {{ getProfileTypeLabel(profile.profileType) }}
                       </Badge>
                     </div>
@@ -196,20 +239,29 @@
           </Transition>
           
           <!-- Import Actions -->
-          <div v-if="parseResult?.success" class="flex items-center justify-between pt-2">
+          <div
+            v-if="parseResult?.success"
+            class="flex items-center justify-between pt-2"
+          >
             <div class="flex items-center gap-2">
-              <Switch v-model="replaceExisting" size="sm" />
+              <Switch
+                v-model="replaceExisting"
+                size="sm"
+              />
               <span class="text-xs text-text-tertiary">Replace existing profiles</span>
             </div>
             
             <div class="flex gap-2">
-              <Button variant="ghost" @click="clearImport">
+              <Button
+                variant="ghost"
+                @click="clearImport"
+              >
                 Cancel
               </Button>
               <Button
                 variant="success"
-                @click="confirmImport"
                 :loading="importing"
+                @click="confirmImport"
               >
                 <Upload class="h-4 w-4" />
                 Import {{ parseResult.profiles.length }} Profile(s)
@@ -223,6 +275,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed } from 'vue';
 import {
   Download, Upload, Copy, FileJson, X, CheckCircle, AlertCircle,
@@ -230,7 +283,8 @@ import {
 } from 'lucide-vue-next';
 import { Card, Button, Switch, Badge, Tooltip } from '@/components/ui';
 import { copyToClipboard as copyText } from '@/lib/utils';
-import type { Profile } from '@/core/schema';
+import type { Profile, OmegaExport } from '@/core/schema';
+import type { ModernExport } from '@/core/migration.types';
 import { Logger } from '@/utils/Logger';
 
 Logger.setComponentPrefix('ProfileImportExport');
@@ -316,10 +370,11 @@ async function exportProfiles(format: 'json' | 'bak' = 'json') {
     ? exportableProfiles.value
     : exportableProfiles.value.filter(p => selectedProfiles.value.includes(p.id));
   
-  let data: any;
-  let filename: string;
-  let mimeType: string;
-  let fileExtension: string;
+  // Export payload can be either modern JSON or legacy .bak format
+  let data: ModernExport | OmegaExport | undefined;
+  let filename = '';
+  let mimeType = '';
+  let fileExtension = '';
   
   if (format === 'bak') {
     // Convert to legacy SwitchyOmega .bak format
@@ -351,20 +406,22 @@ async function exportProfiles(format: 'json' | 'bak' = 'json') {
       }]
     };
     
-    // @ts-ignore - showSaveFilePicker is available in Chrome
+    // @ts-expect-error - showSaveFilePicker is available in Chrome
     const handle = await window.showSaveFilePicker(opts);
     const writable = await handle.createWritable();
     await writable.write(content);
     await writable.close();
     
     Logger.info('Profiles exported successfully');
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err: unknown) {
+    // Handle user cancellation from the File System Access API
+    if (typeof err === 'object' && err !== null && 'name' in err && (err as { name?: string }).name === 'AbortError') {
       Logger.info('Export cancelled by user');
       return;
     }
-    
+
     // Fallback to download if File System Access API fails
+    Logger.error('Export failed, falling back to download', err);
     Logger.info('Using fallback download method');
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -380,12 +437,13 @@ async function exportProfiles(format: 'json' | 'bak' = 'json') {
   emit('exportComplete');
 }
 
-function convertToOmegaFormat(profiles: Profile[]): any {
+function convertToOmegaFormat(profiles: Profile[]): OmegaExport {
   // Convert our modern format to legacy SwitchyOmega .bak format
-  const omegaConfig: any = {
+  const omegaConfig: { schemaVersion: number; [key: string]: unknown } = {
     schemaVersion: 2,
-    '+proxy': {},
   };
+  // Store converted profiles under the legacy '+proxy' key
+  omegaConfig['+proxy'] = {};
   
   for (const profile of profiles) {
     const key = profile.id.replace('imported-', '');
@@ -412,27 +470,27 @@ function convertToOmegaFormat(profiles: Profile[]): any {
           host: profile.host,
           port: profile.port,
         },
-        bypassList: (profile as any).bypassList || [],
+        bypassList: (profile as unknown as Record<string, unknown>).bypassList || [],
       };
     } else if (profile.profileType === 'SwitchProfile' && 'rules' in profile) {
       omegaConfig['+proxy'][key] = {
         name: profile.name,
         profileType: 'SwitchProfile',
         color: profile.color || 'green',
-        defaultProfileName: (profile as any).defaultProfileName || 'direct',
-        rules: (profile as any).rules || [],
+        defaultProfileName: (profile as unknown as Record<string, unknown>).defaultProfileName || 'direct',
+        rules: (profile as unknown as Record<string, unknown>).rules || [],
       };
     } else if (profile.profileType === 'PacProfile' && 'pacScript' in profile) {
       omegaConfig['+proxy'][key] = {
         name: profile.name,
         profileType: 'PacProfile',
         color: profile.color || 'purple',
-        pacScript: (profile as any).pacScript || '',
+        pacScript: (profile as unknown as Record<string, unknown>).pacScript || '',
       };
     }
   }
   
-  return omegaConfig;
+  return omegaConfig as OmegaExport;
 }
 
 async function copyToClipboard() {
@@ -529,16 +587,16 @@ async function handleFile(file: File) {
   }
 }
 
-function convertFromOmegaFormat(data: any): Profile[] {
+function convertFromOmegaFormat(data: unknown): Profile[] {
   // Convert SwitchyOmega/ZeroOmega .bak format to our format
   const profiles: Profile[] = [];
-  const proxyConfig = data['+proxy'] || data;
+  const proxyConfig = (data && typeof data === 'object' ? (data as Record<string, unknown>)['+proxy'] || data : {});
   
-  for (const [key, value] of Object.entries(proxyConfig)) {
+  for (const [key, value] of Object.entries(proxyConfig as Record<string, unknown>)) {
     if (typeof value !== 'object' || value === null) continue;
     
-    const config = value as any;
-    const profileType = config.profileType || 'FixedProfile';
+    const config = value as Record<string, unknown>;
+    const profileType = (config.profileType as string) || 'FixedProfile';
     
     // Convert based on profile type
     if (profileType === 'DirectProfile' || config.name === 'direct') {

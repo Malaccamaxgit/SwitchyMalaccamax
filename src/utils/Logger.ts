@@ -114,7 +114,7 @@ export interface LogEntry {
   level: string;
   component: string;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 /**
@@ -382,7 +382,7 @@ class LoggerService {
    * @param message - Log message
    * @param data - Optional data object to log
    */
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
     
     const formatted = this.formatMessage(message);
@@ -414,7 +414,7 @@ class LoggerService {
    * @param message - Log message
    * @param data - Optional data object to log
    */
-  info(message: string, data?: any): void {
+  info(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.INFO)) return;
     
     const formatted = this.formatMessage(message);
@@ -446,7 +446,7 @@ class LoggerService {
    * @param message - Log message
    * @param data - Optional data object to log
    */
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.WARN)) return;
     
     const formatted = this.formatMessage(message);
@@ -478,7 +478,7 @@ class LoggerService {
    * @param message - Log message
    * @param data - Optional data object to log (typically Error objects)
    */
-  error(message: string, data?: any): void {
+  error(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.ERROR)) return;
     
     const formatted = this.formatMessage(message);
@@ -568,13 +568,18 @@ class LoggerService {
    * @param data - Data to display as table
    * @param label - Optional label
    */
-  table(data: any, label?: string): void {
+  table(data: unknown, label?: string): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
     
     if (label) {
       console.log(`%c${this.formatMessage(label)}`, 'color: #60a5fa');
     }
-    console.table(data);
+    try {
+      // Prefer typed table output where possible
+      console.table(data as Record<string, unknown>);
+    } catch {
+      console.log(data);
+    }
   }
 }
 

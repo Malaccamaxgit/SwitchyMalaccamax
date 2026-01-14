@@ -1,13 +1,23 @@
 <template>
   <div class="input-wrapper">
-    <label v-if="label" :for="inputId" :class="labelClass">
+    <label
+      v-if="label"
+      :for="inputId"
+      :class="labelClass"
+    >
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span
+        v-if="required"
+        class="text-red-500"
+      >*</span>
     </label>
     
     <div class="relative">
       <!-- Prefix Icon/Text -->
-      <div v-if="$slots.prefix || prefix" class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+      <div
+        v-if="$slots.prefix || prefix"
+        class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none"
+      >
         <slot name="prefix">
           <span class="text-text-tertiary text-sm">{{ prefix }}</span>
         </slot>
@@ -30,40 +40,63 @@
         @input="handleInput"
         @blur="handleBlur"
         @focus="handleFocus"
-      />
+      >
       
       <!-- Suffix Icon/Text -->
-      <div v-if="$slots.suffix || suffix || showPasswordToggle" :class="suffixClass">
+      <div
+        v-if="$slots.suffix || suffix || showPasswordToggle"
+        :class="suffixClass"
+      >
         <Button
           v-if="showPasswordToggle"
           type="button"
           variant="ghost"
           size="icon"
           class="h-7 w-7"
-          @click="togglePasswordVisibility"
           :aria-label="passwordVisible ? 'Hide password' : 'Show password'"
+          @click="togglePasswordVisibility"
         >
-          <Eye v-if="!passwordVisible" class="h-4 w-4" />
-          <EyeOff v-else class="h-4 w-4" />
+          <Eye
+            v-if="!passwordVisible"
+            class="h-4 w-4"
+          />
+          <EyeOff
+            v-else
+            class="h-4 w-4"
+          />
         </Button>
         <slot name="suffix">
-          <span v-if="suffix" class="text-text-tertiary text-sm">{{ suffix }}</span>
+          <span
+            v-if="suffix"
+            class="text-text-tertiary text-sm"
+          >{{ suffix }}</span>
         </slot>
       </div>
       
       <!-- Loading Spinner -->
-      <div v-if="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
-        <div class="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+      <div
+        v-if="loading"
+        class="absolute right-3 top-1/2 -translate-y-1/2"
+      >
+        <div class="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
       </div>
     </div>
     
     <!-- Hint Text -->
-    <p v-if="hint && !hasError" :id="`${inputId}-hint`" class="mt-1.5 text-xs text-text-tertiary">
+    <p
+      v-if="hint && !hasError"
+      :id="`${inputId}-hint`"
+      class="mt-1.5 text-xs text-text-tertiary"
+    >
       {{ hint }}
     </p>
     
     <!-- Error Message -->
-    <p v-if="hasError" :id="`${inputId}-error`" class="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+    <p
+      v-if="hasError"
+      :id="`${inputId}-error`"
+      class="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
+    >
       <AlertCircle class="h-3 w-3" />
       {{ errorMessage }}
     </p>
@@ -71,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed } from 'vue';
 import { Eye, EyeOff, AlertCircle } from 'lucide-vue-next';
 import Button from './Button.vue';
@@ -94,8 +128,21 @@ export interface InputProps {
 }
 
 const props = withDefaults(defineProps<InputProps>(), {
+  modelValue: '',
   type: 'text',
   size: 'md',
+  // Default values for optional props to satisfy vue/require-default-prop
+  label: undefined,
+  placeholder: '',
+  hint: undefined,
+  error: undefined,
+  disabled: false,
+  readonly: false,
+  required: false,
+  loading: false,
+  prefix: undefined,
+  suffix: undefined,
+  maxlength: undefined,
 });
 
 const emit = defineEmits<{

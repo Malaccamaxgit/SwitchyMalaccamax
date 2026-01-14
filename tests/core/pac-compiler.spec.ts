@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { PacCompiler, generatePacScript } from '@/core/pac/pac-generator';
-import type { Profile, SwitchProfile } from '@/core/schema';
+import type { Profile, SwitchProfile, FixedProfile } from '@/core/schema';
 
 describe('PacCompiler', () => {
   describe('DirectProfile', () => {
@@ -68,7 +68,7 @@ describe('PacCompiler', () => {
             { conditionType: 'BypassCondition', pattern: '127.0.0.1' },
             { conditionType: 'BypassCondition', pattern: 'localhost' }
           ]
-        } as any
+        } as unknown as FixedProfile
       ];
 
       const compiler = new PacCompiler(profiles);
