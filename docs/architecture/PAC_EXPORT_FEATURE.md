@@ -55,21 +55,33 @@ All 7 condition types from the schema:
 </button>
 ```
 
-**Export Function:**
+**Export Function (modern):**
 ```typescript
+import { saveBlobToFile } from '@/lib/fileSaver';
+
 async function exportProfileAsPac(profile: Profile) {
   // 1. Generate PAC script using pac-generator module
   const pacScript = generatePacScript(profile, profiles.value);
-  
+
   // 2. Create downloadable blob
   const blob = new Blob([pacScript], { type: 'application/x-ns-proxy-autoconfig' });
-  
-  // 3. Trigger browser download with sanitized filename
+
+  // 3. Prompt user to save (File System Access API where available; fallback to anchor download)
   const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
-  a.download = `${safeName}.pac`;
-  
-  // 4. Show success toast notification
-  toastRef.value?.success(`PAC script exported: ${safeName}.pac`, 'Exported', 3000);
+  const filename = `${safeName}.pac`;
+
+  try {
+    await saveBlobToFile(blob, filename, 'application/x-ns-proxy-autoconfig');
+    toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
+  } catch (err) {
+    // User cancelled or an error occurred - handle gracefully
+    if (err && (err.name === 'AbortError' || err.message?.includes('cancelled'))) {
+      toastRef.value?.info('Export cancelled', 'Cancelled');
+    } else {
+      toastRef.value?.error('Failed to export PAC script', 'Error');
+      console.error('Export failed', err);
+    }
+  }
 }
 ```
 
@@ -79,7 +91,7 @@ async function exportProfileAsPac(profile: Profile) {
 1. Navigate to **Settings** → **Profiles**
 2. Select a profile (Fixed or Switch type)
 3. Click **Export PAC** button (blue, between Edit and Delete)
-4. PAC file downloads automatically: `ProfileName.pac`
+4. A **Save file** dialog will prompt you to choose the destination and filename. On browsers that support the File System Access API the extension will show a native save dialog; otherwise the browser will fall back to the standard download flow (you'll be prompted to save the file).
 5. Use the PAC file in:
    - Browser proxy settings (Chrome, Firefox, etc.)
    - System proxy configuration
@@ -126,9 +138,12 @@ function FindProxyForURL(url, host) {
 3. Open extension options
 4. Create/select a Fixed or Switch profile
 5. Click Export PAC
-6. Verify downloaded `.pac` file opens in text editor
-7. Check PAC syntax is valid JavaScript
+6. A **Save file** dialog should appear; choose a destination and save the `.pac` file
+7. Verify saved `.pac` file opens in a text editor and contains the expected `FindProxyForURL` logic
+8. Check PAC syntax is valid JavaScript
 
+### Automated Tests
+- Unit tests for the file save helper are available: `tests/lib/fileSaver.spec.ts` which stubs `showSaveFilePicker()` and verifies both the native picker path and the download fallback behavior.
 ### PAC Validation:
 ```bash
 # Test PAC file in browser
@@ -163,8 +178,9 @@ src/options/
 ```
 
 ### Dependencies:
-- No external dependencies
-- Uses native browser APIs: `Blob`, `URL.createObjectURL()`
+- No external npm dependencies
+- Uses native browser APIs: `Blob`, `URL.createObjectURL()`, and the File System Access API (progressive enhancement)
+- Save helper: `src/lib/fileSaver.ts` provides `saveBlobToFile()` which uses `showSaveFilePicker()` when available and falls back to a standard anchor download
 - TypeScript types from `@/core/schema`
 
 ### Security Considerations:
@@ -172,6 +188,7 @@ src/options/
 - Regex patterns validated by existing regexSafe.ts
 - PAC scripts run in browser sandbox
 - No eval() or dynamic code execution
+- **Privacy/Permissions:** The extension does **not** request the `downloads` permission; exports always prompt the user for the destination. When available, the File System Access API is used to show a native save dialog; otherwise the browser's standard download flow is used as a fallback, ensuring the user remains in control of where files are stored.
 
 ## Future Enhancements
 

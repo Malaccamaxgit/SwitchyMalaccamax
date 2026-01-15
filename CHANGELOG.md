@@ -5,6 +5,23 @@ Notable changes to this project.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)  
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.1.6] - 2026-01-07
+
+### Added
+- File export UX: Use the File System Access API (when available) to prompt users for a save destination; fallback to standard download flow. This avoids requiring the `downloads` permission and improves user control over exported files. (See `src/lib/fileSaver.ts`)
+- CI check to detect Dependency Review deprecation warnings and fail if the `deny-licenses` deprecation reappears.
+- ESLint v9 (flat) migration report (`eslint-report.json`) and repo cleanup.
+
+### Changed
+- Export flows in `OptionsApp` and related components now use `saveBlobToFile()` helper for consistent save behavior across browsers.
+
+### Fixed
+- Tests and Node environment stubs for File System Access API to make exports testable in CI.
+
+### Security
+- All tests passing (178 passed, 2 skipped)
+
+
 ## [0.1.5] - 2026-01-06
 
 ### Added

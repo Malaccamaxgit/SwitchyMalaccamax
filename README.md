@@ -10,7 +10,7 @@ Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt
 - Switch between multiple proxy profiles manually or automatically
 - 5 profile types: Direct, Fixed Server, PAC Script, Auto Switch, System Proxy
 - 7 condition types for auto-switching: wildcards, regex, keywords, host levels, URL patterns, bypass rules
-- Import/export configurations
+- Import/export configurations (exports prompt for save destination; File System Access API used when available — no `downloads` permission required)
 - Generate PAC (Proxy Auto-Configuration) scripts
 
 ### Technical Details
