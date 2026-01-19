@@ -110,7 +110,7 @@ This extension includes several security features:
 - **Content Security Policy**: Strict CSP prevents inline script execution
 - **Input Sanitization**: All user inputs are validated and sanitized
 
-For security issues, see [SECURITY.md](./SECURITY.md).
+For security issues, see [SECURITY.md](./SECURITY.md). For concise permission justification text for Chrome Web Store and reviewer notes, see `docs/STORE_PERMISSION_STATEMENTS.md`.
 
 ## License
 

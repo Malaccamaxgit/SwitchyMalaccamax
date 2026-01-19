@@ -50,6 +50,7 @@ Implementation: [`src/utils/crypto.ts`](./src/utils/crypto.ts)
 - **Minimal Permissions**: Extension requests only `proxy` and `storage` permissions
 - **No eval()**: No dynamic code execution
 - **TypeScript Strict Mode**: Type checking prevents common errors
+- **Permission statements**: See `docs/STORE_PERMISSION_STATEMENTS.md` for concise permission justifications suitable for Chrome Web Store submissions and reviewer notes.
 
 ## Supported Versions
 
