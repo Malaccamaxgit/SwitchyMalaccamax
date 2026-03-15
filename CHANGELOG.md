@@ -5,6 +5,22 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [0.1.7] — 2026-03-15
+
+### Security
+- Fixed all 8 npm audit vulnerabilities (6 high, 2 moderate)
+- Updated `@crxjs/vite-plugin` to 1.0.14 (rollup vulnerability fix)
+- `npm audit`: 0 vulnerabilities
+
+### Changed
+- Documentation rewrite: all root-level `.md` files simplified with tables and taglines
+- Documentation rewrite: all `docs/architecture/` and `docs/guides/` files reformatted
+- Updated test count references to 180 across documentation
+
+### Added
+- Clear taglines at top of all documentation files
+- Consistent table-based formatting for specifications
+
 ## [0.1.6] — 2026-01-07
 
 ### Added
