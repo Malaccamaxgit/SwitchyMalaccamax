@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "SwitchyMalaccamax",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Modern proxy switcher with intelligent pattern matching and security-first design",
+  "update_url": "https://clients2.google.com/service/update2/crx",
   "permissions": [
     "proxy",
     "storage",
-    "webRequest"
+    "webRequest",
+    "activeTab"
   ],
-  "host_permissions": [
+  "optional_host_permissions": [
     "<all_urls>"
   ],
   "background": {

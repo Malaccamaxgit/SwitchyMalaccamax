@@ -18,7 +18,20 @@
       "Bash(cd /d E:\\\\Github\\\\SwitchyMalaccamax && npm run build 2>&1)",
       "Bash(npm run:*)",
       "Bash(git add:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git mv:*)",
+      "Bash(ls -1 *.md 2>/dev/null | head -20)",
+      "Bash(npm audit:*)",
+      "Bash(powershell -Command \"Compress-Archive -Path 'dist\\\\*' -DestinationPath 'SwitchyMalaccamax-v0.1.7.zip' -Force\" && ls -la SwitchyMalaccamax-v0.1.7.zip)",
+      "WebFetch(domain:chromewebstore.google.com)",
+      "WebSearch",
+      "Bash(curl -L -o SwitchyMalaccamax.crx \"https://clients2.google.com/service/update2/crx?response=redirect&prodversion=130.0&acceptformat=crx2,crx3&x=id%3Dlpnkbeaakpbkkeflengipcffpoidjnke%26uc\")",
+      "Bash(mkdir -p extracted_crx && cd extracted_crx && unzip -o ../SwitchyMalaccamax.crx)",
+      "Bash(copy extracted_crx\\\\icons\\\\icon-128.svg icons\\\\icon-128.svg && copy extracted_crx\\\\icons\\\\icon.svg icons\\\\icon.svg)",
+      "Bash(cp -f extracted_crx/icons/icon-128.svg icons/icon-128.svg && cp -f extracted_crx/icons/icon.svg icons/icon.svg)",
+      "Bash(mkdir -p src/icons && cp -f dist/icons/icon-128.svg src/icons/icon-128.svg && cp -f dist/icons/icon.svg src/icons/icon.svg)"
     ]
   }
 }

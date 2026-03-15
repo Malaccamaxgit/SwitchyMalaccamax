@@ -5,6 +5,22 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [0.1.8] — 2026-03-15
+
+### Added
+- `update_url` for Chrome Web Store auto-update support
+- `activeTab` permission for enhanced tab access
+- SVG icon variants (icon.svg, icon-128.svg)
+
+### Changed
+- Moved `<all_urls>` from `host_permissions` to `optional_host_permissions`
+- Improves Chrome Web Store privacy compliance
+- Users can now deny host access while retaining basic functionality
+
+### Security
+- No code changes—manifest permission refinements only
+- Aligns with Chrome Web Store distribution requirements
+
 ## [0.1.7] — 2026-03-15
 
 ### Security
