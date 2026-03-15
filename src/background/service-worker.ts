@@ -4,9 +4,9 @@
  */
 import { Logger } from '../utils/Logger';
 import { migrateToEncryptedStorage } from '../utils/migration';
-import { buildProxyConfig } from '@/core/proxy-config-builder';
-import type { Profile } from '@/core/schema';
-import { getProfileColor, BADGE_COLORS } from '@/config/colors';
+import { buildProxyConfig } from '@/core/proxy-config-builder.js';
+import type { Profile } from '@/core/schema.js';
+import { getProfileColor, BADGE_COLORS } from '@/config/colors.js';
 
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
