@@ -818,8 +818,9 @@
                 <div class="grid grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium mb-2">Protocol</label>
-                    <select 
-                      v-model="(selectedProfile as unknown as Record<string, unknown>).proxyType"
+                    <select
+                      v-model="proxyProtocol"
+                      @change="updateProxyProtocol"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                       <option value="HTTP">
@@ -839,7 +840,7 @@
                   <div>
                     <label class="block text-sm font-medium mb-2">Server</label>
                     <input
-                      v-model="(selectedProfile as unknown as Record<string, unknown>).host"
+                      v-model="proxyHost"
                       type="text"
                       placeholder="192.168.50.30"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
@@ -848,7 +849,7 @@
                   <div>
                     <label class="block text-sm font-medium mb-2">Port</label>
                     <input
-                      v-model="(selectedProfile as unknown as Record<string, unknown>).port"
+                      v-model="proxyPort"
                       type="number"
                       placeholder="8213"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white"
@@ -856,7 +857,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <!-- Authentication Status -->
               <div>
                 <h3 class="text-base font-medium mb-2 text-slate-900 dark:text-zinc-300">
@@ -864,7 +865,7 @@
                 </h3>
                 <div class="px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-gray-50 dark:bg-zinc-900">
                   <div
-                    v-if="(selectedProfile as unknown as Record<string, unknown>).username || (selectedProfile as unknown as Record<string, unknown>).password"
+                    v-if="hasAuth"
                     class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400"
                   >
                     <svg
@@ -881,7 +882,7 @@
                       />
                     </svg>
                     <span class="font-medium">Enabled</span>
-                    <span class="text-xs text-slate-500 dark:text-zinc-500 ml-2">Username: {{ (selectedProfile as unknown as Record<string, unknown>).username }}</span>
+                    <span class="text-xs text-slate-500 dark:text-zinc-500 ml-2">Username: {{ authUsername }}</span>
                   </div>
                   <div
                     v-else
@@ -1079,6 +1080,7 @@ import { ProfileImportExport, ProfileEditor } from '@/components/profile';
 import { PacCompiler } from '@/core/pac/pac-generator';
 import { Logger, LogLevel, LogLevelMetadata, getLogLevel, setLogLevel as saveLogLevel, getLogMaxLines, setLogMaxLines } from '@/utils/Logger';
 import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
+import type { ConnectionStatus } from '@/components/status';
 import { generateId } from '@/lib/utils';
 
 // Set component prefix for all logs from Options page
@@ -1435,12 +1437,110 @@ const proxyType = computed(() => {
   return undefined;
 });
 
-const proxyHost = computed(() => {
-  if (activeProfile.value?.profileType === 'FixedProfile' && 'host' in activeProfile.value) {
-    return `${activeProfile.value.host}:${activeProfile.value.port}`;
+// FixedProfile proxy helpers with getters and setters for v-model binding
+const proxyProtocol = computed({
+  get(): string {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      if (fixed.fallbackProxy?.scheme) {
+        return fixed.fallbackProxy.scheme.toUpperCase();
+      }
+      if ('proxyType' in fixed && fixed.proxyType) {
+        return fixed.proxyType;
+      }
+    }
+    return 'HTTP';
+  },
+  set(value: string) {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      if (fixed.fallbackProxy) {
+        fixed.fallbackProxy.scheme = value.toLowerCase() as 'http' | 'https' | 'socks4' | 'socks5';
+      } else {
+        // Legacy format
+        (fixed as unknown as Record<string, unknown>).proxyType = value;
+      }
+      hasUnsavedChanges.value = true;
+    }
   }
-  return undefined;
 });
+
+const proxyHost = computed({
+  get(): string {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      // Prefer fallbackProxy format (schema-compliant)
+      if (fixed.fallbackProxy?.host) {
+        return fixed.fallbackProxy.host;
+      }
+      // Fallback to legacy format
+      if ('host' in fixed && fixed.host) {
+        return fixed.host;
+      }
+    }
+    return '';
+  },
+  set(value: string) {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      if (fixed.fallbackProxy) {
+        fixed.fallbackProxy.host = value;
+      } else {
+        // Legacy format
+        (fixed as unknown as Record<string, unknown>).host = value;
+      }
+      hasUnsavedChanges.value = true;
+    }
+  }
+});
+
+const proxyPort = computed({
+  get(): number {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      if (fixed.fallbackProxy?.port) {
+        return fixed.fallbackProxy.port;
+      }
+      if ('port' in fixed && fixed.port) {
+        return fixed.port;
+      }
+    }
+    return 8080;
+  },
+  set(value: number) {
+    if (selectedProfile.value?.profileType === 'FixedProfile') {
+      const fixed = selectedProfile.value as FixedProfile;
+      if (fixed.fallbackProxy) {
+        fixed.fallbackProxy.port = value;
+      } else {
+        // Legacy format
+        (fixed as unknown as Record<string, unknown>).port = value;
+      }
+      hasUnsavedChanges.value = true;
+    }
+  }
+});
+
+const hasAuth = computed(() => {
+  if (selectedProfile.value?.profileType === 'FixedProfile') {
+    const fixed = selectedProfile.value as FixedProfile;
+    return !!(fixed.username || fixed.password);
+  }
+  return false;
+});
+
+const authUsername = computed(() => {
+  if (selectedProfile.value?.profileType === 'FixedProfile') {
+    const fixed = selectedProfile.value as FixedProfile;
+    return fixed.username || '';
+  }
+  return '';
+});
+
+function updateProxyProtocol(_event: Event) {
+  // Setter handles the change, just mark as unsaved
+  hasUnsavedChanges.value = true;
+}
 
 // Switch Profile Rules Management
 const switchProfileRules = computed({

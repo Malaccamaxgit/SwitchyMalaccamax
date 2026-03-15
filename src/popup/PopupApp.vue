@@ -153,14 +153,14 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, onMounted } from 'vue';
-import { PacCompiler } from '@/core/pac/pac-generator';
+import { buildProxyConfig } from '@/core/proxy-config-builder';
 import { getProfileColor } from '@/config/colors';
 import { Logger } from '@/utils/Logger';
 import { VERSION_PREFIXED as versionWithPrefix } from '@/utils/version';
-import { 
-  Settings, 
-  Plus, 
-  Zap, 
+import {
+  Settings,
+  Plus,
+  Zap,
   Network,
   Globe2,
   Monitor,
@@ -220,7 +220,16 @@ const connectionModeText = computed(() => {
   if (activeProfile.value.profileType === 'SystemProfile') return 'System';
   if (activeProfile.value.profileType === 'FixedProfile') {
     const fixed = activeProfile.value as FixedProfile;
-    return `${fixed.host}:${fixed.port}`;
+    const proxy = fixed.fallbackProxy;
+    if (proxy?.host && proxy?.port) {
+      return `${proxy.host}:${proxy.port}`;
+    }
+    // Fallback to legacy format
+    const legacy = fixed as unknown as { host?: string; port?: number };
+    if (legacy.host && legacy.port) {
+      return `${legacy.host}:${legacy.port}`;
+    }
+    return 'Unknown proxy';
   }
   if (activeProfile.value.profileType === 'SwitchProfile') return 'Auto-switching by rules';
   if (activeProfile.value.profileType === 'PacProfile') return 'PAC script active';
@@ -235,8 +244,6 @@ const statusIcon = computed(() => {
   if (activeProfile.value.profileType === 'SwitchProfile') return Shuffle;
   return Network;
 });
-
-import { getProfileColor, PROFILE_COLORS } from '@/config/colors';
 
 const activeProfileColor = computed(() => {
   if (!activeProfile.value) return '#a1a1aa'; // zinc-400
@@ -334,84 +341,19 @@ async function checkProxyConflict() {
 
 async function handleTakeControl() {
   if (!activeProfile.value) return;
-  
+
   try {
-    // Build the same proxy config as handleProfileSwitch
+    // Build proxy config using centralized builder
     const profile = activeProfile.value;
-    let config: chrome.proxy.ProxyConfig;
-    
-    if (profile.profileType === 'DirectProfile') {
-      config = { mode: 'direct' };
-    } else if (profile.profileType === 'SystemProfile') {
-      config = { mode: 'system' };
-    } else if (profile.profileType === 'FixedProfile') {
-      const fixedProfile = profile as FixedProfile;
+    const config = await buildProxyConfig(profile, profiles.value);
 
-      // Build bypass list from BypassConditions
-      const bypassList: string[] = [];
-      if (fixedProfile.bypassList && fixedProfile.bypassList.length > 0) {
-        fixedProfile.bypassList.forEach((condition) => {
-          if (condition.conditionType === 'BypassCondition' && condition.pattern) {
-            bypassList.push(condition.pattern);
-          }
-        });
-      }
-
-      // Prefer schema-compliant fallbackProxy, fall back to legacy format
-      let scheme = 'http';
-      let host = 'localhost';
-      let port = 8080;
-
-      if (fixedProfile.fallbackProxy?.host && fixedProfile.fallbackProxy?.port) {
-        scheme = (fixedProfile.fallbackProxy.scheme || 'http').toLowerCase();
-        host = fixedProfile.fallbackProxy.host;
-        port = fixedProfile.fallbackProxy.port;
-      } else {
-        // Legacy storage format
-        const legacy = fixedProfile as unknown as { proxyType?: string; host?: string; port?: number };
-        if (legacy.host && legacy.port) {
-          scheme = (legacy.proxyType || 'http').toLowerCase();
-          host = legacy.host;
-          port = legacy.port;
-        }
-      }
-
-      config = {
-        mode: 'fixed_servers',
-        rules: {
-          singleProxy: {
-            scheme,
-            host,
-            port,
-          },
-          bypassList: bypassList.length > 0 ? bypassList : undefined,
-        },
-      };
-    } else if (profile.profileType === 'SwitchProfile') {
-      // Apply PAC generated from Auto Switch
-      try {
-        const compiler = new PacCompiler(profiles.value);
-        const pacScript = compiler.compilePacScript(profile.name);
-        config = {
-          mode: 'pac_script',
-          pacScript: { data: pacScript }
-        };
-      } catch (err) {
-        Logger.error('Failed to generate PAC script for SwitchProfile in takeControl', err);
-        config = { mode: 'direct' };
-      }
-    } else {
-      // Default to direct for unsupported types
-      config = { mode: 'direct' };
-    }
-    
     // Re-apply the current active profile to take control
     await chrome.runtime.sendMessage({
       action: 'setProxy',
       config,
       profileColor: profile.color || 'blue'
     });
-    
+
     // Wait a moment and check again (this will clear the conflict if successful)
     setTimeout(() => checkProxyConflict(), 500);
   } catch (error) {
@@ -425,10 +367,16 @@ function getProfileSubtitle(profile: Profile): string {
     case 'SystemProfile': return 'System';
     case 'FixedProfile': {
       const fixed = profile as FixedProfile;
-      if (fixed.host && fixed.port) {
-        return `${fixed.host}:${fixed.port}`;
+      const proxy = fixed.fallbackProxy;
+      if (proxy?.host && proxy?.port) {
+        return `${proxy.host}:${proxy.port}`;
       }
-      return fixed.proxyType || 'HTTP';
+      // Fallback to legacy format
+      const legacy = fixed as unknown as { host?: string; port?: number; proxyType?: string };
+      if (legacy.host && legacy.port) {
+        return `${legacy.host}:${legacy.port}`;
+      }
+      return legacy.proxyType || 'HTTP';
     }
     case 'SwitchProfile': {
       if (profile.rules && profile.rules.length > 0) {
@@ -466,84 +414,19 @@ const switchingProfile = ref(false);
 
 async function handleProfileSwitch(profile: Profile) {
   Logger.info('Switching to profile', { name: profile.name, id: profile.id });
-  
+
   // Immediate UI feedback
   switchingProfile.value = true;
   const previousProfile = activeProfileId.value;
   activeProfileId.value = profile.id;
-  
+
   try {
     Logger.debug('Saving to storage', { activeProfileId: profile.id });
     // Save to storage
     await chrome.storage.sync.set({ activeProfileId: profile.id });
 
-    // Apply proxy settings
-    let config: chrome.proxy.ProxyConfig;
-    
-    if (profile.profileType === 'DirectProfile') {
-      config = { mode: 'direct' };
-    } else if (profile.profileType === 'SystemProfile') {
-      config = { mode: 'system' };
-    } else if (profile.profileType === 'FixedProfile') {
-      const fixedProfile = profile as FixedProfile;
-
-      // Build bypass list from BypassConditions
-      const bypassList: string[] = [];
-      if (fixedProfile.bypassList && fixedProfile.bypassList.length > 0) {
-        fixedProfile.bypassList.forEach((condition) => {
-          if (condition.conditionType === 'BypassCondition' && condition.pattern) {
-            bypassList.push(condition.pattern);
-          }
-        });
-      }
-
-      // Prefer schema-compliant fallbackProxy, fall back to legacy format
-      let scheme = 'http';
-      let host = 'localhost';
-      let port = 8080;
-
-      if (fixedProfile.fallbackProxy?.host && fixedProfile.fallbackProxy?.port) {
-        scheme = (fixedProfile.fallbackProxy.scheme || 'http').toLowerCase();
-        host = fixedProfile.fallbackProxy.host;
-        port = fixedProfile.fallbackProxy.port;
-      } else {
-        // Legacy storage format
-        const legacy = fixedProfile as unknown as { proxyType?: string; host?: string; port?: number };
-        if (legacy.host && legacy.port) {
-          scheme = (legacy.proxyType || 'http').toLowerCase();
-          host = legacy.host;
-          port = legacy.port;
-        }
-      }
-
-      config = {
-        mode: 'fixed_servers',
-        rules: {
-          singleProxy: {
-            scheme,
-            host,
-            port,
-          },
-          bypassList: bypassList.length > 0 ? bypassList : undefined,
-        },
-      };
-    } else if (profile.profileType === 'SwitchProfile') {
-      // Generate PAC script from switch rules and apply as pac_script
-      try {
-        const compiler = new PacCompiler(profiles.value);
-        const pacScript = compiler.compilePacScript(profile.name);
-        Logger.debug('Generated PAC script', { profile: profile.name, length: pacScript.length });
-        config = {
-          mode: 'pac_script',
-          pacScript: { data: pacScript },
-        };
-      } catch (err) {
-        Logger.error('Failed to generate PAC script for SwitchProfile', err);
-        config = { mode: 'direct' };
-      }
-    } else {
-      config = { mode: 'direct' };
-    }
+    // Apply proxy settings using centralized builder
+    const config = await buildProxyConfig(profile, profiles.value);
 
     // Send message to background script
     Logger.debug('Applying proxy config', config);
@@ -553,7 +436,7 @@ async function handleProfileSwitch(profile: Profile) {
       profileColor: profile.color || 'blue',
     });
     Logger.info('Profile switch complete');
-    
+
     // Check for conflicts after switching to update UI
     setTimeout(() => checkProxyConflict(), 500);
   } catch (error) {

@@ -4,7 +4,7 @@
  */
 import { Logger } from '../utils/Logger';
 import { migrateToEncryptedStorage } from '../utils/migration';
-import { PacCompiler } from '@/core/pac/pac-generator';
+import { buildProxyConfig } from '@/core/proxy-config-builder';
 import type { Profile } from '@/core/schema';
 import { getProfileColor, BADGE_COLORS } from '@/config/colors';
 
@@ -179,94 +179,31 @@ async function applyStartupProfile(): Promise<void> {
   try {
     const syncResult = await chrome.storage.sync.get(['settings', 'activeProfileId']);
     const localResult = await chrome.storage.local.get(['profiles']);
-    
+
     const profiles = localResult.profiles || [];
     const settings = syncResult.settings || {};
     const startupProfileId = settings.startupProfile;
-    
-    Logger.debug('Checking startup profile', { 
-      startupProfileId, 
-      currentActiveProfileId: syncResult.activeProfileId 
+
+    Logger.debug('Checking startup profile', {
+      startupProfileId,
+      currentActiveProfileId: syncResult.activeProfileId
     });
-    
+
     // If there's a startup profile set and it's different from current, apply it
     if (startupProfileId && startupProfileId !== syncResult.activeProfileId) {
       const startupProfile = (profiles as Profile[]).find(p => p.id === startupProfileId);
-      
+
       if (startupProfile) {
         Logger.info('Applying startup profile', { name: startupProfile.name });
-        
+
         // Update active profile
         await chrome.storage.sync.set({ activeProfileId: startupProfileId });
-        
-        // Build and apply proxy config
-        let config: chrome.proxy.ProxyConfig;
-        
-        if (startupProfile.profileType === 'DirectProfile') {
-          config = { mode: 'direct' };
-        } else if (startupProfile.profileType === 'SystemProfile') {
-          config = { mode: 'system' };
-        } else if (startupProfile.profileType === 'FixedProfile') {
-          // Support both modern (fallbackProxy) and legacy (host/port/proxyType) fixed profiles
-          const bypassList: string[] = [];
 
-          if (startupProfile.bypassList && startupProfile.bypassList.length > 0) {
-            startupProfile.bypassList.forEach((condition) => {
-              if (condition.conditionType === 'BypassCondition' && condition.pattern) {
-                bypassList.push(condition.pattern);
-              }
-            });
-          }
+        // Build and apply proxy config using centralized builder
+        const config = await buildProxyConfig(startupProfile, profiles);
 
-          // Prefer schema-compliant fallbackProxy if present
-          let scheme = 'http';
-          let host = 'localhost';
-          let port = 8080;
-
-          if (startupProfile.fallbackProxy?.host && startupProfile.fallbackProxy?.port) {
-            scheme = (startupProfile.fallbackProxy.scheme || 'http').toLowerCase();
-            host = startupProfile.fallbackProxy.host;
-            port = startupProfile.fallbackProxy.port;
-          } else {
-            // Legacy storage format support
-            const legacy = startupProfile as unknown as { proxyType?: string; host?: string; port?: number };
-            if (legacy.host && legacy.port) {
-              scheme = (legacy.proxyType || 'http').toLowerCase();
-              host = legacy.host;
-              port = legacy.port;
-            }
-          }
-
-          config = {
-            mode: 'fixed_servers',
-            rules: {
-              singleProxy: {
-                scheme,
-                host,
-                port,
-              },
-              bypassList: bypassList.length > 0 ? bypassList : undefined,
-            },
-          };
-        } else if (startupProfile.profileType === 'SwitchProfile') {
-          // Generate PAC script for switch profile
-          try {
-            const compiler = new PacCompiler(profiles);
-            const pacScript = compiler.compilePacScript(startupProfile.name);
-            config = {
-              mode: 'pac_script',
-              pacScript: { data: pacScript }
-            };
-          } catch (err) {
-            Logger.error('Failed to generate PAC for startup SwitchProfile', err);
-            config = { mode: 'direct' };
-          }
-        } else {
-          config = { mode: 'direct' };
-        }
-        
         await handleSetProxy(config);
-        
+
         // Update icon color
         if (startupProfile.color) {
           updateIconColor(startupProfile.color);
@@ -428,34 +365,39 @@ chrome.proxy.settings.onChange.addListener((details: { levelOfControl?: string; 
   }
   
   // Also check via get() as backup
-  setTimeout(() => checkProxyConflicts(), 100);
-  setTimeout(() => checkProxyConflicts(), 500);
+  setTimeout(() => checkProxyConflicts(), 200);
 });
 
 // Periodic conflict check (every 30 seconds)
-setInterval(() => {
+const conflictCheckInterval = setInterval(() => {
   checkProxyConflicts();
 }, 30000);
+
+// Cleanup interval on extension unload
+chrome.runtime.onSuspend.addListener(() => {
+  clearInterval(conflictCheckInterval);
+  Logger.info('Service worker suspended, interval cleared');
+});
 
 /**
  * Check if another extension is controlling the proxy
  */
-async function checkProxyConflicts(): Promise<void> {
+export async function checkProxyConflicts(): Promise<void> {
   try {
     const proxySettings = await chrome.proxy.settings.get({}) as unknown as Record<string, unknown>;
     const levelOfControl = proxySettings.levelOfControl;
-    
-    Logger.debug('Conflict check', { 
-      levelOfControl, 
-      config: proxySettings.value 
+
+    Logger.debug('Conflict check', {
+      levelOfControl,
+      config: proxySettings.value
     });
-    
+
     if (levelOfControl === 'controlled_by_other_extensions') {
       // Another extension has higher priority - show red badge
       await chrome.action.setBadgeText({ text: '!' });
       await chrome.action.setBadgeBackgroundColor({ color: '#DC2626' }); // red-600
-      await chrome.action.setTitle({ 
-        title: 'SwitchyMalaccamax - Conflict: Another extension has higher priority' 
+      await chrome.action.setTitle({
+        title: 'SwitchyMalaccamax - Conflict: Another extension has higher priority'
       });
       Logger.warn('Proxy controlled by another extension');
     } else if (levelOfControl === 'controlled_by_this_extension') {
@@ -474,8 +416,8 @@ async function checkProxyConflicts(): Promise<void> {
       // Not controllable (policy/system) - show amber warning
       await chrome.action.setBadgeText({ text: '?' });
       await chrome.action.setBadgeBackgroundColor({ color: '#F59E0B' }); // amber-500
-      await chrome.action.setTitle({ 
-        title: 'SwitchyMalaccamax - Warning: Proxy cannot be controlled' 
+      await chrome.action.setTitle({
+        title: 'SwitchyMalaccamax - Warning: Proxy cannot be controlled'
       });
       Logger.warn('Proxy not controllable');
     }
@@ -496,10 +438,9 @@ async function handleSetProxy(config: chrome.proxy.ProxyConfig): Promise<void> {
     });
     Logger.info('Proxy set successfully', { mode: config.mode });
     
-    // Check for conflicts immediately and again after a delay
+    // Check for conflicts after setting proxy
     await checkProxyConflicts();
-    setTimeout(() => checkProxyConflicts(), 500);
-    setTimeout(() => checkProxyConflicts(), 1500);
+    setTimeout(() => checkProxyConflicts(), 300);
   } catch (error) {
     Logger.error('Failed to set proxy', error);
     // Check conflicts even on error to show current state

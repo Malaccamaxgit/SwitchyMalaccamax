@@ -715,21 +715,6 @@ async function testConnection() {
   } catch (error) {
     testResult.value = { success: false, message: 'Test failed' };
   } finally {
-    // Restore original proxy settings
-    try {
-      const { activeProfileId } = await chrome.storage.sync.get('activeProfileId');
-      const { profiles } = await chrome.storage.local.get('profiles');
-      if (profiles && activeProfileId) {
-        const activeProfile = (profiles as Profile[]).find((p: Profile) => p.id === activeProfileId);
-        if (activeProfile) {
-          // Restore active profile (implementation would need full proxy logic)
-          await chrome.runtime.sendMessage({ action: 'restoreProxy' });
-        }
-      }
-    } catch (error) {
-      // Ignore restoration errors
-    }
-    
     testing.value = false;
   }
 }

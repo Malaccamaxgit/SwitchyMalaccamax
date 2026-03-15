@@ -152,11 +152,11 @@ ${profileFunctions.join(',\n')}
    * Compile FixedProfile - returns proxy with optional bypass rules
    */
   private compileFixedProfile(profile: FixedProfile): string {
-    log.debug('Compiling FixedProfile', { 
-      name: profile.name, 
+    log.debug('Compiling FixedProfile', {
+      name: profile.name,
       hasFallbackProxy: !!profile.fallbackProxy,
-      fallbackProxy: profile.fallbackProxy,
-      rawProfile: profile
+      proxyHost: profile.fallbackProxy?.host,
+      proxyPort: profile.fallbackProxy?.port
     });
 
     const bypassChecks: string[] = [];
