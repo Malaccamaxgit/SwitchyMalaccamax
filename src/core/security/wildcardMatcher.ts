@@ -173,19 +173,41 @@ export class WildcardMatcher {
 
   /**
    * Convert wildcard pattern to safe regex (for PAC script generation)
-   * Only use this for generating PAC scripts, NOT for runtime matching
+   * Handles SwitchyOmega semantics:
+   * - *.example.com: Matches subdomains but NOT example.com itself
+   * - **.example.com: Matches all subdomains INCLUDING example.com
    * @param pattern - Wildcard pattern
    * @returns Regex pattern string (not compiled)
    */
   static toRegexPattern(pattern: string): string {
-    // Escape regex special characters except * and ?
-    let escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-    
-    // Convert wildcards to regex
-    escaped = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
-    
-    // Add anchors
-    return `^${escaped}$`;
+    // Handle special SwitchyOmega semantics
+    if (pattern.startsWith('*.')) {
+      // *.example.com → matches subdomains only (requires at least one subdomain)
+      const domain = pattern.substring(2);
+      const escaped = this.escapeRegexPattern(domain);
+      return `(?:[^.]+\\.)+${escaped}$`;
+    } else if (pattern.startsWith('**.')) {
+      // **.example.com → matches subdomains AND the exact domain
+      const domain = pattern.substring(3);
+      const escaped = this.escapeRegexPattern(domain);
+      return `(?:[^.]+\\.)*${escaped}$`;
+    } else if (pattern.includes('*') || pattern.includes('?')) {
+      // General wildcard conversion
+      let escaped = this.escapeRegexPattern(pattern);
+      escaped = escaped.replace(/\\\*/g, '.*').replace(/\\\?/g, '.');
+      return `^${escaped}$`;
+    } else {
+      // Exact match
+      return `^${this.escapeRegexPattern(pattern)}$`;
+    }
+  }
+
+  /**
+   * Escape regex special characters
+   * Exposed as public static method for use by PAC generator
+   */
+  static escapeRegexPattern(pattern: string): string {
+    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }
 

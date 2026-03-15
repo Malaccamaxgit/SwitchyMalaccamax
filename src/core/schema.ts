@@ -321,19 +321,22 @@ export interface OmegaExport {
  * Contains all information needed to evaluate conditions
  */
 export interface RequestContext {
-  url: string; // Full URL (e.g., "https://example.com/path")
-  host: string; // Hostname only (e.g., "example.com")
-  scheme?: string; // Protocol (http, https, ftp, etc.)
-  type?: string; // Resource type (main_frame, sub_frame, script, etc.)
+  url: string;   // Full URL (e.g., "https://example.com/path")
+  host: string;  // Hostname only (e.g., "example.com")
+  scheme: string; // Protocol (http, https, ftp, etc.)
+  path?: string;  // URL path (e.g., "/path")
+  type?: string;  // Resource type (main_frame, sub_frame, script, etc.)
 }
 
 /**
  * Match result from condition evaluation
  */
-export interface ConditionMatchResult {
-  matched: boolean; // Whether condition matched
-  profileName?: string; // Profile to use (if matched in SwitchProfile)
-  error?: string; // Error message if evaluation failed
+export interface MatchResult {
+  matched: boolean;   // Whether condition matched
+  reason?: string;    // Why it matched/didn't match
+  conditionType: string; // Type of condition that was evaluated
+  profileName?: string;  // Profile to use (if matched in SwitchProfile)
+  error?: string;   // Error message if evaluation failed
 }
 
 // ============================================================================

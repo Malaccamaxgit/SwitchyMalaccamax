@@ -4,8 +4,9 @@
  */
 import { Logger } from '../utils/Logger';
 import { migrateToEncryptedStorage } from '../utils/migration';
-import { generatePacScript } from '@/core/pac/pac-generator';
+import { PacCompiler } from '@/core/pac/pac-generator';
 import type { Profile } from '@/core/schema';
+import { getProfileColor, BADGE_COLORS } from '@/config/colors';
 
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
@@ -117,16 +118,7 @@ async function initializeIconColor(): Promise<void> {
  * Generate colored icon and update extension icon
  */
 function updateIconColor(color: string): void {
-  const colors: Record<string, string> = {
-    gray: '#9ca3af',
-    blue: '#3b82f6',
-    green: '#22c55e',
-    red: '#ef4444',
-    yellow: '#eab308',
-    purple: '#a855f7',
-  };
-  
-  const hexColor = colors[color] || colors.blue;
+  const hexColor = getProfileColor(color);
   
   // Generate icons for different sizes
   const sizes = [16, 48, 128];
@@ -217,31 +209,32 @@ async function applyStartupProfile(): Promise<void> {
         } else if (startupProfile.profileType === 'FixedProfile') {
           // Support both modern (fallbackProxy) and legacy (host/port/proxyType) fixed profiles
           const bypassList: string[] = [];
-          const sp = startupProfile as unknown as Record<string, unknown>;
 
-          if (sp.bypassList && Array.isArray(sp.bypassList)) {
-            (sp.bypassList as Array<Record<string, unknown>>).forEach((condition) => {
-              if ((condition as { conditionType?: string; pattern?: string }).conditionType === 'BypassCondition' && (condition as { pattern?: string }).pattern) {
-                bypassList.push((condition as { pattern?: string }).pattern!);
+          if (startupProfile.bypassList && startupProfile.bypassList.length > 0) {
+            startupProfile.bypassList.forEach((condition) => {
+              if (condition.conditionType === 'BypassCondition' && condition.pattern) {
+                bypassList.push(condition.pattern);
               }
             });
           }
 
           // Prefer schema-compliant fallbackProxy if present
-          const fallback = sp.fallbackProxy as { scheme?: string; host?: string; port?: number } | undefined;
           let scheme = 'http';
           let host = 'localhost';
           let port = 8080;
 
-          if (fallback && fallback.host && fallback.port) {
-            scheme = (fallback.scheme || 'http').toLowerCase();
-            host = fallback.host;
-            port = fallback.port;
-          } else if (sp.host && sp.port) {
-            // Legacy storage format
-            scheme = (sp.proxyType as string || 'http').toLowerCase();
-            host = sp.host as string;
-            port = sp.port as number;
+          if (startupProfile.fallbackProxy?.host && startupProfile.fallbackProxy?.port) {
+            scheme = (startupProfile.fallbackProxy.scheme || 'http').toLowerCase();
+            host = startupProfile.fallbackProxy.host;
+            port = startupProfile.fallbackProxy.port;
+          } else {
+            // Legacy storage format support
+            const legacy = startupProfile as unknown as { proxyType?: string; host?: string; port?: number };
+            if (legacy.host && legacy.port) {
+              scheme = (legacy.proxyType || 'http').toLowerCase();
+              host = legacy.host;
+              port = legacy.port;
+            }
           }
 
           config = {
@@ -258,7 +251,8 @@ async function applyStartupProfile(): Promise<void> {
         } else if (startupProfile.profileType === 'SwitchProfile') {
           // Generate PAC script for switch profile
           try {
-            const pacScript = generatePacScript(startupProfile, profiles);
+            const compiler = new PacCompiler(profiles);
+            const pacScript = compiler.compilePacScript(startupProfile.name);
             config = {
               mode: 'pac_script',
               pacScript: { data: pacScript }
@@ -415,14 +409,14 @@ chrome.proxy.settings.onChange.addListener((details: { levelOfControl?: string; 
   if (details.levelOfControl === 'controlled_by_other_extensions') {
     Logger.warn('Detected control by another extension');
     chrome.action.setBadgeText({ text: '!' });
-    chrome.action.setBadgeBackgroundColor({ color: '#DC2626' });
+    chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.error });
     chrome.action.setTitle({ 
       title: 'SwitchyMalaccamax - Conflict: Another extension has higher priority' 
     });
   } else if (details.levelOfControl === 'not_controllable') {
     Logger.warn('Detected not_controllable');
     chrome.action.setBadgeText({ text: '?' });
-    chrome.action.setBadgeBackgroundColor({ color: '#F59E0B' });
+    chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.warning });
     chrome.action.setTitle({ 
       title: 'SwitchyMalaccamax - Warning: Proxy cannot be controlled' 
     });

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PacCompiler, generatePacScript } from '@/core/pac/pac-generator';
+import { PacCompiler } from '@/core/pac/pac-generator';
 import type { Profile, SwitchProfile, FixedProfile } from '@/core/schema';
 
 describe('PacCompiler', () => {
@@ -172,8 +172,9 @@ describe('PacCompiler', () => {
       const compiler = new PacCompiler(profiles);
       const result = compiler.compilePacScript('Auto');
 
-      // Should convert *.example.com to regex that matches subdomains
-      expect(result).toContain('(?:^|\\.)example\\.com$');
+      // Should convert *.example.com to regex that matches subdomains (not exact domain)
+      // The pattern (?:[^.]+\.)+ requires at least one subdomain level
+      expect(result).toContain('(?:[^.]+\\.)+example\\.com$');
     });
 
     it('should preserve HostRegexCondition patterns (no double-escaping)', () => {
@@ -216,31 +217,6 @@ describe('PacCompiler', () => {
       expect(result).toContain('if (false) return "+Proxy";');
       // Ensure we don't accidentally include an escaped caret and parenthesis sequence like "\\^\\(" which indicates double-escaping
       expect(result).not.toContain('\\^\\(');
-    });
-  });
-
-  describe('Legacy API', () => {
-    it('should work with generatePacScript function', () => {
-      const profile: SwitchProfile = {
-        name: 'Auto',
-        profileType: 'SwitchProfile',
-        color: 'purple',
-        defaultProfileName: 'Direct',
-        rules: []
-      };
-
-      const allProfiles: Profile[] = [
-        profile,
-        {
-          name: 'Direct',
-          profileType: 'DirectProfile',
-          color: 'blue'
-        }
-      ];
-
-      const result = generatePacScript(profile, allProfiles);
-      expect(result).toContain('FindProxyForURL');
-      expect(result).toContain('"+Auto"');
     });
   });
 

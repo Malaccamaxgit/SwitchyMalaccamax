@@ -132,9 +132,10 @@ class LoggerService {
   private persistenceTimeout: number | null = null;
 
   constructor() {
-    // Initialize asynchronously - will silently fail in test environments
-    this.initialize().catch(() => {
-      // Silently set initialized to true for test/Node.js environments
+    // Initialize asynchronously - will fail gracefully in test environments
+    this.initialize().catch((error) => {
+      // Log initialization failure for debugging
+      console.warn('[Logger] Initialization failed:', error);
       this.initialized = true;
     });
   }
@@ -202,10 +203,8 @@ class LoggerService {
         persistedCount: this.persistedLogs.length
       });
     } catch (error) {
-      // Only log initialization errors in browser environments, not in tests
-      if (typeof chrome !== 'undefined' && chrome.runtime) {
-        console.error('[Logger] Failed to initialize:', error);
-      }
+      // Log initialization errors for diagnostics
+      console.error('[Logger] Failed to initialize:', error);
       // Fallback to defaults if storage fails
       this.currentLevel = DEFAULT_LOG_LEVEL;
       this.maxLines = DEFAULT_MAX_LINES;

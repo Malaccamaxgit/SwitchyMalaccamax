@@ -153,7 +153,8 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, onMounted } from 'vue';
-import { generatePacScript } from '@/core/pac/pac-generator';
+import { PacCompiler } from '@/core/pac/pac-generator';
+import { getProfileColor } from '@/config/colors';
 import { Logger } from '@/utils/Logger';
 import { VERSION_PREFIXED as versionWithPrefix } from '@/utils/version';
 import { 
@@ -235,17 +236,11 @@ const statusIcon = computed(() => {
   return Network;
 });
 
+import { getProfileColor, PROFILE_COLORS } from '@/config/colors';
+
 const activeProfileColor = computed(() => {
   if (!activeProfile.value) return '#a1a1aa'; // zinc-400
-  const colors: Record<string, string> = {
-    gray: '#9ca3af',
-    blue: '#3b82f6',
-    green: '#22c55e',
-    red: '#ef4444',
-    yellow: '#eab308',
-    purple: '#a855f7',
-  };
-  return colors[activeProfile.value.color || 'blue'] || colors.blue;
+  return getProfileColor(activeProfile.value.color || 'blue');
 });
 
 onMounted(async () => {
@@ -315,17 +310,6 @@ function getProfileIcon(profile: Profile) {
   }
 }
 
-function getProfileColor(profile: Profile): string {
-  const colors: Record<string, string> = {
-    gray: '#9ca3af',
-    blue: '#3b82f6',
-    green: '#22c55e',
-    red: '#ef4444',
-    yellow: '#eab308',
-    purple: '#a855f7',
-  };
-  return colors[profile.color || 'blue'] || colors.blue;
-}
 
 async function checkProxyConflict() {
   try {
@@ -360,26 +344,45 @@ async function handleTakeControl() {
       config = { mode: 'direct' };
     } else if (profile.profileType === 'SystemProfile') {
       config = { mode: 'system' };
-    } else if (profile.profileType === 'FixedProfile' && 'host' in profile) {
-      const fixedProfile = profile as unknown as Record<string, unknown>;
-      
+    } else if (profile.profileType === 'FixedProfile') {
+      const fixedProfile = profile as FixedProfile;
+
       // Build bypass list from BypassConditions
       const bypassList: string[] = [];
-      if (fixedProfile.bypassList && Array.isArray(fixedProfile.bypassList)) {
-        fixedProfile.bypassList.forEach((condition: { conditionType?: string; pattern?: string }) => {
+      if (fixedProfile.bypassList && fixedProfile.bypassList.length > 0) {
+        fixedProfile.bypassList.forEach((condition) => {
           if (condition.conditionType === 'BypassCondition' && condition.pattern) {
             bypassList.push(condition.pattern);
           }
         });
       }
-      
+
+      // Prefer schema-compliant fallbackProxy, fall back to legacy format
+      let scheme = 'http';
+      let host = 'localhost';
+      let port = 8080;
+
+      if (fixedProfile.fallbackProxy?.host && fixedProfile.fallbackProxy?.port) {
+        scheme = (fixedProfile.fallbackProxy.scheme || 'http').toLowerCase();
+        host = fixedProfile.fallbackProxy.host;
+        port = fixedProfile.fallbackProxy.port;
+      } else {
+        // Legacy storage format
+        const legacy = fixedProfile as unknown as { proxyType?: string; host?: string; port?: number };
+        if (legacy.host && legacy.port) {
+          scheme = (legacy.proxyType || 'http').toLowerCase();
+          host = legacy.host;
+          port = legacy.port;
+        }
+      }
+
       config = {
         mode: 'fixed_servers',
         rules: {
           singleProxy: {
-            scheme: fixedProfile.proxyType?.toLowerCase() || 'http',
-            host: fixedProfile.host || 'localhost',
-            port: fixedProfile.port || 8080,
+            scheme,
+            host,
+            port,
           },
           bypassList: bypassList.length > 0 ? bypassList : undefined,
         },
@@ -387,7 +390,8 @@ async function handleTakeControl() {
     } else if (profile.profileType === 'SwitchProfile') {
       // Apply PAC generated from Auto Switch
       try {
-        const pacScript = generatePacScript(profile, profiles.value);
+        const compiler = new PacCompiler(profiles.value);
+        const pacScript = compiler.compilePacScript(profile.name);
         config = {
           mode: 'pac_script',
           pacScript: { data: pacScript }
@@ -427,17 +431,16 @@ function getProfileSubtitle(profile: Profile): string {
       return fixed.proxyType || 'HTTP';
     }
     case 'SwitchProfile': {
-      const switchProfile = profile as unknown as Record<string, unknown>;
-      if (switchProfile.rules && Array.isArray(switchProfile.rules)) {
+      if (profile.rules && profile.rules.length > 0) {
         // Get unique profile names from rules
         const profileNames = new Set<string>();
-        switchProfile.rules.forEach((rule: { profileName?: string }) => {
+        profile.rules.forEach((rule) => {
           if (rule.profileName) {
             profileNames.add(rule.profileName);
           }
         });
-        if (switchProfile.defaultProfileName) {
-          profileNames.add(switchProfile.defaultProfileName);
+        if (profile.defaultProfileName) {
+          profileNames.add(profile.defaultProfileName);
         }
         const names = Array.from(profileNames);
         if (names.length > 0) {
@@ -449,14 +452,6 @@ function getProfileSubtitle(profile: Profile): string {
     case 'PacProfile': return 'PAC Script';
     default: return 'Custom';
   }
-}
-
-function getProfileIconBg(profile: Profile) {
-  return '';
-}
-
-function getProfileIconColor(profile: Profile) {
-  return '';
 }
 
 function getProfileButtonClass(profile: Profile) {
@@ -489,26 +484,45 @@ async function handleProfileSwitch(profile: Profile) {
       config = { mode: 'direct' };
     } else if (profile.profileType === 'SystemProfile') {
       config = { mode: 'system' };
-    } else if (profile.profileType === 'FixedProfile' && 'host' in profile) {
-      const fixedProfile = profile as unknown as Record<string, unknown>;
-      
+    } else if (profile.profileType === 'FixedProfile') {
+      const fixedProfile = profile as FixedProfile;
+
       // Build bypass list from BypassConditions
       const bypassList: string[] = [];
-      if (fixedProfile.bypassList && Array.isArray(fixedProfile.bypassList)) {
-        fixedProfile.bypassList.forEach((condition: { conditionType?: string; pattern?: string }) => {
+      if (fixedProfile.bypassList && fixedProfile.bypassList.length > 0) {
+        fixedProfile.bypassList.forEach((condition) => {
           if (condition.conditionType === 'BypassCondition' && condition.pattern) {
             bypassList.push(condition.pattern);
           }
         });
       }
-      
+
+      // Prefer schema-compliant fallbackProxy, fall back to legacy format
+      let scheme = 'http';
+      let host = 'localhost';
+      let port = 8080;
+
+      if (fixedProfile.fallbackProxy?.host && fixedProfile.fallbackProxy?.port) {
+        scheme = (fixedProfile.fallbackProxy.scheme || 'http').toLowerCase();
+        host = fixedProfile.fallbackProxy.host;
+        port = fixedProfile.fallbackProxy.port;
+      } else {
+        // Legacy storage format
+        const legacy = fixedProfile as unknown as { proxyType?: string; host?: string; port?: number };
+        if (legacy.host && legacy.port) {
+          scheme = (legacy.proxyType || 'http').toLowerCase();
+          host = legacy.host;
+          port = legacy.port;
+        }
+      }
+
       config = {
         mode: 'fixed_servers',
         rules: {
           singleProxy: {
-            scheme: fixedProfile.proxyType?.toLowerCase() || 'http',
-            host: fixedProfile.host || 'localhost',
-            port: fixedProfile.port || 8080,
+            scheme,
+            host,
+            port,
           },
           bypassList: bypassList.length > 0 ? bypassList : undefined,
         },
@@ -516,7 +530,8 @@ async function handleProfileSwitch(profile: Profile) {
     } else if (profile.profileType === 'SwitchProfile') {
       // Generate PAC script from switch rules and apply as pac_script
       try {
-        const pacScript = generatePacScript(profile, profiles.value);
+        const compiler = new PacCompiler(profiles.value);
+        const pacScript = compiler.compilePacScript(profile.name);
         Logger.debug('Generated PAC script', { profile: profile.name, length: pacScript.length });
         config = {
           mode: 'pac_script',

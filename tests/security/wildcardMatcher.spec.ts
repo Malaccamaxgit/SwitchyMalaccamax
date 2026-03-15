@@ -170,9 +170,16 @@ describe('WildcardMatcher - Deterministic Matching', () => {
   });
 
   describe('Regex Conversion (for PAC generation)', () => {
-    it('should convert wildcard to regex pattern', () => {
+    it('should convert *.domain to regex that matches subdomains only', () => {
       const regex = WildcardMatcher.toRegexPattern('*.example.com');
-      expect(regex).toBe('^.*\\.example\\.com$');
+      // *.example.com should match subdomains but NOT example.com itself
+      expect(regex).toBe('(?:[^.]+\\.)+example\\.com$');
+    });
+
+    it('should convert **.domain to regex that matches subdomains and exact domain', () => {
+      const regex = WildcardMatcher.toRegexPattern('**.example.com');
+      // **.example.com should match subdomains AND example.com itself
+      expect(regex).toBe('(?:[^.]+\\.)*example\\.com$');
     });
 
     it('should escape regex special characters', () => {

@@ -15,43 +15,60 @@
  * - KeywordCondition: Simple substring matching
  */
 
-import type { Condition } from './schema';
+import type { Condition, RequestContext, MatchResult, HostLevelsCondition } from './schema';
 import { WildcardMatcher } from './security/wildcardMatcher';
 import { RegexValidator } from './security/regexSafe';
-import { Address4, Address6 } from 'ip-address';
 import { Logger } from '@/utils/Logger';
+import { Address4, Address6 } from 'ip-address';
 
 const log = Logger.scope('Conditions');
-
-/**
- * Request context for condition matching
- */
-export interface RequestContext {
-  url: string;           // Full URL (e.g., "https://example.com/path")
-  host: string;          // Hostname (e.g., "example.com")
-  scheme: string;        // Protocol (e.g., "http", "https")
-  path?: string;         // URL path (e.g., "/path")
-}
-
-/**
- * Result of condition matching
- */
-export interface MatchResult {
-  matched: boolean;
-  reason?: string;       // Why it matched/didn't match
-  conditionType: string; // Type of condition that was evaluated
-}
-
-/**
- * Compiled regex cache for performance
- * Maps pattern -> compiled RegExp (or null if unsafe)
- */
-const regexCache = new Map<string, RegExp | null>();
 
 /**
  * Maximum cache size to prevent memory leaks
  */
 const MAX_CACHE_SIZE = 1000;
+
+/**
+ * Simple LRU cache using Map (which maintains insertion order)
+ */
+class LRUCache {
+  private cache: Map<string, RegExp>;
+  private maxSize: number;
+
+  constructor(maxSize: number) {
+    this.cache = new Map();
+    this.maxSize = maxSize;
+  }
+
+  get(key: string): RegExp | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  put(key: string, value: RegExp): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // Delete oldest (first) key
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+const cache = new LRUCache(MAX_CACHE_SIZE);
 
 /**
  * Condition matcher class
@@ -69,10 +86,10 @@ export class ConditionMatcher {
       // Trim pattern if present (defensive: handle leading/trailing whitespace stored in UI)
       let pattern: string | undefined;
       if ('pattern' in condition && typeof (condition as { pattern?: unknown }).pattern === 'string') {
-        pattern = (condition as { pattern: string }).pattern = (condition as { pattern: string }).pattern.trim();
+        pattern = (condition as { pattern: string }).pattern.trim();
       }
 
-      const condType = (condition as { conditionType?: string } | undefined)?.conditionType ?? 'Unknown';
+      const condType = condition.conditionType ?? 'Unknown';
       log.debug('Evaluating condition', { conditionType: condType, pattern, url: context.url, host: context.host });
 
       let result: MatchResult;
@@ -91,7 +108,7 @@ export class ConditionMatcher {
           break;
 
         case 'HostLevelsCondition': {
-          const levelsCond = condition as unknown as { minValue?: number; maxValue?: number };
+          const levelsCond = condition as HostLevelsCondition;
           result = this.matchHostLevels(
             levelsCond.minValue ?? 1,
             levelsCond.maxValue ?? -1,
@@ -346,23 +363,21 @@ export class ConditionMatcher {
 
   /**
    * Get compiled regex from cache or compile safely
+   * Uses LRU eviction when cache is full
    * NOTE: Only call this after validating the pattern with RegexValidator.validate()
    */
   private static getCompiledRegex(pattern: string): RegExp {
-    // Check cache first
-    if (regexCache.has(pattern)) {
-      return regexCache.get(pattern)!;
+    // Check cache first (also reorders to LRU on hit)
+    const cached = cache.get(pattern);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    // Compile (assuming validation already done)
+    // Compile new regex
     const compiled = new RegExp(pattern, 'i');
 
-    // Cache the result
-    if (regexCache.size >= MAX_CACHE_SIZE) {
-      // Simple LRU: clear cache when full
-      regexCache.clear();
-    }
-    regexCache.set(pattern, compiled);
+    // Store in LRU cache (evicts oldest if at capacity)
+    cache.put(pattern, compiled);
 
     return compiled;
   }
@@ -442,7 +457,7 @@ export class ConditionMatcher {
    * Clear regex cache (for testing or memory management)
    */
   static clearCache(): void {
-    regexCache.clear();
+    cache.clear();
   }
 }
 

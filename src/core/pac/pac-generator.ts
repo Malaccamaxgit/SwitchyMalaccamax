@@ -12,6 +12,7 @@
 import type { Profile, FixedProfile, SwitchProfile, PacProfile, Condition, ProxyServer } from '../schema';
 import { Logger } from '@/utils/Logger';
 import { RegexValidator } from '@/core/security/regexSafe';
+import { WildcardMatcher } from '@/core/security/wildcardMatcher';
 
 // Create scoped logger for PAC compiler
 const log = Logger.scope('PAC Compiler');
@@ -217,11 +218,6 @@ ${bypassCode}        return "${proxyResult}";
 
     // Generate each rule
     for (const rule of profile.rules) {
-      // Trim pattern defensively
-      if (rule.condition && 'pattern' in rule.condition && typeof (rule.condition as { pattern?: unknown }).pattern === 'string') {
-        (rule.condition as { pattern: string }).pattern = (rule.condition as { pattern: string }).pattern.trim();
-      }
-
       const conditionCode = this.generateConditionCheck(rule.condition);
       const targetProfile = rule.profileName;
       
@@ -276,12 +272,12 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
 
     // IPv4 address - explicit bounds to prevent ReDoS
     if (/^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)$/.test(pattern)) {
-      return `if (/^${this.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
+      return `if (/^${WildcardMatcher.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
     }
 
     // IPv6 address
     if (pattern.includes(':') && !pattern.includes('.')) {
-      return `if (/^${this.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
+      return `if (/^${WildcardMatcher.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
     }
 
     // CIDR notation (e.g., 192.168.2.0/24)
@@ -303,7 +299,7 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
     }
 
     // Plain hostname
-    return `if (/^${this.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
+    return `if (/^${WildcardMatcher.escapeRegexPattern(pattern)}$/.test(host)) return "DIRECT";`;
   }
 
   /**
@@ -348,8 +344,10 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
         return `new RegExp("${escapedPattern}", "i").test(url)`;
       }
 
-      case 'KeywordCondition':
-        return `url.indexOf("${this.escapeString(condition.pattern)}") !== -1`;
+      case 'KeywordCondition': {
+        const pattern = (condition.pattern || '').trim();
+        return `url.indexOf("${this.escapeString(pattern)}") !== -1`;
+      }
 
       case 'HostLevelsCondition': {
         const parts = 'host.split(".").length';
@@ -370,31 +368,11 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
 
   /**
    * Convert wildcard pattern to regex (ZeroOmega compatible)
+   * Delegates to WildcardMatcher for consistent behavior
    */
   private wildcardToRegex(pattern: string): string {
-    // Handle special SwitchyOmega semantics
-    // *.example.com matches subdomains but NOT example.com itself
-    // **.example.com matches all subdomains INCLUDING example.com
-    
-    if (pattern.startsWith('*.')) {
-      // *.example.com → /(?:^|\.)example\.com$/ (matches subdomains only)
-      const domain = pattern.substring(2);
-      const escaped = this.escapeRegexPattern(domain);
-      return `/(?:^|\\.)${escaped}$/`;
-    } else if (pattern.startsWith('**.')) {
-      // **.example.com → /(?:^|\.)example\.com$/ (matches subdomains AND base)
-      const domain = pattern.substring(3);
-      const escaped = this.escapeRegexPattern(domain);
-      return `/(?:^|\\.)${escaped}$/`;
-    } else if (pattern.includes('*') || pattern.includes('?')) {
-      // General wildcard conversion
-      let regex = this.escapeRegexPattern(pattern);
-      regex = regex.replace(/\\\*/g, '.*').replace(/\\\?/g, '.');
-      return `/^${regex}$/`;
-    } else {
-      // Exact match
-      return `/^${this.escapeRegexPattern(pattern)}$/`;
-    }
+    const patternStr = WildcardMatcher.toRegexPattern(pattern);
+    return `/${patternStr}/`;
   }
 
   /**
@@ -404,13 +382,6 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
    */
   private sanitizeProfileName(name: string): string {
     return name.replace(/[^a-zA-Z0-9 _-]/g, '_');
-  }
-
-  /**
-   * Escape regex special characters
-   */
-  private escapeRegexPattern(pattern: string): string {
-    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**
@@ -475,39 +446,3 @@ ${rulesCode}        return "+${safeDefaultProfileName}";
   }
 }
 
-// ============================================================================
-// Legacy API Compatibility Layer
-// ============================================================================
-
-/**
- * Generate PAC script for a profile (legacy API)
- * @deprecated Use PacCompiler class instead
- */
-export function generatePacScript(profile: Profile, allProfiles: Profile[]): string {
-  const compiler = new PacCompiler(allProfiles);
-  return compiler.compilePacScript(profile.name);
-}
-
-/**
- * Beautify PAC script (add proper indentation and comments)
- */
-export function beautifyPac(pac: string): string {
-  // Already formatted in generation
-  return pac;
-}
-
-/**
- * Minify PAC script (remove comments and whitespace)
- */
-export function minifyPac(pac: string): string {
-  return pac
-    .split('\n')
-    .filter(line => !line.trim().startsWith('//'))
-    .join('\n')
-    .replace(/\s+/g, ' ')
-    .replace(/\s*\{\s*/g, '{')
-    .replace(/\s*\}\s*/g, '}')
-    .replace(/\s*\(\s*/g, '(')
-    .replace(/\s*\)\s*/g, ')')
-    .trim();
-}

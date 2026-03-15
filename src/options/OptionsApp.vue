@@ -1047,7 +1047,6 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
 import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import type { ConnectionStatus } from '@/components/status';
 import { useDark } from '@vueuse/core';
 import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
@@ -1077,7 +1076,7 @@ import {
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
 import { encryptProfile, decryptProfile } from '@/utils/crypto';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
-import { generatePacScript } from '@/core/pac/pac-generator';
+import { PacCompiler } from '@/core/pac/pac-generator';
 import { Logger, LogLevel, LogLevelMetadata, getLogLevel, setLogLevel as saveLogLevel, getLogMaxLines, setLogMaxLines } from '@/utils/Logger';
 import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
 import { generateId } from '@/lib/utils';
@@ -1144,12 +1143,17 @@ const currentLogMaxLines = ref<number>(1000);
 // Initialize logs from Logger buffer
 logs.value = Logger.getLogBuffer();
 
-// Subscribe to new log entries
-Logger.addLogListener((entry) => {
+// Subscribe to new log entries (store unsubscribe for cleanup)
+const unsubscribeLogListener = Logger.addLogListener((entry) => {
   logs.value.unshift(entry);
   if (logs.value.length > maxLogs) {
     logs.value = logs.value.slice(0, maxLogs);
   }
+});
+
+// Cleanup listener on unmount to prevent memory leaks
+onBeforeUnmount(() => {
+  unsubscribeLogListener();
 });
 
 // Log level options for UI
@@ -2043,7 +2047,8 @@ async function exportProfileAsPac(profile: Profile) {
   Logger.info('Exporting PAC for profile', { name: profile.name, type: profile.profileType });
   try {
     // Generate PAC script
-    const pacScript = generatePacScript(profile, profiles.value);
+    const compiler = new PacCompiler(profiles.value);
+    const pacScript = compiler.compilePacScript(profile.name);
     
     // Sanitize filename: replace spaces and special chars with underscores
     const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
