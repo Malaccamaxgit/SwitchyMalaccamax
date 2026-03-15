@@ -1,19 +1,24 @@
-# Security Automation Setup Guide
+# Security Automation Guide
 
-This project includes automated security checks to prevent vulnerabilities from being introduced.
+> **Automated security checks** — Pre-commit hooks, GitHub Actions, and secret scanning to catch vulnerabilities early.
+
+This project includes automated security checks to prevent vulnerabilities from being introduced into the codebase.
 
 ## 🔒 Pre-Commit Hook
 
-A Git pre-commit hook automatically runs before each commit to catch security issues early.
+A Git pre-commit hook runs automatically before each commit to catch security issues early.
 
-### Features:
-- **NPM Audit**: Blocks commits if vulnerable dependencies are detected
-- **Secret Scanner**: Prevents accidental exposure of API keys, passwords, tokens
-- **TypeScript Check**: Ensures type safety on modified files
+### Features
 
-### Installation:
+| Check | Description |
+|-------|-------------|
+| **NPM Audit** | Blocks commits if vulnerable dependencies are detected |
+| **Secret Scanner** | Prevents accidental exposure of API keys, passwords, tokens |
+| **TypeScript Check** | Ensures type safety on modified files |
 
-The pre-commit hook is located at `.git/hooks/pre-commit`. 
+### Installation
+
+The pre-commit hook is located at `.git/hooks/pre-commit`.
 
 **On Unix/Linux/Mac:**
 ```bash
@@ -21,9 +26,9 @@ chmod +x .git/hooks/pre-commit
 ```
 
 **On Windows:**
-The hook will run automatically. If you encounter issues, ensure Git Bash is configured properly.
+The hook runs automatically. If you encounter issues, ensure Git Bash is configured properly.
 
-### Testing the Hook:
+### Testing the Hook
 
 ```bash
 # Try committing a file with a fake secret
@@ -37,7 +42,7 @@ git reset HEAD test.js
 rm test.js
 ```
 
-### Bypassing (Emergency Only):
+### Bypassing (Emergency Only)
 
 If you absolutely must bypass security checks (NOT recommended):
 ```bash
@@ -48,7 +53,7 @@ git commit --no-verify -m "emergency commit"
 
 ### Security Audit Workflow
 
-**File**: `.github/workflows/security-audit.yml`
+**File:** `.github/workflows/security-audit.yml`
 
 Runs automatically on:
 - Every push to `main` or `develop`
@@ -64,7 +69,7 @@ Runs automatically on:
 
 ### Dependency Review Workflow
 
-**File**: `.github/workflows/dependency-review.yml`
+**File:** `.github/workflows/dependency-review.yml`
 
 Runs on pull requests to review dependency changes:
 - Flags vulnerabilities in new dependencies
@@ -73,28 +78,32 @@ Runs on pull requests to review dependency changes:
 
 ## 🔍 Secret Scanner
 
-**File**: `scripts/secret-scanner.js`
+**File:** `scripts/secret-scanner.js`
 
-A custom regex-based scanner that detects common secret patterns:
+A custom regex-based scanner that detects common secret patterns.
 
-### Detected Patterns:
-- **CRITICAL**: AWS keys, RSA/SSH private keys, database connection strings, GitHub tokens
-- **HIGH**: API keys, generic secrets/tokens, passwords, base64 auth
-- **MEDIUM**: JWT tokens
+### Detected Patterns
 
-### Whitelist:
+| Severity | Patterns |
+|----------|----------|
+| **CRITICAL** | AWS keys, RSA/SSH private keys, database connection strings, GitHub tokens |
+| **HIGH** | API keys, generic secrets/tokens, passwords, base64 auth |
+| **MEDIUM** | JWT tokens |
+
+### Whitelist
+
 Automatically ignores common false positives:
 - Example values (`example.com`, `your-api-key`)
 - Test/mock data
 - Masked values (`********`, `xxx`)
 
-### Running Manually:
+### Running Manually
 
 ```bash
 node scripts/secret-scanner.js
 ```
 
-### Adding Custom Patterns:
+### Adding Custom Patterns
 
 Edit `scripts/secret-scanner.js` and add to `SECRET_PATTERNS`:
 
@@ -123,7 +132,8 @@ Current project security status:
 
 ## 🚨 What To Do When Checks Fail
 
-### NPM Audit Failure:
+### NPM Audit Failure
+
 ```bash
 # View details
 npm audit
@@ -135,13 +145,15 @@ npm audit fix
 npm update package-name
 ```
 
-### Secret Scanner Failure:
-1. **Never commit real secrets** - Use environment variables
+### Secret Scanner Failure
+
+1. **Never commit real secrets** — Use environment variables
 2. Replace with placeholders: `"your-api-key"`, `"example.com"`
 3. Use `.env` files (ensure `.env` is in `.gitignore`)
 4. Use Chrome extension storage for runtime secrets
 
-### TypeScript Errors:
+### TypeScript Errors
+
 ```bash
 # Run type check locally
 npm run typecheck
@@ -159,7 +171,8 @@ Developer → Pre-commit Hook → GitHub Actions → Dependency Review
   Local      (Immediate)        (CI Pipeline)    (PR Review)
 ```
 
-**Best Practices:**
+### Best Practices
+
 - Run `npm audit` regularly (at least weekly)
 - Review GitHub Actions results on every PR
 - Keep dependencies up to date

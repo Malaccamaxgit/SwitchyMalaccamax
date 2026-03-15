@@ -1,5 +1,7 @@
 # PAC Compiler Migration Guide
 
+> **ZeroOmega-compatible PAC compiler** — Complete rewrite with recursive profile resolution. Legacy API maintained for backward compatibility.
+
 ## Overview
 
 The PAC compiler has been completely rewritten to support **recursive profile resolution** matching ZeroOmega's implementation. The new system generates self-contained executable PAC files that can resolve nested profile references.
@@ -7,15 +9,21 @@ The PAC compiler has been completely rewritten to support **recursive profile re
 ## What Changed
 
 ### Old Implementation
-- Generated simple flat PAC files with hardcoded proxy results
-- Did not support nested profile references
-- Switch profiles directly embedded target profile logic
 
-### New Implementation  
-- Generates ZeroOmega-compatible PAC files with profiles dictionary
-- Full support for nested profile resolution via do-while loop
-- Profile references use "+ProfileName" pointers
-- Self-contained and executable
+| Characteristic | Description |
+|----------------|-------------|
+| Output | Generated simple flat PAC files with hardcoded proxy results |
+| Nesting | Did not support nested profile references |
+| Switch profiles | Directly embedded target profile logic |
+
+### New Implementation
+
+| Characteristic | Description |
+|----------------|-------------|
+| Output | Generates ZeroOmega-compatible PAC files with profiles dictionary |
+| Nesting | Full support for nested profile resolution via do-while loop |
+| Profile references | Use "+ProfileName" pointers |
+| Execution | Self-contained and executable |
 
 ## API Changes
 
@@ -51,6 +59,7 @@ const pacScript = compiler.compilePacScript('Auto Switch');
 ## Benefits of New Implementation
 
 ### 1. True Profile Nesting
+
 ```javascript
 // Old output - hardcoded
 if (shExpMatch(host, "*.example.com")) {
@@ -64,6 +73,7 @@ if (/(?:^|\.)example\.com$/.test(host)) {
 ```
 
 ### 2. Bypass Lists Work Correctly
+
 ```javascript
 // Profile "CompanyProxy" function includes bypass logic
 "+CompanyProxy": function(url, host, scheme) {
@@ -74,6 +84,7 @@ if (/(?:^|\.)example\.com$/.test(host)) {
 ```
 
 ### 3. Reusable Profiles
+
 Multiple switch profiles can reference the same proxy profile, and the PAC file will only include it once.
 
 ## Breaking Changes
@@ -85,16 +96,25 @@ The legacy API is fully backward compatible. Existing code will work without mod
 ## Performance Considerations
 
 ### Compilation Time
-- **Old**: O(n) - linear with number of rules
-- **New**: O(n) - same complexity, but with profile reference collection
+
+| Implementation | Complexity |
+|----------------|------------|
+| Old | O(n) — linear with number of rules |
+| New | O(n) — same complexity, with profile reference collection |
 
 ### Runtime Performance
-- **Old**: Direct lookup, no overhead
-- **New**: Do-while loop resolution (minimal overhead, 1-3 iterations typically)
+
+| Implementation | Overhead |
+|----------------|----------|
+| Old | Direct lookup, no overhead |
+| New | Do-while loop resolution (minimal overhead, 1-3 iterations typically) |
 
 ### File Size
-- **Old**: Smaller (inline everything)
-- **New**: Slightly larger (profiles dictionary structure), but more maintainable
+
+| Implementation | Size |
+|----------------|------|
+| Old | Smaller (inline everything) |
+| New | Slightly larger (profiles dictionary structure), but more maintainable |
 
 ## Examples
 
@@ -105,7 +125,7 @@ function FindProxyForURL(url, host) {
   if (shExpMatch(host, "confluence.example.com")) {
     return "PROXY 192.168.50.30:8213";
   }
-  
+
   // Rule 2: HostWildcardCondition -> "Example" (FixedProfile)
   if (shExpMatch(host, "*.example.com")) {
     return "PROXY 192.168.50.30:8213";
@@ -151,9 +171,10 @@ var FindProxyForURL = function(init, profiles) {
 
 ## Testing Your Code
 
-If you have existing tests that validate PAC output, you may need to update them to match the new format:
+If you have existing tests that validate PAC output, you may need to update them to match the new format.
 
 ### Update Assertions
+
 ```typescript
 // Old assertion
 expect(pacScript).toContain('return "PROXY proxy.example.com:8080"');
@@ -165,6 +186,7 @@ expect(pacScript).toContain('PROXY proxy.example.com:8080');
 ```
 
 ### Verify Structure
+
 ```typescript
 // Check for resolver boilerplate
 expect(pacScript).toContain('var FindProxyForURL = function(init, profiles)');
@@ -184,16 +206,16 @@ If you need to revert to the old implementation (not recommended):
 2. Remove the `PacCompiler` class
 3. Restore the old `generatePacScript()` implementation
 
-However, this is **not recommended** as the new implementation is fully backward compatible and provides significant benefits.
+**Note:** This is **not recommended** as the new implementation is fully backward compatible and provides significant benefits.
 
-## Questions?
+## Related Documentation
 
-See [PAC_COMPILER_REWRITE.md](./PAC_COMPILER_REWRITE.md) for detailed implementation documentation.
+- [PAC_COMPILER_REWRITE.md](./PAC_COMPILER_REWRITE.md) — Detailed implementation documentation
+- [PAC_COMPILER_FIXEARCHY.md](./PAC_COMPILER_FIX.md) — Legacy format support fix
 
----
+## Status
 
-**Migration Status**: ✅ COMPLETE - No action required for existing code
-
-**Backward Compatibility**: ✅ 100% - Legacy API works with new implementation
-
-**Date**: January 4, 2026
+| Status | Description |
+|--------|-------------|
+| ✅ **COMPLETE** | No action required for existing code |
+| ✅ **BACKWARD COMPATIBLE** | Legacy API works with new implementation |

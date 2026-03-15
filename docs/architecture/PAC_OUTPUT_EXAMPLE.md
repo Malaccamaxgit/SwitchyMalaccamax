@@ -1,4 +1,6 @@
-# PAC Output Comparison
+# PAC Output Example
+
+> **Generated PAC script execution flow** — Demonstrates recursive profile resolution for different request types.
 
 ## Test Configuration
 
@@ -78,62 +80,60 @@ var FindProxyForURL = function(init, profiles) {
 });
 ```
 
-## Execution Flow Example
+## Execution Flow Examples
 
 ### Request 1: `https://confluence.example.com/wiki`
 
-1. **Start**: `result = "+Auto Switch"`
-2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host matches `/^confluence\.example\.com$/`
-   - Returns `"+Example"`
-3. **Second iteration**: Execute `profiles["+Example"](url, host, scheme)`
-   - Host does not match `127.0.0.1`
-   - Host does not match bypass conditions
-   - Returns `"PROXY 192.168.50.30:8213"`
-4. **Result**: `"PROXY 192.168.50.30:8213"`
+| Step | Action | Result |
+|------|--------|--------|
+| Start | `result = "+Auto Switch"` | — |
+| Iteration 1 | Execute `profiles["+Auto Switch"](url, host, scheme)` | Host matches `/^confluence\.example\.com$/` → Returns `"+Example"` |
+| Iteration 2 | Execute `profiles["+Example"](url, host, scheme)` | No bypass match → Returns `"PROXY 192.168.50.30:8213"` |
+| Final | — | `"PROXY 192.168.50.30:8213"` |
 
 ### Request 2: `https://docs.example.com/api`
 
-1. **Start**: `result = "+Auto Switch"`
-2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host matches `/(?:^|\.)example\.com$/`
-   - Returns `"+Example"`
-3. **Second iteration**: Execute `profiles["+Example"](url, host, scheme)`
-   - Host does not match bypass conditions
-   - Returns `"PROXY 192.168.50.30:8213"`
-4. **Result**: `"PROXY 192.168.50.30:8213"`
+| Step | Action | Result |
+|------|--------|--------|
+| Start | `result = "+Auto Switch"` | — |
+| Iteration 1 | Execute `profiles["+Auto Switch"](url, host, scheme)` | Host matches `/(?:^|\.)example\.com$/` → Returns `"+Example"` |
+| Iteration 2 | Execute `profiles["+Example"](url, host, scheme)` | No bypass match → Returns `"PROXY 192.168.50.30:8213"` |
+| Final | — | `"PROXY 192.168.50.30:8213"` |
 
 ### Request 3: `http://127.0.0.1:3000`
 
-1. **Start**: `result = "+Auto Switch"`
-2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host does not match any rules
-   - Returns `"+Direct"`
-3. **Second iteration**: Execute `profiles["+Direct"](url, host, scheme)`
-   - Returns `"DIRECT"`
-4. **Result**: `"DIRECT"`
+| Step | Action | Result |
+|------|--------|--------|
+| Start | `result = "+Auto Switch"` | — |
+| Iteration 1 | Execute `profiles["+Auto Switch"](url, host, scheme)` | No rule match → Returns `"+Direct"` |
+| Iteration 2 | Execute `profiles["+Direct"](url, host, scheme)` | Returns `"DIRECT"` |
+| Final | — | `"DIRECT"` |
 
 ### Request 4: `https://192.168.2.50:8080` (within bypass CIDR)
 
-1. **Start**: `result = "+Auto Switch"`
-2. **First iteration**: Execute `profiles["+Auto Switch"](url, host, scheme)`
-   - Host does not match any rules
-   - Returns `"+Direct"`
-3. **Second iteration**: Execute `profiles["+Direct"](url, host, scheme)`
-   - Returns `"DIRECT"`
-4. **Result**: `"DIRECT"`
+**Routed via Direct profile:**
 
-**Note**: If the request to `192.168.2.50` was routed to Example profile instead:
-1. **Start**: `result = "+Example"`
-2. **First iteration**: Execute `profiles["+Example"](url, host, scheme)`
-   - Host matches `isInNet(host, "192.168.2.0", "255.255.255.0")`
-   - Returns `"DIRECT"` (bypass rule)
-3. **Result**: `"DIRECT"`
+| Step | Action | Result |
+|------|--------|--------|
+| Start | `result = "+Auto Switch"` | — |
+| Iteration 1 | Execute `profiles["+Auto Switch"](url, host, scheme)` | No rule match → Returns `"+Direct"` |
+| Iteration 2 | Execute `profiles["+Direct"](url, host, scheme)` | Returns `"DIRECT"` |
+| Final | — | `"DIRECT"` |
+
+**If routed via Example profile (bypass test):**
+
+| Step | Action | Result |
+|------|--------|--------|
+| Start | `result = "+Example"` | — |
+| Iteration 1 | Execute `profiles["+Example"](url, host, scheme)` | Matches `isInNet(host, "192.168.2.0", "255.255.255.0")` → Returns `"DIRECT"` |
+| Final | — | `"DIRECT"` |
 
 ## Key Features Demonstrated
 
-1. ✅ **Recursive Resolution**: Multiple profile lookups ("+Auto Switch" → "+Example")
-2. ✅ **Bypass List**: Checks bypass conditions before returning proxy
-3. ✅ **Wildcard Patterns**: Converts `*.example.com` to regex
-4. ✅ **CIDR Support**: Uses `isInNet()` for IP range matching
-5. ✅ **Loop Termination**: Stops when result is a string not starting with '+' (charCodeAt(0) !== 43)
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Recursive Resolution | ✅ | Multiple profile lookups ("+Auto Switch" → "+Example") |
+| Bypass List | ✅ | Checks bypass conditions before returning proxy |
+| Wildcard Patterns | ✅ | Converts `*.example.com` to regex |
+| CIDR Support | ✅ | Uses `isInNet()` for IP range matching |
+| Loop Termination | ✅ | Stops when result is a string not starting with '+' (charCodeAt(0) !== 43) |

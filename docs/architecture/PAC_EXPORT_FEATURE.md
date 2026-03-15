@@ -1,42 +1,52 @@
 # PAC Export Feature
 
+> **Export profiles as PAC scripts** — Generate standards-compliant `.pac` files for use in browsers or proxy systems using File System Access API.
+
 ## Overview
-Implemented PAC (Proxy Auto-Config) script export functionality, achieving feature parity with ZeroOmega's omega-pac module. Users can now export configured profiles as PAC scripts for use in browsers or proxy systems.
+
+Implemented PAC (Proxy Auto-Config) script export functionality, achieving feature parity with ZeroOmega's omega-pac module. Users can export configured profiles as PAC scripts for use in browsers or proxy systems.
 
 ## Implementation
 
 ### Core Module: `src/core/pac/pac-generator.ts`
+
 **Main Function:**
 ```typescript
 generatePacScript(profile: Profile, allProfiles: Profile[]): string
 ```
 
 **Supported Profile Types:**
-- ✅ **FixedProfile**: Single proxy with optional bypass rules
-- ✅ **SwitchProfile**: Rule-based switching with conditions
-- ✅ **DirectProfile**: Returns "DIRECT" connection
-- ✅ **SystemProfile**: Returns "DIRECT" (system proxy not applicable in PAC)
-- ⏳ **PacProfile**: Returns original PAC URL (future enhancement)
+
+| Profile Type | Status | Description |
+|--------------|--------|-------------|
+| FixedProfile | ✅ | Single proxy with optional bypass rules |
+| SwitchProfile | ✅ | Rule-based switching with conditions |
+| DirectProfile | ✅ | Returns "DIRECT" connection |
+| SystemProfile | ✅ | Returns "DIRECT" (system proxy not applicable in PAC) |
+| PacProfile | ⏳ | Returns original PAC URL (future enhancement) |
 
 **Supported Condition Types:**
+
 All 7 condition types from the schema:
-1. **HostWildcard**: `shExpMatch(host, pattern)`
-2. **UrlWildcard**: `shExpMatch(url, pattern)`
-3. **HostRegex**: JavaScript RegExp matching on host
-4. **UrlRegex**: JavaScript RegExp matching on URL
-5. **Keyword**: Simple substring search in URL
-6. **HostLevels**: Domain level counting (e.g., `>=3` for subdomains)
-7. **Bypass**: For fixed profiles with bypass rules
+
+| Condition Type | PAC Function |
+|----------------|--------------|
+| HostWildcard | `shExpMatch(host, pattern)` |
+| UrlWildcard | `shExpMatch(url, pattern)` |
+| HostRegex | JavaScript RegExp matching on host |
+| UrlRegex | JavaScript RegExp matching on URL |
+| Keyword | Simple substring search in URL |
+| HostLevels | Domain level counting |
+| Bypass | For fixed profiles with bypass rules |
 
 **Special Features:**
-- CIDR notation support: `192.168.0.0/16` → `isInNet(host, "192.168.0.0", "255.255.0.0")`
-- Proxy protocol mapping:
-  - `HTTP` → `PROXY host:port`
-  - `HTTPS` → `HTTPS host:port`
-  - `SOCKS4` → `SOCKS host:port`
-  - `SOCKS5` → `SOCKS5 host:port`
-- Wildcard escaping: Converts user-friendly wildcards to PAC-safe patterns
-- Minification: Removes comments and whitespace for production use
+
+| Feature | Implementation |
+|---------|---------------|
+| CIDR notation | `192.168.0.0/16` → `isInNet(host, "192.168.0.0", "255.255.0.0")` |
+| Proxy protocol mapping | HTTP→PROXY, HTTPS→HTTPS, SOCKS4→SOCKS, SOCKS5→SOCKS5 |
+| Wildcard escaping | Converts user-friendly wildcards to PAC-safe patterns |
+| Minification | Removes comments and whitespace for production use |
 
 ### UI Integration: `src/options/OptionsApp.vue`
 
@@ -55,7 +65,7 @@ All 7 condition types from the schema:
 </button>
 ```
 
-**Export Function (modern):**
+**Export Function:**
 ```typescript
 import { saveBlobToFile } from '@/lib/fileSaver';
 
@@ -66,7 +76,7 @@ async function exportProfileAsPac(profile: Profile) {
   // 2. Create downloadable blob
   const blob = new Blob([pacScript], { type: 'application/x-ns-proxy-autoconfig' });
 
-  // 3. Prompt user to save (File System Access API where available; fallback to anchor download)
+  // 3. Save file (File System Access API with anchor fallback)
   const safeName = profile.name.replace(/[^a-zA-Z0-9-_]/g, '_');
   const filename = `${safeName}.pac`;
 
@@ -74,7 +84,7 @@ async function exportProfileAsPac(profile: Profile) {
     await saveBlobToFile(blob, filename, 'application/x-ns-proxy-autoconfig');
     toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
   } catch (err) {
-    // User cancelled or an error occurred - handle gracefully
+    // User cancelled or error - handle gracefully
     if (err && (err.name === 'AbortError' || err.message?.includes('cancelled'))) {
       toastRef.value?.info('Export cancelled', 'Cancelled');
     } else {
@@ -87,18 +97,19 @@ async function exportProfileAsPac(profile: Profile) {
 
 ## Usage
 
-### For Users:
+### For Users
+
 1. Navigate to **Settings** → **Profiles**
 2. Select a profile (Fixed or Switch type)
 3. Click **Export PAC** button (blue, between Edit and Delete)
-4. A **Save file** dialog will prompt you to choose the destination and filename. On browsers that support the File System Access API the extension will show a native save dialog; otherwise the browser will fall back to the standard download flow (you'll be prompted to save the file).
+4. Save file dialog prompts for destination and filename
 5. Use the PAC file in:
    - Browser proxy settings (Chrome, Firefox, etc.)
    - System proxy configuration
    - Corporate proxy systems
    - Network testing tools
 
-### Example Output:
+### Example Output
 
 **Fixed Profile with Bypass:**
 ```javascript
@@ -106,7 +117,7 @@ function FindProxyForURL(url, host) {
   // Direct access for bypass rules
   if (shExpMatch(host, "*.local")) return "DIRECT";
   if (shExpMatch(host, "localhost")) return "DIRECT";
-  
+
   // Fixed proxy
   return "PROXY proxy.example.com:8080";
 }
@@ -119,12 +130,12 @@ function FindProxyForURL(url, host) {
   if (shExpMatch(host, "*.company.com")) {
     return "PROXY corporate-proxy:3128";
   }
-  
+
   // Rule: Streaming
   if (shExpMatch(host, "*.netflix.com") || shExpMatch(host, "*.youtube.com")) {
     return "SOCKS5 streaming-proxy:1080";
   }
-  
+
   // Default fallback
   return "DIRECT";
 }
@@ -132,19 +143,23 @@ function FindProxyForURL(url, host) {
 
 ## Testing
 
-### Manual Testing:
+### Manual Testing
+
 1. Build extension: `npm run build`
 2. Load in Chrome: `chrome://extensions` → Load unpacked → Select `dist/`
 3. Open extension options
 4. Create/select a Fixed or Switch profile
 5. Click Export PAC
-6. A **Save file** dialog should appear; choose a destination and save the `.pac` file
-7. Verify saved `.pac` file opens in a text editor and contains the expected `FindProxyForURL` logic
+6. Save file dialog appears; choose destination and save `.pac` file
+7. Verify saved `.pac` file opens in text editor with expected `FindProxyForURL` logic
 8. Check PAC syntax is valid JavaScript
 
 ### Automated Tests
-- Unit tests for the file save helper are available: `tests/lib/fileSaver.spec.ts` which stubs `showSaveFilePicker()` and verifies both the native picker path and the download fallback behavior.
-### PAC Validation:
+
+Unit tests for file save helper: `tests/lib/fileSaver.spec.ts`
+
+### PAC Validation
+
 ```bash
 # Test PAC file in browser
 1. Open chrome://net-internals/#proxy
@@ -155,64 +170,60 @@ function FindProxyForURL(url, host) {
 
 ## Technical Details
 
-### File Structure:
-```
-src/
-└── core/
-    └── pac/
-        └── pac-generator.ts  (New - 345 lines)
-            ├── generatePacScript()
-            ├── generateFixedProfilePac()
-            ├── generateSwitchProfilePac()
-            ├── generateBypassCondition()
-            ├── generateConditionCheck()
-            ├── proxyServerToString()
-            ├── cidrToMask()
-            └── minifyPac()
+### File Structure
 
-src/options/
-└── OptionsApp.vue (Modified)
-    ├── Import: generatePacScript
-    ├── Import: Download icon
-    └── Function: exportProfileAsPac()
-```
+| Path | Description |
+|------|-------------|
+| `src/core/pac/pac-generator.ts` | Core PAC generation logic (345 lines) |
+| `src/options/OptionsApp.vue` | UI integration |
+| `src/lib/fileSaver.ts` | File save helper with File System Access API |
 
-### Dependencies:
-- No external npm dependencies
-- Uses native browser APIs: `Blob`, `URL.createObjectURL()`, and the File System Access API (progressive enhancement)
-- Save helper: `src/lib/fileSaver.ts` provides `saveBlobToFile()` which uses `showSaveFilePicker()` when available and falls back to a standard anchor download
-- TypeScript types from `@/core/schema`
+### Dependencies
 
-### Security Considerations:
-- Filename sanitization prevents path traversal
-- Regex patterns validated by existing regexSafe.ts
-- PAC scripts run in browser sandbox
-- No eval() or dynamic code execution
-- **Privacy/Permissions:** The extension does **not** request the `downloads` permission; exports always prompt the user for the destination. When available, the File System Access API is used to show a native save dialog; otherwise the browser's standard download flow is used as a fallback, ensuring the user remains in control of where files are stored.
+| Dependency | Usage |
+|------------|-------|
+| Native Blob API | Create downloadable content |
+| URL.createObjectURL() | Generate blob URLs |
+| File System Access API | Native save dialog (progressive enhancement) |
+| `src/lib/fileSaver.ts` | `saveBlobToFile()` helper |
+| TypeScript types | `@/core/schema` |
+
+### Security Considerations
+
+| Measure | Description |
+|---------|-------------|
+| Filename sanitization | Prevents path traversal |
+| Regex validation | Handled by existing `regexSafe.ts` |
+| Browser sandbox | PAC scripts run in browser sandbox |
+| No eval() | No dynamic code execution |
+| Permissions | No `downloads` permission required; uses File System Access API with anchor fallback |
 
 ## Future Enhancements
 
-### Phase 2 (Optional):
+### Phase 2 (Optional)
+
 - [ ] PAC preview modal before download
 - [ ] Copy PAC to clipboard button
 - [ ] PAC validation/linting
 - [ ] Import PAC files (reverse operation)
 - [ ] PAC script comments/documentation toggle
-- [ ] Support for PacProfile exports (return original URL)
+- [ ] Support for PacProfile exports
 
-### Advanced Features:
+### Advanced Features
+
 - [ ] PAC optimization: Minimize file size
 - [ ] PAC testing: Built-in URL tester
 - [ ] PAC hosting: Generate shareable URLs
 - [ ] PAC versioning: Track changes over time
 
 ## Status
-✅ **COMPLETE** - PAC export fully functional
-- Core logic implemented
-- UI integrated
-- Build successful
-- Ready for testing
 
-## Related
-- Original feature: [ZeroOmega omega-pac module](https://github.com/zero-peak/ZeroOmega)
-- PAC specification: [Navigator Proxy Auto-Config](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file)
+| Status | Description |
+|--------|-------------|
+| ✅ **COMPLETE** | PAC export fully functional |
+| ✅ **TESTED** | Core logic, UI integration, build successful |
+
+## Related Documentation
+
+- [PAC_COMPILER_REWRITE.md](./PAC_COMPILER_REWRITE.md) — PAC compiler implementation
+- [PAC_OUTPUT_EXAMPLE.md](./PAC_OUTPUT_EXAMPLE.md) — Example PAC output

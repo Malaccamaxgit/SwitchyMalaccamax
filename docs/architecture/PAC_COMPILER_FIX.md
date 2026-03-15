@@ -1,4 +1,6 @@
-# PAC Compiler Fix - Legacy Format Support
+# PAC Compiler Fix — Legacy Format Support
+
+> **Fixed schema vs storage format mismatch** — PAC compiler now handles both legacy and schema-compliant FixedProfile formats.
 
 ## Issue
 
@@ -63,7 +65,7 @@ Updated `compileFixedProfile()` to handle **both formats**:
 ```typescript
 private compileFixedProfile(profile: FixedProfile): string {
   let proxyResult: string;
-  
+
   if (profile.fallbackProxy) {
     // Schema-compliant format: { fallbackProxy: { scheme, host, port } }
     proxyResult = this.proxyServerToString(profile.fallbackProxy);
@@ -72,7 +74,7 @@ private compileFixedProfile(profile: FixedProfile): string {
     const scheme = ((profile as any).proxyType || 'http').toLowerCase();
     const host = (profile as any).host;
     const port = (profile as any).port;
-    
+
     proxyResult = this.proxyServerToString({
       scheme: scheme as 'http' | 'https' | 'socks4' | 'socks5',
       host,
@@ -81,17 +83,19 @@ private compileFixedProfile(profile: FixedProfile): string {
   } else {
     throw new Error(`FixedProfile missing proxy configuration`);
   }
-  
+
   // ... rest of function
 }
 ```
 
 ## Benefits
 
-1. ✅ **Backward Compatible**: Works with existing storage format
-2. ✅ **Future-Proof**: Also works with schema-compliant format
-3. ✅ **Defensive**: Provides clear error messages if neither format is present
-4. ✅ **Logged**: Detailed logging for debugging
+| Benefit | Description |
+|---------|-------------|
+| ✅ **Backward Compatible** | Works with existing storage format |
+| ✅ **Future-Proof** | Also works with schema-compliant format |
+| ✅ **Defensive** | Provides clear error messages if neither format is present |
+| ✅ **Logged** | Detailed logging for debugging |
 
 ## Testing
 
@@ -114,8 +118,10 @@ it('should generate fixed proxy profile with legacy format (host/port)', () => {
 
 ## Files Modified
 
-1. **[src/core/pac/pac-generator.ts](src/core/pac/pac-generator.ts)** - Updated `compileFixedProfile()` with dual-format support
-2. **[tests/core/pac-compiler.spec.ts](tests/core/pac-compiler.spec.ts)** - Added legacy format test
+| File | Change |
+|------|--------|
+| `src/core/pac/pac-generator.ts` | Updated `compileFixedProfile()` with dual-format support |
+| `tests/core/pac-compiler.spec.ts` | Added legacy format test |
 
 ## Migration Path (Optional)
 
@@ -126,7 +132,7 @@ function migrateFixedProfile(profile: any): FixedProfile {
   if (profile.fallbackProxy) {
     return profile;  // Already migrated
   }
-  
+
   return {
     ...profile,
     fallbackProxy: {
@@ -138,12 +144,10 @@ function migrateFixedProfile(profile: any): FixedProfile {
 }
 ```
 
-But this is **not required** - the PAC compiler now handles both formats transparently!
+**Note:** This is **not required** — the PAC compiler now handles both formats transparently.
 
----
+## Status
 
-**Status**: ✅ FIXED
-
-**Date**: January 4, 2026
-
-**Impact**: PAC exports now correctly include proxy configurations
+| Status | Impact |
+|--------|--------|
+| ✅ **FIXED** | PAC exports now correctly include proxy configurations |

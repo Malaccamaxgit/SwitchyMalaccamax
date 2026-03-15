@@ -1,4 +1,6 @@
-# PAC Compiler Rewrite - Complete Implementation
+# PAC Compiler Rewrite — Complete Implementation
+
+> **ZeroOmega-compatible PAC compiler** — Recursive profile resolution with do-while loop execution matching the reference implementation.
 
 ## Overview
 
@@ -6,13 +8,15 @@ Successfully implemented a **ZeroOmega-compatible PAC compiler** with recursive 
 
 ## Key Features
 
-### 1. **Recursive Profile Resolution**
+### 1. Recursive Profile Resolution
+
 - Profiles dictionary stores each profile as a closure/function
 - Main `FindProxyForURL` uses a do-while loop to resolve profile chains
 - Profile references use `"+ProfileName"` as internal pointer keys
 - Supports nested profile resolution (e.g., SwitchProfile → FixedProfile → actual proxy)
 
-### 2. **Profile Reference System**
+### 2. Profile Reference System
+
 ```javascript
 // Generated structure:
 var FindProxyForURL = function(init, profiles) {
@@ -33,7 +37,7 @@ var FindProxyForURL = function(init, profiles) {
 });
 ```
 
-### 3. **Profile Type Support**
+### 3. Profile Type Support
 
 #### DirectProfile
 ```javascript
@@ -66,31 +70,39 @@ function(url, host, scheme) {
 }
 ```
 
-### 4. **Wildcard Pattern Support**
+### 4. Wildcard Pattern Support
 
 Implements SwitchyOmega wildcard semantics:
-- `*.example.com` → `/(?:^|\.)example\.com$/` (matches subdomains, NOT base domain)
-- `**.example.com` → `/(?:^|\.)example\.com$/` (matches all including base)
-- `*` and `?` → Standard wildcard conversion
 
-### 5. **Bypass List Support**
+| Pattern | Regex Conversion | Matches |
+|---------|-----------------|---------|
+| `*.example.com` | `/(?:^|\.)example\.com$/` | Subdomains only (NOT base domain) |
+| `**.example.com` | `/(?:^|\.)example\.com$/` | All including base domain |
+| `*` and `?` | Standard wildcard conversion | Single/multi-character |
+
+### 5. Bypass List Support
 
 Handles all bypass condition types:
-- IPv4 addresses: `/^127\.0\.0\.1$/.test(host)`
-- IPv6 addresses: `/^::1$/.test(host)`
-- CIDR notation: `isInNet(host, "192.168.2.0", "255.255.255.0")`
-- Hostnames: `/^localhost$/.test(host)`
-- Wildcards: Converted to regex
 
-### 6. **Condition Type Support**
+| Type | Example |
+|------|---------|
+| IPv4 addresses | `/^127\.0\.0\.1$/.test(host)` |
+| IPv6 addresses | `/^::1$/.test(host)` |
+| CIDR notation | `isInNet(host, "192.168.2.0", "255.255.255.0")` |
+| Hostnames | `/^localhost$/.test(host)` |
+| Wildcards | Converted to regex |
 
-- ✅ HostWildcardCondition
-- ✅ UrlWildcardCondition
-- ✅ HostRegexCondition
-- ✅ UrlRegexCondition
-- ✅ KeywordCondition
-- ✅ HostLevelsCondition
-- ✅ BypassCondition
+### 6. Condition Type Support
+
+| Condition Type | Status |
+|----------------|--------|
+| HostWildcardCondition | ✅ |
+| UrlWildcardCondition | ✅ |
+| HostRegexCondition | ✅ |
+| UrlRegexCondition | ✅ |
+| KeywordCondition | ✅ |
+| HostLevelsCondition | ✅ |
+| BypassCondition | ✅ |
 
 ## Architecture
 
@@ -102,7 +114,7 @@ export class PacCompiler {
 
   constructor(allProfiles: Profile[])
   compilePacScript(rootProfileName: string): string
-  
+
   private collectReferencedProfiles(profile: Profile): Set<string>
   private generateProfilesDictionary(profileNames: Set<string>): string
   private compileProfile(profile: Profile): string
@@ -190,7 +202,7 @@ function FindProxyForURL(url, host) {
   if (shExpMatch(host, "confluence.example.com")) {
     return "PROXY 192.168.50.30:8213";  // ❌ Hardcoded - no nesting
   }
-  
+
   // Default profile: "Direct" (DirectProfile)
   return "DIRECT";
 }
@@ -229,42 +241,40 @@ var FindProxyForURL = function(init, profiles) {
 
 ## Benefits
 
-1. **Full Nesting Support**: Switch profiles can reference other profiles indefinitely
-2. **Bypass List Integration**: Fixed profiles with bypass rules work correctly
-3. **Profile Isolation**: Each profile is self-contained and reusable
-4. **ZeroOmega Compatible**: Generated PAC files match ZeroOmega's export format
-5. **Efficient**: Only includes referenced profiles in the output
+| Benefit | Description |
+|---------|-------------|
+| **Full Nesting Support** | Switch profiles can reference other profiles indefinitely |
+| **Bypass List Integration** | Fixed profiles with bypass rules work correctly |
+| **Profile Isolation** | Each profile is self-contained and reusable |
+| **ZeroOmega Compatible** | Generated PAC files match ZeroOmega's export format |
+| **Efficient** | Only includes referenced profiles in the output |
 
 ## Testing
 
-Created comprehensive test suite in `tests/core/pac-compiler.spec.ts`:
-- ✅ DirectProfile generation
-- ✅ FixedProfile with bypass rules
-- ✅ SwitchProfile with nested references
-- ✅ Wildcard pattern conversion
-- ✅ Profile reference resolution (only includes used profiles)
-- ✅ Legacy API compatibility
+Comprehensive test suite in `tests/core/pac-compiler.spec.ts`:
+
+| Test | Status |
+|------|--------|
+| DirectProfile generation | ✅ |
+| FixedProfile with bypass rules | ✅ |
+| SwitchProfile with nested references | ✅ |
+| Wildcard pattern conversion | ✅ |
+| Profile reference resolution (only includes used profiles) | ✅ |
+| Legacy API compatibility | ✅ |
 
 ## Files Modified
 
-1. **[src/core/pac/pac-generator.ts](src/core/pac/pac-generator.ts)** - Complete rewrite with PacCompiler class
-2. **[tests/core/pac-compiler.spec.ts](tests/core/pac-compiler.spec.ts)** - New comprehensive test suite
+| File | Change |
+|------|--------|
+| `src/core/pac/pac-generator.ts` | Complete rewrite with PacCompiler class |
+| `tests/core/pac-compiler.spec.ts` | New comprehensive test suite |
 
 ## Integration
 
-The new `PacCompiler` is fully backward compatible with existing code through the legacy `generatePacScript()` function. Existing export features in OptionsApp.vue will work without any changes.
+The new `PacCompiler` is fully backward compatible with existing code through the legacy `generatePacScript()` function. Existing export features in OptionsApp.vue work without any changes.
 
-## Next Steps
+## Status
 
-1. ✅ Implementation complete
-2. ✅ Tests passing
-3. ✅ Build successful
-4. Ready for production use
-
----
-
-**Status**: ✅ COMPLETE - Production Ready
-
-**Date**: January 4, 2026
-
-**Implements**: ZeroOmega-compatible recursive profile resolution
+| Status | Description |
+|--------|-------------|
+| ✅ **COMPLETE** | Production ready |
