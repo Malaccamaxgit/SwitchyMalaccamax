@@ -1,159 +1,180 @@
 # SwitchyMalaccamax
 
-Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt with TypeScript, Vue 3, and Vite.
+> **Modern proxy switcher for Chrome** — Intelligent rule-based auto-switching with security-first design.
+
+A complete rewrite of SwitchyOmega built with TypeScript, Vue 3, and Vite. Manage multiple proxy profiles with ReDoS-safe pattern matching and AES-256-GCM credential encryption.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Version](https://img.shields.io/github/package-json/v/Malaccamaxgit/SwitchyMalaccamax?color=blue)](https://github.com/Malaccamaxgit/SwitchyMalaccamax)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Malaccamaxgit/SwitchyMalaccamax/ci.yml?label=tests)](https://github.com/Malaccamaxgit/SwitchyMalaccamax/actions)
+
+---
 
 ## Features
 
-- Switch between multiple proxy profiles manually or automatically
-- 5 profile types: Direct, Fixed Server, PAC Script, Auto Switch, System Proxy
-- 7 condition types for auto-switching: wildcards, regex, keywords, host levels, URL patterns, bypass rules
-- Import/export configurations (exports prompt for save destination; File System Access API used when available — no `downloads` permission required)
-- Generate PAC (Proxy Auto-Configuration) scripts
+- **Manual & Auto Switching** — Quick profile switching or rule-based automatic routing
+- **5 Profile Types** — Direct, Fixed Server, PAC Script, Auto Switch, System Proxy
+- **7 Condition Types** — Wildcards, regex, keywords, host levels, URL patterns, bypass rules, CIDR matching
+- **Secure Credential Storage** — AES-256-GCM encryption with PBKDF2 key derivation
+- **ReDoS Protection** — All user-supplied regex patterns validated before compilation
+- **PAC Export** — Generate standards-compliant `.pac` files for use in browsers or proxy systems
+- **Import/Export** — Backup and restore configurations (File System Access API; no `downloads` permission required)
 
-### Technical Details
+---
 
-- **Language**: TypeScript 5.7 (strict mode)
-- **Framework**: Vue 3 Composition API
-- **Build**: Vite 6 with @crxjs/vite-plugin
-- **Testing**: Vitest (180 tests)
-- **Security**: ReDoS-safe pattern matching, AES-256-GCM credential encryption
-- **Target**: Chrome Manifest V3
+## Quick Start
 
-## Installation
+### Installation (Users)
 
-### For Users
-
-1. Download the latest release from GitHub
+1. Download the latest release from [GitHub Releases](https://github.com/Malaccamaxgit/SwitchyMalaccamax/releases)
 2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" (toggle in top-right)
-4. Click "Load unpacked"
-5. Select the `dist/` folder from the extracted release
+3. Enable **Developer mode** (toggle in top-right)
+4. Click **Load unpacked**
+5. Select the `dist/` folder
 
-### For Developers
+### Development Setup
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/Malaccamaxgit/SwitchyMalaccamax.git
 cd SwitchyMalaccamax
-
-# Install dependencies
 npm install
 
-# Build the extension
+# Development with hot reload
+npm run dev
+
+# Build for production
 npm run build
 
-# Development mode with hot reload
-npm run dev
+# Run tests
+npm test
 ```
+
+---
 
 ## Usage
 
-Click the extension icon in your browser toolbar to:
-- Quickly switch between configured proxy profiles
+Click the extension icon in your toolbar to:
+- Switch between configured proxy profiles instantly
 - Access the options page for detailed configuration
 
-### Condition Types
+### Auto Switch Conditions
 
-Auto Switch profiles support these matching conditions:
+Auto Switch profiles evaluate requests using these matching conditions:
 
 | Type | Description | Example |
 |------|-------------|---------|
-| Host Wildcard | Match hostnames with wildcards | `*.example.com` |
-| Host Regex | Match hostnames with regex | `^.*\.example\.com$` |
-| URL Wildcard | Match full URLs with wildcards | `https://*.example.com/*` |
-| URL Regex | Match full URLs with regex | `^https://.*\.example\.com/.*$` |
-| Keyword | Simple substring match | `example` |
-| Host Levels | Match by subdomain depth | Min: 2, Max: 3 |
-| Bypass | Always use direct connection | — |
+| **Host Wildcard** | Match hostnames with `*` and `?` | `*.example.com` |
+| **Host Regex** | Match hostnames with regex | `^api\.example\.com$` |
+| **URL Wildcard** | Match full URLs | `https://*.example.com/*` |
+| **URL Regex** | Match full URLs with regex | `^https://.*\.example\.com/.*$` |
+| **Keyword** | Simple substring match | `example` |
+| **Host Levels** | Match by subdomain depth | Min: 2, Max: 3 |
+| **Bypass** | Always use direct connection | `<local>`, `127.0.0.1` |
 
-## Development
+---
 
-For development setup:
+## Security
+
+This extension implements defense-in-depth security:
+
+| Feature | Implementation |
+|---------|---------------|
+| **ReDoS Prevention** | User regex validated via `safe-regex`; catastrophic backtracking patterns rejected |
+| **Credential Encryption** | AES-256-GCM with PBKDF2 (100,000 iterations); per-installation key derivation |
+| **Deterministic Matching** | Wildcard matcher uses O(n+m) algorithm; no regex backtracking |
+| **Content Security Policy** | Strict CSP blocks inline scripts and external resources |
+| **Input Validation** | All patterns validated against complexity limits before use |
+
+See [SECURITY.md](./SECURITY.md) for the full security policy and vulnerability reporting.
+
+---
+
+## Development Commands
 
 ```bash
 npm run dev          # Development mode with hot reload
-npm test             # Run tests
-npm run typecheck    # Type checking
-npm run lint         # Lint code
-npm run format       # Format code
+npm run build        # Production build → dist/
+npm test             # Run test suite (180 tests)
+npm run typecheck    # TypeScript type checking
+npm run lint         # ESLint
+npm run format       # Prettier code formatting
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+---
 
 ## Project Structure
 
 ```
 src/
-├── background/       # Service worker
-├── popup/           # Quick switch UI
-├── options/         # Configuration page
-├── components/      # Vue components
-├── core/            # Business logic
-│   ├── schema.ts    # Type definitions
-│   ├── conditions.ts # Pattern matching
-│   ├── pac/         # PAC generation
-│   └── security/    # ReDoS prevention
-└── utils/           # Utilities (crypto, logging)
+├── background/           # Service worker (proxy API, message handling)
+├── popup/                # Quick switch popup UI
+├── options/              # Configuration page
+├── components/           # Reusable Vue components
+├── core/                 # Business logic
+│   ├── schema.ts         # Type definitions
+│   ├── conditions.ts     # Condition matching engine
+│   ├── pac/              # PAC script generation
+│   └── security/         # ReDoS prevention, wildcard matcher
+└── utils/                # Crypto, logging, migrations
 
-tests/               # Test suites
+tests/                    # Vitest test suites (180 tests)
 ```
 
-## Security
+---
 
-This extension includes several security features:
+## Documentation
 
-- **ReDoS Prevention**: User-supplied regex patterns are validated before use to prevent catastrophic backtracking
-- **Credential Encryption**: Proxy credentials are encrypted using AES-256-GCM with PBKDF2 key derivation
-- **Content Security Policy**: Strict CSP prevents inline script execution
-- **Input Sanitization**: All user inputs are validated and sanitized
+### Guides
+- [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md) — Release readiness checklist
+- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md) — Security tooling setup
 
-For security issues, see [SECURITY.md](./SECURITY.md). For concise permission justification text for Chrome Web Store and reviewer notes, see `docs/STORE_PERMISSION_STATEMENTS.md`.
+### Architecture
+- [PAC Export Feature](./docs/architecture/PAC_EXPORT_FEATURE.md) — PAC script generation implementation
+- [PAC Compiler Fix](./docs/architecture/PAC_COMPILER_FIX.md) — PAC compiler bug fixes
+- [PAC Compiler Migration](./docs/architecture/PAC_COMPILER_MIGRATION.md) — PAC system migration
+- [PAC Compiler Rewrite](./docs/architecture/PAC_COMPILER_REWRITE.md) — PAC compiler rewrite
+- [PAC Output Example](./docs/architecture/PAC_OUTPUT_EXAMPLE.md) — Sample PAC output
+- [Profile Editor Fixes](./docs/architecture/PROFILE_EDITOR_FIXES.md) — Profile editor UX fixes
+
+### Development
+- [Security Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md) — OWASP audit findings & remediation
+- [Security Fixes](./docs/development/SECURITY_FIXES.md) — Security implementation history
+
+### Store Submission
+- [Store Permission Statements](./docs/STORE_PERMISSION_STATEMENTS.md) — Chrome Web Store permission justification
+- [Store Reviewer Message](./docs/STORE_REVIEWER_MESSAGE.md) — Reviewer notes template
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Language** | TypeScript 5.7 (strict mode) |
+| **Framework** | Vue 3 Composition API |
+| **Build Tool** | Vite 6 + @crxjs/vite-plugin |
+| **Test Runner** | Vitest (180 tests) |
+| **CSS** | Tailwind CSS |
+| **Crypto** | Web Crypto API (AES-GCM, PBKDF2) |
+| **Target** | Chrome Manifest V3 |
+
+---
 
 ## License
 
-GNU General Public License v3.0 - see [LICENSE](./LICENSE) for details.
+GNU General Public License v3.0 — see [LICENSE](./LICENSE) for details.
+
+---
 
 ## Credits
 
 Fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega). Original concept from Proxy SwitchySharp.
 
-### Documentation Map
-
-#### 📘 Guides (Step-by-Step Instructions)
-- [Icon Generation Guide](./docs/guides/ICON_GENERATION_GUIDE.md)
-- [Line Endings Configuration](./docs/guides/LINE_ENDINGS.md)
-- [Logger Integration Guide](./docs/guides/LOGGER_INTEGRATION_GUIDE.md)
-- [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md)
-- [Project Setup Complete](./docs/guides/PROJECT_SETUP_COMPLETE.md)
-- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md)
-
-#### 🏗️ Architecture (Deep Dives & Specifications)
-- [Format Comparison](./docs/architecture/format-comparison.md)
-- [Logger UI Integration](./docs/architecture/LOGGER_UI_INTEGRATION.md)
-- [Migration API Specification](./docs/architecture/migration-api-spec.md)
-- [Migration Architecture](./docs/architecture/migration-architecture.md)
-- [Migration Implementation Tracker](./docs/architecture/MIGRATION_IMPLEMENTATION_TRACKER.md)
-- [Migration Result Examples](./docs/architecture/migration-result-examples.md)
-- [Migration Results UI](./docs/architecture/migration-results-ui.md)
-- [Migration System Design](./docs/architecture/MIGRATION_SYSTEM_DESIGN.md)
-- [Migration UI States](./docs/architecture/migration-ui-states.md)
-- [PAC Compiler Fix](./docs/architecture/PAC_COMPILER_FIX.md)
-- [PAC Compiler Migration](./docs/architecture/PAC_COMPILER_MIGRATION.md)
-- [PAC Compiler Rewrite](./docs/architecture/PAC_COMPILER_REWRITE.md)
-- [PAC Export Feature](./docs/architecture/PAC_EXPORT_FEATURE.md)
-- [PAC Output Example](./docs/architecture/PAC_OUTPUT_EXAMPLE.md)
-- [UI Redesign Specification](./docs/architecture/UI_REDESIGN_SPEC.md)
-
-#### 🔧 Development (Contributor Information)
-- [Security Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md)
-
-#### 📦 Archive (Historical Reports)
-- [Development History](./docs/archive/)
+Rewritten from scratch with modern 2026 tooling, strict type safety, and security-first architecture.
 
 ---
 
-**Issues**: [GitHub Issues](https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues) | **Discussions**: [GitHub Discussions](https://github.com/Malaccamaxgit/SwitchyMalaccamax/discussions)
+**Issues**: [GitHub Issues](https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues)
+**Discussions**: [GitHub Discussions](https://github.com/Malaccamaxgit/SwitchyMalaccamax/discussions)
