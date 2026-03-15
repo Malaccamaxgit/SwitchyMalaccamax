@@ -4,6 +4,7 @@ Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![Version](https://img.shields.io/github/package-json/v/Malaccamaxgit/SwitchyMalaccamax?color=blue)](https://github.com/Malaccamaxgit/SwitchyMalaccamax)
 
 ## Features
 
@@ -18,7 +19,7 @@ Chrome extension for managing proxy configurations. Fork of SwitchyOmega rebuilt
 - **Language**: TypeScript 5.7 (strict mode)
 - **Framework**: Vue 3 Composition API
 - **Build**: Vite 6 with @crxjs/vite-plugin
-- **Testing**: Vitest (163 tests)
+- **Testing**: Vitest (180 tests)
 - **Security**: ReDoS-safe pattern matching, AES-256-GCM credential encryption
 - **Target**: Chrome Manifest V3
 

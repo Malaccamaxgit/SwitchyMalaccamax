@@ -17,7 +17,8 @@
       "Bash(node -e '\nconst fs = require\\(\"fs\"\\);\nconst code = fs.readFileSync\\(\"E:/Github/SwitchyMalaccamax/src/core/pac/pac-generator.ts\", \"utf8\"\\);\n\n// Check if the code has the correct regex\nif \\(code.includes\\(\".replace\\(/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/g, \".*\"\\)\"\\)\\) {\n  console.log\\(\"Found correct regex with 4 backslashes\"\\);\n} else if \\(code.includes\\(\".replace\\(/\\\\\\\\\\\\\\\\\\\\\\\\*/g, \".*\"\\)\"\\)\\) {\n  console.log\\(\"Found regex with 3 backslashes\"\\);\n} else {\n  console.log\\(\"Regex not found in expected form\"\\);\n}\n\n// Print the actual line\nconst lines = code.split\\(\"\\\\n\"\\);\nconsole.log\\(\"\\\\nLine 389:\"\\);\nconsole.log\\(lines[388]\\);\nconsole.log\\(\"\\\\nLine 389 bytes:\"\\);\nconst line = lines[388];\nfor \\(let i = 28; i <= 45; i++\\) {\n  console.log\\(i, line[i], line.charCodeAt\\(i\\)\\);\n}\n')",
       "Bash(cd /d E:\\\\Github\\\\SwitchyMalaccamax && npm run build 2>&1)",
       "Bash(npm run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }
