@@ -69,7 +69,7 @@ This is a solo-maintained open source project. Security reports are reviewed on 
 
 ## Security Testing
 
-The codebase includes **180 automated tests**, including:
+The codebase includes **201 automated tests**, including:
 
 | Test Suite | Purpose |
 |------------|---------|

@@ -5,6 +5,24 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [0.1.9] — 2026-03-15
+
+### Added
+- Service worker tests (`tests/background/service-worker.spec.ts`) — 259 lines testing `checkProxyConflicts()`, message validation, icon generation
+- PopupApp component tests (`tests/popup/PopupApp.spec.ts`) — 390 lines testing profile switching, conflict detection, sorting, navigation
+- 22 new tests (201 total passing)
+
+### Changed
+- Dead code removal: `migration.types.ts` (506 lines removed)
+- Type assertions replaced with type guards in PAC generator
+- Interval cleanup on extension unload (`onSuspend` lifecycle)
+- Documentation test counts updated (180 → 201)
+
+### Security
+- All security features maintained
+- npm audit: 0 vulnerabilities
+- ReDoS prevention, AES-256-GCM encryption intact
+
 ## [0.1.8] — 2026-03-15
 
 ### Added

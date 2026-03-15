@@ -96,7 +96,7 @@ See [SECURITY.md](./SECURITY.md) for the full security policy and vulnerability 
 ```bash
 npm run dev          # Development mode with hot reload
 npm run build        # Production build → dist/
-npm test             # Run test suite (180 tests)
+npm test             # Run test suite (201 tests)
 npm run typecheck    # TypeScript type checking
 npm run lint         # ESLint
 npm run format       # Prettier code formatting
@@ -119,7 +119,7 @@ src/
 │   └── security/         # ReDoS prevention, wildcard matcher
 └── utils/                # Crypto, logging, migrations
 
-tests/                    # Vitest test suites (180 tests)
+tests/                    # Vitest test suites (201 tests)
 ```
 
 ---
@@ -155,7 +155,7 @@ tests/                    # Vitest test suites (180 tests)
 | **Language** | TypeScript 5.7 (strict mode) |
 | **Framework** | Vue 3 Composition API |
 | **Build Tool** | Vite 6 + @crxjs/vite-plugin |
-| **Test Runner** | Vitest (180 tests) |
+| **Test Runner** | Vitest (201 tests) |
 | **CSS** | Tailwind CSS |
 | **Crypto** | Web Crypto API (AES-GCM, PBKDF2) |
 | **Target** | Chrome Manifest V3 |
