@@ -168,13 +168,5 @@ GNU General Public License v3.0 — see [LICENSE](./LICENSE) for details.
 
 ---
 
-## Credits
-
-Fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega). Original concept from Proxy SwitchySharp.
-
-Rewritten from scratch with modern 2026 tooling, strict type safety, and security-first architecture.
-
----
-
 **Issues**: [GitHub Issues](https://github.com/Malaccamaxgit/SwitchyMalaccamax/issues)
 **Discussions**: [GitHub Discussions](https://github.com/Malaccamaxgit/SwitchyMalaccamax/discussions)
