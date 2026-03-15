@@ -1,4 +1,6 @@
-# Contributing
+# Contributing to SwitchyMalaccamax
+
+> **Community contributions** — Guidelines for code, documentation, and bug reports.
 
 Thanks for your interest in contributing to SwitchyMalaccamax.
 
@@ -6,10 +8,13 @@ Thanks for your interest in contributing to SwitchyMalaccamax.
 
 ### Prerequisites
 
-- Node.js 18+ and npm 9+
-- Git
-- Chrome/Chromium 88+
-- Basic knowledge of TypeScript and Vue 3
+| Requirement | Version |
+|-------------|---------|
+| Node.js | 18+ |
+| npm | 9+ |
+| Git | Latest |
+| Chrome/Chromium | 88+ |
+| Knowledge | TypeScript, Vue 3 |
 
 ### Setup
 
@@ -31,22 +36,24 @@ npm test
 npm run build
 ```
 
-## Development
+## Development Workflow
 
 ### Branch Naming
 
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation
-- `refactor/` - Code refactoring
-- `test/` - Test updates
+| Prefix | Purpose |
+|--------|---------|
+| `feature/` | New features |
+| `fix/` | Bug fixes |
+| `docs/` | Documentation |
+| `refactor/` | Code refactoring |
+| `test/` | Test updates |
 
 ### Before Submitting
 
 ```bash
-npm test              # All tests must pass
-npm run typecheck     # No TypeScript errors
-npm run lint          # Code must pass linting
+npm test          # All tests must pass
+npm run typecheck # No TypeScript errors
+npm run lint      # Code must pass linting
 ```
 
 ### Pull Requests
@@ -67,7 +74,7 @@ npm run lint          # Code must pass linting
 
 ### Security
 
-**IMPORTANT**: All user-supplied regex patterns must be validated:
+**IMPORTANT:** All user-supplied regex patterns must be validated:
 
 ```typescript
 import { validateRegex } from '@/core/security';
@@ -78,7 +85,7 @@ if (!validation.isValid) {
 }
 ```
 
-Do not create RegExp directly from user input - this creates ReDoS vulnerabilities.
+Do not create RegExp directly from user input — this creates ReDoS vulnerabilities.
 
 ### Vue Components
 
@@ -88,114 +95,14 @@ Do not create RegExp directly from user input - this creates ReDoS vulnerabiliti
 
 ## Testing
 
-- Write tests for new features
-- Update tests when changing existing code
-- Security-critical code needs security tests
+| Requirement | Description |
+|-------------|-------------|
+| New features | Must include tests |
+| Bug fixes | Must include regression tests |
+| Security code | Must include adversarial tests |
+| Coverage | Aim for >80% |
 
 Run tests: `npm test`
-
-## Questions?
-
-Open an issue for questions or clarifications.
-import { WildcardMatcher } from '@/core/security';
-
-const matcher = new WildcardMatcher(userPattern);
-const isMatch = matcher.test(hostname);
-
-// ❌ Bad - Manual regex conversion
-const regex = new RegExp(userPattern.replace(/\*/g, '.*'));
-```
-
-#### Complexity Limits
-
-Enforce these limits on all user inputs:
-- Max pattern length: 200 characters
-- Max capture groups: 10
-- Max nesting depth: 3
-- Execution time: < 50ms (guaranteed)
-
-### Code Style
-
-#### Formatting
-
-- **Indentation**: 2 spaces
-- **Quotes**: Single quotes for strings
-- **Semicolons**: Required
-- **Trailing commas**: Required in multiline
-- **Max line length**: 100 characters (soft limit)
-
-Run `npm run format` to auto-format code with Prettier.
-
-#### Naming Conventions
-
-```typescript
-// Classes: PascalCase
-class ProfileManager {}
-
-// Interfaces/Types: PascalCase
-interface Profile {}
-type ProfileType = 'direct' | 'fixed';
-
-// Functions/Variables: camelCase
-function createProfile() {}
-const profileCount = 10;
-
-// Constants: UPPER_SNAKE_CASE
-const MAX_PROFILES = 50;
-
-// Files: kebab-case
-// profile-manager.ts
-// network-monitor.vue
-```
-
-#### Component Naming
-
-```typescript
-// Single-word components must be prefixed
-// ✅ Good
-TheHeader.vue
-AppSidebar.vue
-BaseButton.vue
-
-// ❌ Bad
-Header.vue
-Sidebar.vue
-Button.vue
-
-// Multi-word components: PascalCase
-ProfileEditor.vue
-NetworkMonitor.vue
-```
-
-### File Organization
-
-```typescript
-// ✅ Good - Organized imports
-// 1. Vue/External libraries
-import { ref, computed } from 'vue';
-import { Button, Card } from '@/components/ui';
-
-// 2. Internal utilities/types
-import type { Profile } from '@/core/schema';
-import { validateRegex } from '@/core/security';
-
-// 3. Local imports
-import ProfileCard from './ProfileCard.vue';
-
-// ❌ Bad - Random order
-import ProfileCard from './ProfileCard.vue';
-import { ref } from 'vue';
-import type { Profile } from '@/core/schema';
-```
-
-## 🧪 Testing Requirements
-
-### Test Coverage
-
-- New features MUST include tests
-- Bug fixes MUST include regression tests
-- Security features MUST include adversarial tests
-- Aim for > 80% code coverage
 
 ### Test Structure
 
@@ -207,16 +114,12 @@ describe('ProfileManager', () => {
     it('should create a valid profile', () => {
       // Arrange
       const data = { name: 'Test', type: 'direct' };
-      
+
       // Act
       const profile = createProfile(data);
-      
+
       // Assert
       expect(profile.name).toBe('Test');
-    });
-
-    it('should reject invalid profiles', () => {
-      // ...
     });
   });
 });
@@ -230,21 +133,13 @@ Security-critical code requires adversarial testing:
 it('should prevent ReDoS with catastrophic backtracking', () => {
   const maliciousPattern = '(a+)+$';
   const validation = validateRegex(maliciousPattern);
-  
+
   expect(validation.isValid).toBe(false);
   expect(validation.error).toContain('unsafe');
 });
-
-it('should complete in < 50ms', () => {
-  const start = performance.now();
-  matcher.test(adversarialInput);
-  const duration = performance.now() - start;
-  
-  expect(duration).toBeLessThan(50);
-});
 ```
 
-## 📝 Commit Messages
+## Commit Messages
 
 ### Format
 
@@ -258,14 +153,16 @@ footer (optional)
 
 ### Types
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `style`: Formatting (no code change)
-- `refactor`: Code restructuring
-- `test`: Adding tests
-- `chore`: Maintenance
-- `security`: Security improvements
+| Type | Purpose |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation |
+| `style` | Formatting (no code change) |
+| `refactor` | Code restructuring |
+| `test` | Adding tests |
+| `chore` | Maintenance |
+| `security` | Security improvements |
 
 ### Examples
 
@@ -288,7 +185,7 @@ security(regex): add ReDoS prevention for URL patterns
 Fixes CVE-2024-XXXXX
 ```
 
-## 🐛 Bug Reports
+## Bug Reports
 
 ### Before Submitting
 
@@ -297,7 +194,7 @@ Fixes CVE-2024-XXXXX
 3. Test on latest version
 4. Check if it's a Chrome issue
 
-### Bug Report Template
+### Template
 
 ```markdown
 **Description**
@@ -321,14 +218,11 @@ What actually happens
 
 **Screenshots**
 (if applicable)
-
-**Console Logs**
-(if applicable)
 ```
 
-## ✨ Feature Requests
+## Feature Requests
 
-### Feature Request Template
+### Template
 
 ```markdown
 **Problem Statement**
@@ -344,43 +238,42 @@ Other approaches you've thought about
 Mockups, examples, references
 ```
 
-## 🔐 Security Vulnerabilities
+## Security Vulnerabilities
 
 **DO NOT open public issues for security vulnerabilities!**
 
 See [SECURITY.md](./SECURITY.md) for responsible disclosure process.
 
-## 📚 Documentation
+## Documentation
 
-- Update README.md for user-facing changes
-- Add JSDoc comments for public APIs
-- Update migration guides for breaking changes
-- Include inline comments for complex logic
+| Requirement | Description |
+|-------------|-------------|
+| README.md | Update for user-facing changes |
+| JSDoc | Add comments for public APIs |
+| Migration guides | Update for breaking changes |
+| Inline comments | Document complex logic |
 
 ### JSDoc Example
 
 ```typescript
 /**
  * Validates a regex pattern for ReDoS vulnerabilities
- * 
+ *
  * @param pattern - User-supplied regex pattern string
  * @returns Validation result with isValid flag and optional error
- * @throws Never throws - returns validation object instead
- * 
+ *
  * @example
- * ```ts
  * const result = validateRegex('.*example.com');
  * if (result.isValid) {
  *   const regex = new RegExp(result.pattern);
  * }
- * ```
  */
 export function validateRegex(pattern: string): ValidationResult {
   // ...
 }
 ```
 
-## 📦 Release Process
+## Release Process
 
 1. Version bump in `package.json` and `manifest.json`
 2. Update CHANGELOG.md
@@ -391,17 +284,19 @@ export function validateRegex(pattern: string): ValidationResult {
 7. Create GitHub release with notes
 8. Submit to Chrome Web Store (maintainers only)
 
-## ❓ Questions?
+## Questions
 
-- **General Questions**: Open a GitHub Discussion
-- **Bug Reports**: Open a GitHub Issue
-- **Security Issues**: See [SECURITY.md](./SECURITY.md)
-- **Pull Requests**: Tag a maintainer for review
+| Type | Where |
+|------|-------|
+| General Questions | GitHub Discussions |
+| Bug Reports | GitHub Issues |
+| Security Issues | See SECURITY.md |
+| Pull Requests | Tag a maintainer |
 
-## 🙏 Thank You!
+## Thank You
 
-Your contributions make SwitchyMalaccamax better for everyone. Thank you for taking the time to contribute!
+Your contributions make SwitchyMalaccamax better for everyone.
 
 ---
 
-**Last Updated**: January 4, 2026
+**Last Updated:** March 2026

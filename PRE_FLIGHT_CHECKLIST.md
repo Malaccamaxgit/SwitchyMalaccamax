@@ -1,47 +1,49 @@
 # Pre-Flight Checklist
 
-Pre-release verification for SwitchyMalaccamax v0.1.3 (January 5, 2026)
+> **Release readiness** — Pre-release verification checklist for SwitchyMalaccamax.
 
 ## Security
 
 ### Secrets
-- [x] No hardcoded API keys, tokens, or passwords
-- [x] No `.env` files committed (patterns in `.gitignore`)
-- [x] No absolute file paths leaked
-- [x] Test fixtures use placeholder data only
+- [ ] No hardcoded API keys, tokens, or passwords
+- [ ] No `.env` files committed (patterns in `.gitignore`)
+- [ ] No absolute file paths leaked
+- [ ] Test fixtures use placeholder data only
 
 ### Git History
-- [x] No sensitive files ever committed
-- [x] Clean history verified
+- [ ] No sensitive files ever committed
+- [ ] Clean history verified
 
 ### Dependencies
-- [x] `npm audit`: 0 vulnerabilities
-- [x] All packages actively maintained
-- [x] No deprecated dependencies
+- [ ] `npm audit`: 0 vulnerabilities
+- [ ] All packages actively maintained
+- [ ] No deprecated dependencies
 
 ## Documentation
 
-- [x] README.md: Installation, features, development setup
-- [x] SECURITY.md: Vulnerability reporting instructions
-- [x] LICENSE: GPL-3.0 full text included
-- [x] CONTRIBUTING.md: Development guidelines
-- [x] CODE_OF_CONDUCT.md: Community standards
-- [x] CHANGELOG.md: Version history
+| File | Status |
+|------|--------|
+| README.md | Installation, features, development setup |
+| SECURITY.md | Vulnerability reporting instructions |
+| LICENSE | GPL-3.0 full text included |
+| CONTRIBUTING.md | Development guidelines |
+| CODE_OF_CONDUCT.md | Community standards |
+| CHANGELOG.md | Version history |
 
 ## Repository Health
 
-- [x] GitHub issue templates: Bug report + feature request
-- [x] GitHub Actions: Security audit workflow active
-- [x] Pre-commit hooks: `scripts/pre-commit-security.js` (Husky v9)
-- [x] Tests: 163 passing (2 skipped intentional)
+- [ ] GitHub issue templates: Bug report + feature request
+- [ ] GitHub Actions: Security audit workflow active
+- [ ] Pre-commit hooks: `scripts/pre-commit-security.js` (Husky)
+- [ ] Tests: 180 passing
 
 ## Summary
 
-**Status**: Ready for public release
+**Status:** Ready for public release
 
 All security checks passed:
 - 0 secrets or CVEs
-- 87-line `.gitignore` comprehensive
+- Comprehensive `.gitignore`
 - GPL-3.0 legally compliant
 - Documentation complete
 - CI/CD automation active
@@ -50,7 +52,7 @@ All security checks passed:
 
 ```bash
 git add .
-git commit -m "docs: pre-flight verification complete"
+git commit -m "chore: pre-flight verification complete"
 git push origin main
 ```
 
