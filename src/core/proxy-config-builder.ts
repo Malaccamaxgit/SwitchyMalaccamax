@@ -9,7 +9,7 @@ import type { Profile, FixedProfile, SwitchProfile, PacProfile } from '@/core/sc
 import { PacCompiler } from './pac/pac-generator';
 import { Logger } from '@/utils/Logger';
 
-Logger.scope('ProxyConfigBuilder');
+const log = Logger.scope('ProxyConfigBuilder');
 
 /**
  * Type guard for legacy FixedProfile format (host/port instead of fallbackProxy)
@@ -90,7 +90,7 @@ async function buildSwitchProfileConfig(
       pacScript: { data: pacScript }
     };
   } catch (err) {
-    Logger.error('Failed to generate PAC for SwitchProfile', err);
+    log.error('Failed to generate PAC for SwitchProfile', err);
     return { mode: 'direct' };
   }
 }
@@ -113,7 +113,7 @@ function buildPacProfileConfig(profile: PacProfile): chrome.proxy.ProxyConfig {
     };
   }
 
-  Logger.warn('PacProfile missing pacUrl or pacScript, falling back to direct');
+  log.warn('PacProfile missing pacUrl or pacScript, falling back to direct');
   return { mode: 'direct' };
 }
 
@@ -136,7 +136,7 @@ export async function buildProxyConfig(
 
     case 'SwitchProfile':
       if (!allProfiles) {
-        Logger.warn('SwitchProfile requires allProfiles for PAC generation');
+        log.warn('SwitchProfile requires allProfiles for PAC generation');
         return { mode: 'direct' };
       }
       return buildSwitchProfileConfig(profile, allProfiles);
@@ -145,7 +145,7 @@ export async function buildProxyConfig(
       return buildPacProfileConfig(profile);
 
     default:
-      Logger.warn('Unknown profile type, falling back to direct');
+      log.warn('Unknown profile type, falling back to direct');
       return { mode: 'direct' };
   }
 }

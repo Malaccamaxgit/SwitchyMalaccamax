@@ -69,11 +69,12 @@ describe('Crypto Utilities', () => {
       expect(decrypted).toBe(unicode);
     });
 
-    it('should produce base64-encoded output', async () => {
+    it('should produce version-prefixed base64 ciphertext', async () => {
       const encrypted = await encryptData('test');
+      expect(encrypted.startsWith('SM1:')).toBe(true);
+      const payload = encrypted.slice(4);
       const base64Pattern = /^[A-Za-z0-9+/]+=*$/;
-      
-      expect(base64Pattern.test(encrypted)).toBe(true);
+      expect(base64Pattern.test(payload)).toBe(true);
     });
 
     it('should throw error on invalid encrypted data', async () => {

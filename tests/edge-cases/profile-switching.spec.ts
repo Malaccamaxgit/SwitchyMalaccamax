@@ -1,9 +1,5 @@
 /**
- * profile-switching.spec.ts - Tests for Edge Cases
- * 
- * Tests documented in .github/copilot-instructions.md:
- * 1. Profile selection not taking effect (conflict detection)
- * 2. Auto Switch Profile UI restrictions (bypass list visibility)
+ * profile-switching.spec.ts — Edge cases for proxy conflict detection and SwitchProfile behavior.
  */
 
 import { describe, it, expect, vi } from 'vitest';

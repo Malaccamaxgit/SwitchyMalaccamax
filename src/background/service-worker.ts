@@ -5,8 +5,15 @@
 import { Logger } from '../utils/Logger';
 import { migrateToEncryptedStorage } from '../utils/migration';
 import { buildProxyConfig } from '../core/proxy-config-builder';
-import type { Profile } from '../core/schema';
 import { getProfileColor, BADGE_COLORS } from '../config/colors';
+import {
+  getDefaultProfiles,
+  DEFAULT_ACTIVE_PROFILE_ID,
+  DEFAULT_SYNC_SETTINGS,
+} from '../config/default-profiles';
+import { encryptProfile } from '../utils/crypto';
+import { parseProfilesFromStorage } from '../utils/profile-storage';
+import { STARTUP_PROFILE_LAST_USED } from '../config/startup-profile';
 
 Logger.setComponentPrefix('Background');
 Logger.info('Service worker initialized');
@@ -98,12 +105,12 @@ async function initializeIconColor(): Promise<void> {
   try {
     const syncResult = await chrome.storage.sync.get(['activeProfileId']);
     const localResult = await chrome.storage.local.get(['profiles']);
-    const profiles = localResult.profiles || [];
-    const activeProfile = (profiles as Array<Record<string, unknown>>).find(p => (p.id as string) === syncResult.activeProfileId);
-    
-    if (activeProfile && (activeProfile as unknown as Record<string, unknown>).color) {
-      updateIconColor((activeProfile as unknown as Record<string, unknown>).color as string);
-      Logger.info('Initialized icon with profile color', { color: (activeProfile as unknown as Record<string, unknown>).color });
+    const profiles = parseProfilesFromStorage(localResult.profiles);
+    const activeProfile = profiles.find(p => p.id === syncResult.activeProfileId);
+
+    if (activeProfile?.color && isValidColor(activeProfile.color)) {
+      updateIconColor(activeProfile.color);
+      Logger.info('Initialized icon with profile color', { color: activeProfile.color });
     } else {
       updateIconColor('blue'); // Default color
       Logger.info('Initialized icon with default color: blue');
@@ -180,38 +187,55 @@ async function applyStartupProfile(): Promise<void> {
     const syncResult = await chrome.storage.sync.get(['settings', 'activeProfileId']);
     const localResult = await chrome.storage.local.get(['profiles']);
 
-    const profiles = localResult.profiles || [];
-    const settings = syncResult.settings || {};
+    const profiles = parseProfilesFromStorage(localResult.profiles);
+    const settings = (syncResult.settings || {}) as { startupProfile?: string };
     const startupProfileId = settings.startupProfile;
+    const activeProfileId = syncResult.activeProfileId as string | undefined;
 
     Logger.debug('Checking startup profile', {
       startupProfileId,
-      currentActiveProfileId: syncResult.activeProfileId
+      currentActiveProfileId: activeProfileId,
     });
 
-    // If there's a startup profile set and it's different from current, apply it
-    if (startupProfileId && startupProfileId !== syncResult.activeProfileId) {
-      const startupProfile = (profiles as Profile[]).find(p => p.id === startupProfileId);
-
-      if (startupProfile) {
-        Logger.info('Applying startup profile', { name: startupProfile.name });
-
-        // Update active profile
-        await chrome.storage.sync.set({ activeProfileId: startupProfileId });
-
-        // Build and apply proxy config using centralized builder
-        const config = await buildProxyConfig(startupProfile, profiles);
-
-        await handleSetProxy(config);
-
-        // Update icon color
-        if (startupProfile.color) {
-          updateIconColor(startupProfile.color);
-        }
-      }
-    } else {
-      Logger.debug('No startup profile change needed');
+    if (!startupProfileId) {
+      Logger.debug('No startup profile in settings');
+      return;
     }
+
+    async function applyProfileById(profileId: string | undefined): Promise<void> {
+      if (!profileId) return;
+      const profile = profiles.find((p) => p.id === profileId);
+      if (!profile) {
+        Logger.warn('Startup apply skipped: profile not found', { profileId });
+        return;
+      }
+      const config = await buildProxyConfig(profile, profiles);
+      await handleSetProxy(config);
+      if (profile.color) {
+        updateIconColor(profile.color);
+      }
+    }
+
+    if (startupProfileId === STARTUP_PROFILE_LAST_USED) {
+      Logger.info('Startup: using last selected profile', { activeProfileId });
+      await applyProfileById(activeProfileId);
+      return;
+    }
+
+    if (startupProfileId !== activeProfileId) {
+      const startupProfile = profiles.find((p) => p.id === startupProfileId);
+      if (startupProfile) {
+        Logger.info('Applying fixed startup profile', { name: startupProfile.name });
+        await chrome.storage.sync.set({ activeProfileId: startupProfileId });
+        await applyProfileById(startupProfileId);
+      } else {
+        Logger.warn('Startup profile id not found', { startupProfileId });
+      }
+      return;
+    }
+
+    Logger.debug('Startup profile matches active; re-applying proxy');
+    await applyProfileById(activeProfileId);
   } catch (error) {
     Logger.error('Failed to apply startup profile', error);
   }
@@ -226,43 +250,68 @@ initializeIconColor();
 // Apply startup profile
 applyStartupProfile();
 
-// Listen for network errors to capture failed requests and aid debugging
-// Note: Requires "webRequest" permission and appropriate host permissions in manifest
-try {
-  if (chrome.webRequest && chrome.webRequest.onErrorOccurred && chrome.webRequest.onErrorOccurred.addListener) {
-    chrome.webRequest.onErrorOccurred.addListener((details: { url?: string; error?: string; method?: string; tabId?: number; frameId?: number; requestId?: string; timeStamp?: number }) => {
-      try {
-        Logger.warn('Request failed', {
-          url: details.url,
-          error: details.error,
-          method: details.method,
-          tabId: details.tabId,
-          frameId: details.frameId,
-          requestId: details.requestId,
-          timeStamp: details.timeStamp
-        });
-      } catch (err) {
-        Logger.error('Error logging request failure', err);
-      }
-    }, { urls: ['<all_urls>'] });
+// Verbose request-failure logging (dev only; avoids noisy URLs in production)
+if (import.meta.env.DEV) {
+  try {
+    if (chrome.webRequest?.onErrorOccurred?.addListener) {
+      chrome.webRequest.onErrorOccurred.addListener(
+        (details: {
+          url?: string;
+          error?: string;
+          method?: string;
+          tabId?: number;
+          frameId?: number;
+          requestId?: string;
+          timeStamp?: number;
+        }) => {
+          try {
+            Logger.warn('Request failed', {
+              url: details.url,
+              error: details.error,
+              method: details.method,
+              tabId: details.tabId,
+              frameId: details.frameId,
+              requestId: details.requestId,
+              timeStamp: details.timeStamp,
+            });
+          } catch (err) {
+            Logger.error('Error logging request failure', err);
+          }
+        },
+        { urls: ['<all_urls>'] }
+      );
+    }
+  } catch (e) {
+    Logger.error('Failed to register webRequest.onErrorOccurred listener', e);
   }
-} catch (e) {
-  Logger.error('Failed to register webRequest.onErrorOccurred listener', e);
+}
+
+async function seedDefaultInstallStorage(): Promise<void> {
+  try {
+    const plain = getDefaultProfiles().map(
+      (p) => JSON.parse(JSON.stringify(p)) as Record<string, unknown>
+    );
+    const encryptedProfiles = await Promise.all(plain.map((p) => encryptProfile(p)));
+    await chrome.storage.local.set({ profiles: encryptedProfiles });
+    await chrome.storage.sync.set({
+      activeProfileId: DEFAULT_ACTIVE_PROFILE_ID,
+      settings: { ...DEFAULT_SYNC_SETTINGS },
+    });
+    Logger.info('Seeded default profiles and sync settings on first install');
+  } catch (error) {
+    Logger.error('Failed to seed default storage on install', error);
+  }
 }
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     Logger.info('Extension installed');
-    // Initialize default settings including log level
     chrome.storage.local.set({
       logLevel: 1, // LogLevel.INFO
-      logMaxLines: 1000
+      logMaxLines: 1000,
     });
-    chrome.storage.sync.set({
-      profiles: [],
-      activeProfile: 'direct',
-    });
+    void seedDefaultInstallStorage();
   }
   // Check for conflicts on install/update
   checkProxyConflicts();

@@ -223,7 +223,6 @@ Unit tests for file save helper: `tests/lib/fileSaver.spec.ts`
 | ✅ **COMPLETE** | PAC export fully functional |
 | ✅ **TESTED** | Core logic, UI integration, build successful |
 
-## Related Documentation
+## Related code
 
-- [PAC_COMPILER_REWRITE.md](./PAC_COMPILER_REWRITE.md) — PAC compiler implementation
-- [PAC_OUTPUT_EXAMPLE.md](./PAC_OUTPUT_EXAMPLE.md) — Example PAC output
+- Implementation: [`src/core/pac/pac-generator.ts`](../../src/core/pac/pac-generator.ts)

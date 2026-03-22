@@ -284,7 +284,6 @@ import {
 import { Card, Button, Switch, Badge, Tooltip } from '@/components/ui';
 import { copyToClipboard as copyText } from '@/lib/utils';
 import type { Profile, OmegaExport } from '@/core/schema';
-import type { ModernExport } from '@/core/migration.types';
 import { Logger } from '@/utils/Logger';
 
 Logger.setComponentPrefix('ProfileImportExport');
@@ -371,7 +370,7 @@ async function exportProfiles(format: 'json' | 'bak' = 'json') {
     : exportableProfiles.value.filter(p => selectedProfiles.value.includes(p.id));
   
   // Export payload can be either modern JSON or legacy .bak format
-  let data: ModernExport | OmegaExport | undefined;
+  let data: { version: string; exported: string; profiles: Profile[] } | OmegaExport | undefined;
   let filename = '';
   let mimeType = '';
   let fileExtension = '';

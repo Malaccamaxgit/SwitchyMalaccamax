@@ -14,10 +14,10 @@
 
 import safeRegex from 'safe-regex';
 import { Logger } from '../../utils/Logger';
-
-const log = Logger.scope('RegexValidator');
 import { SECURITY_LIMITS } from './constants';
 import type { RegexValidationResult } from './types';
+
+const log = Logger.scope('RegexValidator');
 
 export class RegexValidator {
   /**

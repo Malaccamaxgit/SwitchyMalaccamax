@@ -6,11 +6,35 @@ import { Logger } from './Logger';
 
 Logger.setComponentPrefix('Crypto');
 
+/** Prefix for ciphertext so we do not mis-detect random base64-looking plaintext as encrypted. */
+export const ENCRYPTED_PREFIX = 'SM1:';
+
 // Key derivation parameters
 const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 32;
 const IV_LENGTH = 12;
 const USER_SALT_KEY = 'crypto_user_salt';
+
+const BASE64_CHUNK = 0x8000;
+
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK) {
+    const sub = bytes.subarray(i, i + BASE64_CHUNK);
+    binary += String.fromCharCode(...sub);
+  }
+  return btoa(binary);
+}
+
+function base64ToUint8(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const len = binary.length;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    out[i] = binary.charCodeAt(i);
+  }
+  return out;
+}
 
 /**
  * Generate or retrieve user-specific random salt
@@ -19,20 +43,20 @@ const USER_SALT_KEY = 'crypto_user_salt';
 async function getUserSalt(): Promise<Uint8Array> {
   try {
     const stored = await chrome.storage.local.get(USER_SALT_KEY);
-    
+
     if (stored[USER_SALT_KEY]) {
       // Convert stored base64 back to Uint8Array
       const saltStr = stored[USER_SALT_KEY];
-      return Uint8Array.from(atob(saltStr), c => c.charCodeAt(0));
+      return Uint8Array.from(atob(saltStr as string), c => c.charCodeAt(0));
     }
-    
+
     // Generate new random salt
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-    
+
     // Store as base64
     const saltStr = btoa(String.fromCharCode(...salt));
     await chrome.storage.local.set({ [USER_SALT_KEY]: saltStr });
-    
+
     Logger.info('Generated new user-specific encryption salt');
     return salt;
   } catch (error) {
@@ -84,7 +108,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 /**
  * Encrypt sensitive text data (proxy credentials)
  * @param plaintext - Sensitive data to encrypt
- * @returns Base64-encoded encrypted data with IV prepended
+ * @returns Base64-encoded encrypted data with IV prepended, with version prefix
  */
 export async function encryptData(plaintext: string): Promise<string> {
   if (!plaintext) return plaintext;
@@ -105,8 +129,7 @@ export async function encryptData(plaintext: string): Promise<string> {
     combined.set(iv, 0);
     combined.set(new Uint8Array(ciphertext), iv.length);
 
-    // Return as base64 for safe storage
-    return btoa(String.fromCharCode(...combined));
+    return ENCRYPTED_PREFIX + uint8ToBase64(combined);
   } catch (error) {
     Logger.error('Encryption failed', error);
     throw new Error('Failed to encrypt sensitive data');
@@ -115,7 +138,7 @@ export async function encryptData(plaintext: string): Promise<string> {
 
 /**
  * Decrypt sensitive text data
- * @param encrypted - Base64-encoded encrypted data with IV prepended
+ * @param encrypted - Output from encryptData (prefixed) or legacy unprefixed base64
  * @returns Decrypted plaintext
  */
 export async function decryptData(encrypted: string): Promise<string> {
@@ -123,9 +146,13 @@ export async function decryptData(encrypted: string): Promise<string> {
 
   try {
     const key = await getEncryptionKey();
-    
-    // Decode base64
-    const combined = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+
+    let combined: Uint8Array;
+    if (encrypted.startsWith(ENCRYPTED_PREFIX)) {
+      combined = base64ToUint8(encrypted.slice(ENCRYPTED_PREFIX.length));
+    } else {
+      combined = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+    }
 
     // Extract IV and ciphertext
     const iv = combined.slice(0, IV_LENGTH);
@@ -145,12 +172,18 @@ export async function decryptData(encrypted: string): Promise<string> {
 }
 
 /**
- * Check if a string appears to be encrypted (base64 with sufficient length)
+ * True if the value is our ciphertext or (legacy) long base64-like strings.
+ * Heuristic path can false-positive on long base64-looking passwords; prefer SM1: for new data.
  */
 export function isEncrypted(value: string | undefined): boolean {
-  if (!value || value.length < 20) return false;
-  
-  // Base64 pattern check
+  if (!value) return false;
+
+  if (value.startsWith(ENCRYPTED_PREFIX)) {
+    return value.length > ENCRYPTED_PREFIX.length + 20;
+  }
+
+  if (value.length < 20) return false;
+
   const base64Pattern = /^[A-Za-z0-9+/]+=*$/;
   return base64Pattern.test(value);
 }

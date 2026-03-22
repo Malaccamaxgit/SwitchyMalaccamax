@@ -139,3 +139,10 @@ export function isEmpty(value: unknown): boolean {
   if (typeof value === 'object' && value !== null) return Object.keys(value as Record<string, unknown>).length === 0;
   return false;
 }
+
+/**
+ * True when a rejected save/open dialog or fetch was aborted by the user.
+ */
+export function isAbortError(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && (err as { name?: string }).name === 'AbortError';
+}

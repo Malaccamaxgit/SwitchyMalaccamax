@@ -3,20 +3,49 @@
  * Falls back to the classic anchor-download method when unavailable.
  */
 
+import { isAbortError } from '@/lib/utils';
+
+type SaveFilePickerOptions = {
+  suggestedName?: string;
+  types?: Array<{ description: string; accept: Record<string, string[]> }>;
+};
+
+type FileSystemWritable = {
+  write: (data: Blob) => Promise<void>;
+  close: () => Promise<void>;
+};
+
+type FileSystemFileHandleLike = {
+  createWritable: () => Promise<FileSystemWritable>;
+};
+
+function getShowSaveFilePicker():
+  | ((options?: SaveFilePickerOptions) => Promise<FileSystemFileHandleLike>)
+  | undefined {
+  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    return (window as Window & { showSaveFilePicker: (o?: SaveFilePickerOptions) => Promise<FileSystemFileHandleLike> })
+      .showSaveFilePicker;
+  }
+  if ('showSaveFilePicker' in globalThis) {
+    return (globalThis as unknown as { showSaveFilePicker: (o?: SaveFilePickerOptions) => Promise<FileSystemFileHandleLike> })
+      .showSaveFilePicker;
+  }
+  return undefined;
+}
+
 export async function saveBlobToFile(blob: Blob, filename: string, mimeType?: string): Promise<void> {
-  // Try File System Access API first
   try {
-    // Prefer File System Access API if present (window or globalThis)
-    const picker = (typeof window !== 'undefined' && (window as any).showSaveFilePicker) || (globalThis as any).showSaveFilePicker;
+    const picker = getShowSaveFilePicker();
     if (picker) {
-      const opts: any = {
+      const ext = filename.includes('.') ? `.${filename.split('.').pop()}` : '';
+      const opts: SaveFilePickerOptions = {
         suggestedName: filename,
         types: [
           {
             description: 'File',
-            accept: { [mimeType || 'application/octet-stream']: [`.${filename.split('.').pop()}`] }
-          }
-        ]
+            accept: { [mimeType || 'application/octet-stream']: ext ? [ext] : ['.*'] },
+          },
+        ],
       };
       const handle = await picker(opts);
       const writable = await handle.createWritable();
@@ -25,21 +54,16 @@ export async function saveBlobToFile(blob: Blob, filename: string, mimeType?: st
       return;
     }
   } catch (err) {
-    // If the user cancels or API not available/allowed, we'll fall back to download
-    // If it's an AbortError (user cancelled), rethrow so callers can handle if needed
-    if (err && typeof err === 'object' && (err as any).name === 'AbortError') {
+    if (isAbortError(err)) {
       throw err;
     }
-    // Otherwise, continue to fallback
     console.warn('File System Access API failed or unavailable, falling back to download', err);
   }
 
-  // Fallback: use anchor download (still prompts user in most browsers)
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  // Append to body to make it work in some environments
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

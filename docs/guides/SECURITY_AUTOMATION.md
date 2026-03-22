@@ -191,5 +191,5 @@ Developer → Pre-commit Hook → GitHub Actions → Dependency Review
 
 If you encounter issues with security automation:
 1. Check this guide for common solutions
-2. Review [SECURITY_AUDIT_REPORT.md](../development/SECURITY_AUDIT_REPORT.md) for vulnerability details
+2. Review [SECURITY.md](../../SECURITY.md) for policy and reporting
 3. Open an issue with the security check output

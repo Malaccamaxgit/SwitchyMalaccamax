@@ -39,5 +39,13 @@ module.exports = [
     },
   }),
 
-  { ignores: ['dist/', 'public/', 'coverage/', 'node_modules/', '.vscode/', '*.min.js', 'src/components/demo/**'] },
+  { ignores: ['dist/', 'public/', 'coverage/', 'node_modules/', '.vscode/', '*.min.js', 'extracted_crx/**'] },
+
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 ];

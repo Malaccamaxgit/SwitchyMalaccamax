@@ -206,6 +206,9 @@
                 v-model="settings.startupProfile" 
                 class="w-full px-3 py-2 text-[13px] border border-gray-300 dark:border-zinc-900 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
               >
+                <option :value="STARTUP_PROFILE_LAST_USED">
+                  Last selected profile (remember across sessions)
+                </option>
                 <!-- eslint-disable-next-line vue/valid-v-for -->
                 <option
                   v-for="p in profiles"
@@ -215,6 +218,10 @@
                   {{ p.name }}
                 </option>
               </select>
+              <p class="text-[11px] text-slate-500 dark:text-zinc-600 mt-2 leading-relaxed">
+                <span class="font-medium text-slate-600 dark:text-zinc-500">Last selected</span> keeps the profile you used last and reapplies it when the extension starts.
+                Choose a named profile below to always start on that one instead.
+              </p>
             </div>
           </div>
         </section>
@@ -367,12 +374,12 @@
             </div>
             <div
               v-else
-              class="space-y-1 font-mono text-xs"
+              class="flex flex-col-reverse gap-1 font-mono text-xs"
             >
               <!-- eslint-disable-next-line vue/valid-v-for -->
               <div 
                 v-for="(log, index) in logs" 
-                :key="index"
+                :key="`${log.timestamp}:${index}:${log.message.slice(0, 80)}`"
                 :class="{
                   'text-red-600 dark:text-red-400': log.level === 'ERROR',
                   'text-emerald-600 dark:text-emerald-400': log.level === 'INFO',
@@ -396,7 +403,9 @@
           </div>
 
           <div class="mt-4 text-xs text-slate-500 dark:text-zinc-600">
-            <p>Showing {{ logs.length }} of {{ maxLogs }} maximum logs. Use "Export to File" to save logs for bug reports.</p>
+            <p>
+              Newest entries at the top of the panel ({{ logs.length }} shown, up to {{ maxLogViewerLines }}). Use &quot;Export to File&quot; for bug reports.
+            </p>
           </div>
         </section>
 
@@ -820,8 +829,8 @@
                     <label class="block text-sm font-medium mb-2">Protocol</label>
                     <select
                       v-model="proxyProtocol"
-                      @change="updateProxyProtocol"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      @change="updateProxyProtocol"
                     >
                       <option value="HTTP">
                         HTTP
@@ -1047,7 +1056,7 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type */
-import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useDark } from '@vueuse/core';
 import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
@@ -1078,16 +1087,23 @@ import { Card, Badge, Button, Toast, Select } from '@/components/ui';
 import { encryptProfile, decryptProfile } from '@/utils/crypto';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
 import { PacCompiler } from '@/core/pac/pac-generator';
-import { Logger, LogLevel, LogLevelMetadata, getLogLevel, setLogLevel as saveLogLevel, getLogMaxLines, setLogMaxLines } from '@/utils/Logger';
+import { Logger } from '@/utils/Logger';
 import type { Profile, FixedProfile, SwitchProfile, SwitchRule } from '@/core/schema';
 import type { ConnectionStatus } from '@/components/status';
-import { generateId } from '@/lib/utils';
+import { generateId, isAbortError } from '@/lib/utils';
+import { useLogViewer, type OptionsToastRef } from '@/composables/options/useLogViewer';
+import {
+  getDefaultProfiles,
+  DEFAULT_ACTIVE_PROFILE_ID,
+  DEFAULT_SYNC_SETTINGS,
+} from '@/config/default-profiles';
+import { STARTUP_PROFILE_LAST_USED } from '@/config/startup-profile';
 
 // Set component prefix for all logs from Options page
 Logger.setComponentPrefix('Options');
 
 const isDark = useDark();
-const toastRef = ref<InstanceType<typeof Toast>>();
+const toastRef = ref<OptionsToastRef>();
 const showProfileEditor = ref(false);
 const showEditor = ref(false);
 const showTemplates = ref(false);
@@ -1097,105 +1113,25 @@ const selectedProfile = ref<Profile | undefined>();
 const savingChanges = ref(false);
 const hasUnsavedChanges = ref(false);
 const bypassListText = ref<string>('');
-const logs = ref<Array<{ timestamp: string; level: string; component: string; message: string; data?: unknown }>>([]);
-const maxLogs = 500;
-const logExportRowCount = ref(100);
 
-// Auto-refresh / tailing for Log Viewer
-const logsContainer = ref<HTMLElement | null>(null);
-const logAutoRefreshTimer = ref<number | null>(null);
+const {
+  logs,
+  logExportRowCount,
+  logsContainer,
+  logLevels,
+  currentLogLevel,
+  currentLogMaxLines,
+  clearLogs,
+  exportLogsToFile,
+  setLogLevel,
+  updateLogMaxLines,
+  loadLogPreferences,
+  startLogAutoRefresh,
+  maxLogViewerLines,
+} = useLogViewer(toastRef, currentView);
 
-function refreshLogs() {
-  try {
-    const buffer = Logger.getLogBuffer();
-    logs.value = buffer;
-    if (logs.value.length > maxLogs) {
-      logs.value = logs.value.slice(0, maxLogs);
-    }
-
-    // Tailing behavior: newest logs are at the top (logs[0]), so scroll to top
-    nextTick(() => {
-      if (currentView.value === 'debug' && logsContainer.value) {
-        logsContainer.value.scrollTop = 0;
-      }
-    });
-  } catch (error) {
-    Logger.error('Failed to refresh logs', error);
-  }
-}
-
-function startLogAutoRefresh() {
-  if (logAutoRefreshTimer.value !== null) return;
-  // Immediate refresh
-  refreshLogs();
-  logAutoRefreshTimer.value = window.setInterval(() => refreshLogs(), 1000);
-}
-
-function stopLogAutoRefresh() {
-  if (logAutoRefreshTimer.value !== null) {
-    clearInterval(logAutoRefreshTimer.value);
-    logAutoRefreshTimer.value = null;
-  }
-}
 const testConflictActive = ref(false);
 const storageUsed = ref('Calculating...');
-const currentLogLevel = ref<LogLevel>(LogLevel.INFO);
-const currentLogMaxLines = ref<number>(1000);
-
-// Initialize logs from Logger buffer
-logs.value = Logger.getLogBuffer();
-
-// Subscribe to new log entries (store unsubscribe for cleanup)
-const unsubscribeLogListener = Logger.addLogListener((entry) => {
-  logs.value.unshift(entry);
-  if (logs.value.length > maxLogs) {
-    logs.value = logs.value.slice(0, maxLogs);
-  }
-});
-
-// Cleanup listener on unmount to prevent memory leaks
-onBeforeUnmount(() => {
-  unsubscribeLogListener();
-});
-
-// Log level options for UI
-const logLevels = computed(() => [
-  {
-    value: LogLevel.DEBUG,
-    name: LogLevelMetadata[LogLevel.DEBUG].name,
-    description: LogLevelMetadata[LogLevel.DEBUG].description,
-    color: LogLevelMetadata[LogLevel.DEBUG].color,
-    icon: LogLevelMetadata[LogLevel.DEBUG].icon
-  },
-  {
-    value: LogLevel.INFO,
-    name: LogLevelMetadata[LogLevel.INFO].name,
-    description: LogLevelMetadata[LogLevel.INFO].description,
-    color: LogLevelMetadata[LogLevel.INFO].color,
-    icon: LogLevelMetadata[LogLevel.INFO].icon
-  },
-  {
-    value: LogLevel.WARN,
-    name: LogLevelMetadata[LogLevel.WARN].name,
-    description: LogLevelMetadata[LogLevel.WARN].description,
-    color: LogLevelMetadata[LogLevel.WARN].color,
-    icon: LogLevelMetadata[LogLevel.WARN].icon
-  },
-  {
-    value: LogLevel.ERROR,
-    name: LogLevelMetadata[LogLevel.ERROR].name,
-    description: LogLevelMetadata[LogLevel.ERROR].description,
-    color: LogLevelMetadata[LogLevel.ERROR].color,
-    icon: LogLevelMetadata[LogLevel.ERROR].icon
-  },
-  {
-    value: LogLevel.NONE,
-    name: LogLevelMetadata[LogLevel.NONE].name,
-    description: LogLevelMetadata[LogLevel.NONE].description,
-    color: LogLevelMetadata[LogLevel.NONE].color,
-    icon: LogLevelMetadata[LogLevel.NONE].icon
-  }
-]);
 
 const settingsNav = [
   { id: 'interface', label: 'Interface', icon: Settings },
@@ -1204,126 +1140,12 @@ const settingsNav = [
   { id: 'debug', label: 'Debug & Logs', icon: Bug },
 ];
 
-const settings = ref({
-  confirmDelete: true,
-  startupProfile: 'profile-1',
-  downloadInterval: 'never',
-  theme: 'auto' as 'light' | 'dark' | 'auto',
-});
+const settings = ref({ ...DEFAULT_SYNC_SETTINGS });
 
-const activeProfileId = ref<string>('profile-1');
+const activeProfileId = ref<string>(DEFAULT_ACTIVE_PROFILE_ID);
 const lastSwitched = ref<Date>(new Date());
 
-const profiles = ref<Profile[]>([
-  {
-    id: 'profile-direct',
-    name: 'Direct',
-    profileType: 'DirectProfile',
-    color: 'gray',
-    showInPopup: true,
-    isBuiltIn: true,
-  },
-  {
-    id: 'profile-system',
-    name: 'System Proxy',
-    profileType: 'SystemProfile',
-    color: 'gray',
-    showInPopup: true,
-    isBuiltIn: true,
-  },
-  {
-    id: 'profile-2',
-    name: 'Your Proxy',
-    profileType: 'FixedProfile',
-    proxyType: 'HTTP',
-    host: 'proxy.example.com',
-    port: 8080,
-    color: 'blue',
-    showInPopup: true,
-    bypassList: [
-      { conditionType: 'BypassCondition', pattern: '127.0.0.1' },
-      { conditionType: 'BypassCondition', pattern: '::1' },
-      { conditionType: 'BypassCondition', pattern: 'localhost' },
-      { conditionType: 'BypassCondition', pattern: '<local>' },
-    ],
-  } as FixedProfile,
-  {
-    id: 'profile-3',
-    name: 'Auto Switch',
-    profileType: 'SwitchProfile',
-    defaultProfileName: 'Direct',
-    showInPopup: true,
-    rules: [
-      {
-        condition: { conditionType: 'HostWildcardCondition', pattern: '*.example.com' },
-        profileName: 'Your Proxy'
-      },
-      {
-        condition: { conditionType: 'HostWildcardCondition', pattern: 'internal.company.net' },
-        profileName: 'Your Proxy'
-      }
-    ],
-    color: 'green',
-  } as SwitchProfile,
-]);
-
-async function clearLogs() {
-  await Logger.clearLogBuffer();
-  logs.value = [];
-  Logger.info('Logs cleared');
-  toastRef.value?.success('All logs cleared', 'Success', 2000);
-}
-
-async function exportLogsToFile() {
-  try {
-    // Get the specified number of most recent logs
-    const logsToExport = logs.value.slice(-logExportRowCount.value);
-    
-    const logText = [
-      '='.repeat(80),
-      'SwitchyMalaccamax Debug Logs',
-      `Exported: ${new Date().toISOString()}`,
-      `Total Logs: ${logs.value.length} | Exported: ${logsToExport.length}`,
-      '='.repeat(80),
-      '',
-      ...logsToExport.map(log => {
-        const dataStr = log.data ? '\n  Data: ' + JSON.stringify(log.data, null, 2).replace(/\n/g, '\n  ') : '';
-        return `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}${dataStr}`;
-      })
-    ].join('\n');
-    
-    const blob = new Blob([logText], { type: 'text/plain' });
-    const filename = `switchymalaccamax-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-
-    try {
-      // Use File System Access API when available (prompts for destination)
-      const { saveBlobToFile } = await import('@/lib/fileSaver');
-      await saveBlobToFile(blob, filename, 'text/plain');
-      Logger.info('Logs exported via file picker', { count: logsToExport.length, filename });
-      toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
-    } catch (err) {
-      // If user cancelled (AbortError), just return silently
-      if (err && typeof err === 'object' && (err as any).name === 'AbortError') {
-        Logger.info('User cancelled export');
-        return;
-      }
-
-      // Otherwise fallback to download (anchor) as previously
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-
-      Logger.info('Logs exported to file (fallback download)', { count: logsToExport.length, filename });
-      toastRef.value?.success(`Exported ${logsToExport.length} logs`, 'Export Successful', 3000);
-    }
-  } catch (error) {
-    Logger.error('Failed to export logs', error);
-    toastRef.value?.error('Failed to export logs', 'Error');
-  }
-}
+const profiles = ref<Profile[]>(getDefaultProfiles());
 
 async function toggleTestConflict() {
   testConflictActive.value = !testConflictActive.value;
@@ -1345,41 +1167,6 @@ async function toggleTestConflict() {
       'Test Conflict Deactivated',
       3000
     );
-  }
-}
-
-async function setLogLevel(level: LogLevel) {
-  try {
-    await saveLogLevel(level);
-    currentLogLevel.value = level;
-    Logger.info('Log level changed', { level: LogLevelMetadata[level].name });
-    toastRef.value?.success(
-      `Log level set to ${LogLevelMetadata[level].name}`,
-      'Settings Updated',
-      2000
-    );
-  } catch (error) {
-    Logger.error('Failed to save log level', error);
-    toastRef.value?.error('Failed to save log level', 'Error');
-  }
-}
-
-async function updateLogMaxLines() {
-  try {
-    // Validate input
-    const value = Math.max(10, Math.min(currentLogMaxLines.value, 50000));
-    currentLogMaxLines.value = value;
-    
-    await setLogMaxLines(value);
-    Logger.info('Max log lines changed', { maxLines: value });
-    toastRef.value?.success(
-      `Max log lines set to ${value.toLocaleString()}`,
-      'Settings Updated',
-      2000
-    );
-  } catch (error) {
-    Logger.error('Failed to save max log lines', error);
-    toastRef.value?.error('Failed to save max log lines', 'Error');
   }
 }
 
@@ -1699,10 +1486,8 @@ function configureShortcut() {
 onMounted(async () => {
   Logger.info('Loading data from storage');
   
-  // Load current log level and max lines
-  currentLogLevel.value = await getLogLevel();
-  currentLogMaxLines.value = await getLogMaxLines();
-  
+  await loadLogPreferences();
+
   // Check if we should open add profile dialog
   const urlParams = new URLSearchParams(window.location.search);
   const action = urlParams.get('action');
@@ -1831,10 +1616,6 @@ onMounted(async () => {
     if (debugResult.testConflictActive !== undefined) {
       testConflictActive.value = debugResult.testConflictActive;
     }
-    
-    // Load current log level
-    currentLogLevel.value = await getLogLevel();
-    Logger.debug('Initial log level loaded', { level: LogLevelMetadata[currentLogLevel.value].name });
     
     // Calculate storage usage
     calculateStorageUsed();
@@ -2163,7 +1944,7 @@ async function exportProfileAsPac(profile: Profile) {
       toastRef.value?.success(`PAC script exported: ${filename}`, 'Exported', 3000);
       Logger.info('PAC export successful (file picker)', { filename });
     } catch (err) {
-      if (err && typeof err === 'object' && (err as any).name === 'AbortError') {
+      if (isAbortError(err)) {
         Logger.info('PAC export cancelled by user');
         return;
       }
@@ -2250,17 +2031,4 @@ watch(profiles, () => {
   hasUnsavedChanges.value = true;
   Logger.debug('Profiles changed');
 }, { deep: true });
-
-// Watcher to start/stop log auto-refresh when user navigates to Debug view
-watch(currentView, (newVal) => {
-  if (newVal === 'debug') {
-    startLogAutoRefresh();
-  } else {
-    stopLogAutoRefresh();
-  }
-});
-
-onBeforeUnmount(() => {
-  stopLogAutoRefresh();
-});
 </script>

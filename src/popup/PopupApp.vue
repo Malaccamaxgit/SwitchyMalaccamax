@@ -173,7 +173,7 @@ import type { Profile, FixedProfile } from '@/core/schema';
 
 Logger.setComponentPrefix('Popup');
 
-const activeProfileId = ref<string>('profile-1');
+const activeProfileId = ref<string>('profile-direct');
 
 // Profiles loaded from chrome.storage
 const profiles = ref<Profile[]>([]);

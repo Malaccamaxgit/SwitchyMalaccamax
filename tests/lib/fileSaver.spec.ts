@@ -17,11 +17,8 @@ describe('fileSaver', () => {
   afterEach(() => {
     (global as any).showSaveFilePicker = originalShowSave;
     vi.restoreAllMocks();
-    // Clean up document stub
-    // @ts-ignore
-    if ((global as any).document && (global as any).document.createElement && (global as any).document.createElement.toString().includes('native code')) {
-      // leave real document
-    } else {
+    // Clean up document stub - remove mock if it exists
+    if (typeof (global as any).document !== 'undefined') {
       delete (global as any).document;
     }
   });

@@ -126,25 +126,12 @@ tests/                    # Vitest test suites (201 tests)
 
 ## Documentation
 
-### Guides
-- [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md) — Release readiness checklist
-- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md) — Security tooling setup
-
-### Architecture
-- [PAC Export Feature](./docs/architecture/PAC_EXPORT_FEATURE.md) — PAC script generation implementation
-- [PAC Compiler Fix](./docs/architecture/PAC_COMPILER_FIX.md) — PAC compiler bug fixes
-- [PAC Compiler Migration](./docs/architecture/PAC_COMPILER_MIGRATION.md) — PAC system migration
-- [PAC Compiler Rewrite](./docs/architecture/PAC_COMPILER_REWRITE.md) — PAC compiler rewrite
-- [PAC Output Example](./docs/architecture/PAC_OUTPUT_EXAMPLE.md) — Sample PAC output
-- [Profile Editor Fixes](./docs/architecture/PROFILE_EDITOR_FIXES.md) — Profile editor UX fixes
-
-### Development
-- [Security Audit Report](./docs/development/SECURITY_AUDIT_REPORT.md) — OWASP audit findings & remediation
-- [Security Fixes](./docs/development/SECURITY_FIXES.md) — Security implementation history
-
-### Store Submission
-- [Store Permission Statements](./docs/STORE_PERMISSION_STATEMENTS.md) — Chrome Web Store permission justification
-- [Store Reviewer Message](./docs/STORE_REVIEWER_MESSAGE.md) — Reviewer notes template
+- [SECURITY.md](./SECURITY.md) — Security policy and vulnerability reporting
+- [Pre-flight Checklist](./docs/guides/PRE_FLIGHT_CHECKLIST.md) — Release readiness
+- [Security Automation](./docs/guides/SECURITY_AUTOMATION.md) — Security tooling (hooks, scans)
+- [PAC export](./docs/architecture/PAC_EXPORT_FEATURE.md) — PAC script generation
+- [Store permission statements](./docs/STORE_PERMISSION_STATEMENTS.md) — Chrome Web Store justification text
+- [Store reviewer message](./docs/STORE_REVIEWER_MESSAGE.md) — Reviewer notes template
 
 ---
 

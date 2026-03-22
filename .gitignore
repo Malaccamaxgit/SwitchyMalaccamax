@@ -5,6 +5,19 @@ bower_components/
 # Build outputs
 dist/
 build/
+
+# Unpacked extension / local tooling artifacts
+extracted_crx/
+out.json
+eslint-report.json
+eslint-stderr.log
+eslint-warn.log
+
+# Accidental tsc output beside test sources (Vitest uses .ts only)
+tests/**/*.spec.js
+tests/**/*.spec.js.map
+tests/**/*.spec.d.ts
+tests/**/*.spec.d.ts.map
 *.min.js
 *.min.css
 
@@ -115,3 +128,4 @@ $RECYCLE.BIN/
 # AI assistant artifacts
 .ai/
 *.ai.md
+.claude/
