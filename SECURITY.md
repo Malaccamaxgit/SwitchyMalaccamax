@@ -57,7 +57,7 @@ This is a solo-maintained open source project. Security reports are reviewed on 
 |---------|-------------|
 | **Content Security Policy** | Strict CSP in manifest prevents inline script execution |
 | **Input Sanitization** | All user inputs validated before use |
-| **Minimal Permissions** | Only `proxy`, `storage`, `webRequest` requested |
+| **Minimal Permissions** | Required: `proxy`, `storage`. Optional: `<all_urls>` for proxy connection tests only |
 | **No eval()** | No dynamic code execution |
 | **TypeScript Strict Mode** | Type checking prevents common errors |
 | **Permission statements** | See [`docs/STORE_PERMISSION_STATEMENTS.md`](./docs/STORE_PERMISSION_STATEMENTS.md) |

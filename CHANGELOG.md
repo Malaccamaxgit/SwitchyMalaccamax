@@ -5,6 +5,19 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [0.2.2] — 2026-03-21
+
+### Changed (Chrome Web Store readiness)
+
+- Removed `update_url` from the manifest (store-managed updates).
+- Removed unused `webRequest` and `activeTab` permissions; conflict detection uses `chrome.proxy.settings` only.
+- **Test connection** (fixed proxy) now requests optional `<all_urls>` via `chrome.permissions` before `fetch`, matching `optional_host_permissions`.
+
+### Added
+
+- `src/lib/optionalHostPermission.ts` and tests: `tests/lib/optionalHostPermission.spec.ts`, `tests/manifest/store-compliance.spec.ts`.
+- Updated store reviewer docs (`docs/STORE_*.md`), `PRIVACY.md`, and `SECURITY.md` to match the manifest.
+
 ## [0.1.9] — 2026-03-15
 
 ### Added

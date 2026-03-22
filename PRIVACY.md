@@ -36,8 +36,7 @@ This extension **does not**:
 |------------|---------|
 | `proxy` | Manage Chrome's proxy settings (core functionality) |
 | `storage` | Save configurations locally |
-| `webRequest` | Monitor for proxy errors (no modification) |
-| `<all_urls>` | Evaluate URLs for auto-switch rules |
+| Optional `<all_urls>` (site access) | Offered when you use **Test connection** on a fixed proxy so the options page can reach your test URL through the proxy. Auto-switch uses PAC inside Chrome; you can keep this permission off if you do not run that test. |
 
 ## Third-Party Services
 

@@ -60,11 +60,6 @@ const mockChrome = {
     setTitle: vi.fn(),
     setIcon: vi.fn(),
   },
-  webRequest: {
-    onErrorOccurred: {
-      addListener: vi.fn(),
-    },
-  },
 };
 
 // Setup global mocks before each test

@@ -224,42 +224,6 @@ initializeIconColor();
 // Apply startup profile
 applyStartupProfile();
 
-// Verbose request-failure logging (dev only; avoids noisy URLs in production)
-if (import.meta.env.DEV) {
-  try {
-    if (chrome.webRequest?.onErrorOccurred?.addListener) {
-      chrome.webRequest.onErrorOccurred.addListener(
-        (details: {
-          url?: string;
-          error?: string;
-          method?: string;
-          tabId?: number;
-          frameId?: number;
-          requestId?: string;
-          timeStamp?: number;
-        }) => {
-          try {
-            Logger.warn('Request failed', {
-              url: details.url,
-              error: details.error,
-              method: details.method,
-              tabId: details.tabId,
-              frameId: details.frameId,
-              requestId: details.requestId,
-              timeStamp: details.timeStamp,
-            });
-          } catch (err) {
-            Logger.error('Error logging request failure', err);
-          }
-        },
-        { urls: ['<all_urls>'] }
-      );
-    }
-  } catch (e) {
-    Logger.error('Failed to register webRequest.onErrorOccurred listener', e);
-  }
-}
-
 async function seedDefaultInstallStorage(): Promise<void> {
   try {
     const plain = getDefaultProfiles().map(

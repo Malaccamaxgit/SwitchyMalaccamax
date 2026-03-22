@@ -320,32 +320,33 @@
             />
           </div>
           
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <Tooltip content="Test if the proxy server is reachable">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  :loading="testing"
-                  @click="testConnection"
-                >
-                  <Zap class="h-3.5 w-3.5" />
-                  Test Connection
-                </Button>
-              </Tooltip>
-              
-              <Transition name="fade">
-                <Badge
-                  v-if="testResult"
-                  :variant="testResult.success ? 'success' : 'danger'"
-                  size="sm"
-                >
-                  {{ testResult.message }}
-                </Badge>
-              </Transition>
-            </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <Tooltip content="Test if the proxy server is reachable">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                :loading="testing"
+                @click="testConnection"
+              >
+                <Zap class="h-3.5 w-3.5" />
+                Test Connection
+              </Button>
+            </Tooltip>
+
+            <Transition name="fade">
+              <Badge
+                v-if="testResult"
+                :variant="testResult.success ? 'success' : 'danger'"
+                size="sm"
+              >
+                {{ testResult.message }}
+              </Badge>
+            </Transition>
           </div>
+          <p class="text-xs text-text-tertiary">
+            Chrome may ask for optional site access so this page can reach the test URL through your proxy.
+          </p>
         </div>
       </section>
     </form>
@@ -357,6 +358,7 @@
 import { ref, computed, watch } from 'vue';
 import { Server, User, Lock, Globe, Info, Zap } from 'lucide-vue-next';
 import { Dialog, Input, Select, Switch, Button, Badge, Tooltip } from '@/components/ui';
+import { ensureAllUrlsHostAccess } from '@/lib/optionalHostPermission';
 import type { Profile, FixedProfile, PacProfile, SwitchProfile } from '@/core/schema';
 
 interface Props {
@@ -639,8 +641,18 @@ async function testConnection() {
   
   // Get test target (use custom or default)
   const testTarget = formData.value.testUrl.trim() || defaultTestTarget.value;
-  
+
   try {
+    const hostAccess = await ensureAllUrlsHostAccess();
+    if (!hostAccess) {
+      testResult.value = {
+        success: false,
+        message:
+          'Optional site access is required for the connection test. Allow the prompt or enable site access in the extension’s details page.',
+      };
+      return;
+    }
+
     // Build test proxy config
     const testConfig: chrome.proxy.ProxyConfig = {
       mode: 'fixed_servers',

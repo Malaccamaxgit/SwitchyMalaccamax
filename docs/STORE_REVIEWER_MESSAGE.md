@@ -15,32 +15,37 @@ Thank you for reviewing SwitchyMalaccamax. Below is a concise explanation of the
 | Permission | Usage | Reason |
 |------------|-------|--------|
 | **proxy** | Applies user-selected proxy configurations (Direct, Fixed servers, or PAC scripts) via `chrome.proxy.settings.set` when the user explicitly selects or tests a profile. | Required to manage Chrome's proxy state on behalf of the user. |
-| **storage** | Persist profiles, rules, and settings locally using `chrome.storage.local`. Profiles that contain credentials are encrypted before storage using AES-256-GCM. | Required for durable profile storage and consistent user experience across browser sessions. |
-| **webRequest** | Optional monitoring for network errors and to capture `onErrorOccurred` events to provide meaningful diagnostics in the UI (e.g., proxy connection errors). We do not modify network requests. | Allows the extension to detect proxy application problems and surface them to the user. |
-| **Host access (`<all_urls>`)** | Auto-switch rules need to evaluate hostnames and full URLs across sites to determine the correct proxy for each request. We only evaluate patterns locally for decision-making. | Required for correct auto-switch behavior. |
+| **storage** | Persist profiles, rules, and settings using `chrome.storage.local` / `sync`. Profiles that contain credentials are encrypted before storage using AES-256-GCM. | Required for durable configuration across sessions. |
+| **Optional `<all_urls>`** | Declared under `optional_host_permissions`. We call `chrome.permissions.request({ origins: ['<all_urls>'] })` only when the user clicks **Test connection** on a fixed proxy profile, so the options page can `fetch` a test URL while the proxy is applied. | Not required for profile switching, PAC auto-switch, or import/export. Users can deny it and use the rest of the extension. |
 
-## 2. No Downloads Permission
+## 2. Not Used
 
-**Exports:** Profile and log exports are implemented using the File System Access API when available, and an anchor-based fallback (`<a download>`). These methods do not require `chrome.downloads` permission. The codebase does not reference `chrome.downloads`.
+- **`webRequest`:** Removed. We do not observe or modify web requests. Conflict and control state come from `chrome.proxy.settings.get` / `onChange`.
+- **`update_url`:** Omitted from the manifest; the Chrome Web Store manages updates for store-hosted builds.
 
-## 3. Privacy & Security Assurances
+## 3. No Downloads Permission
+
+**Exports:** Profile and log exports use the File System Access API when available, and an anchor-based fallback (`<a download>`). The codebase does not use `chrome.downloads`.
+
+## 4. Privacy & Security Assurances
 
 - The extension does not transmit browsing history, request payloads, or credentials off the user's device.
 - Proxy credentials are encrypted using AES-256-GCM (PBKDF2 for key derivation). See `src/utils/crypto.ts`.
-- Regex patterns are validated to prevent ReDoS. See `src/core/security/regexSafe.ts`.
+- Regex patterns are validated to reduce ReDoS risk. See `src/core/security/regexSafe.ts`.
 
-## 4. Files of Interest
+## 5. Files of Interest
 
 | File | Purpose |
 |------|---------|
 | `docs/STORE_PERMISSION_STATEMENTS.md` | Permission justification (short + long) |
-| `docs/STORE_REVIEWER_MESSAGE.md` | Reviewer message (this file) |
+| `src/lib/optionalHostPermission.ts` | Optional `<all_urls>` request (connection test only) |
 | `src/lib/fileSaver.ts` | Export implementation (no downloads permission) |
+| `tests/manifest/store-compliance.spec.ts` | Automated manifest checks for store policy |
 | `SECURITY.md` | Security overview |
 
-If you need additional information or a limited/temporary test build with narrower host permissions for review, we can provide it on request.
+If you need additional information or a walkthrough video, we can provide it on request.
 
-Thank you,
+Thank you,  
 SwitchyMalaccamax Maintainer
 
 ## Related Documentation
