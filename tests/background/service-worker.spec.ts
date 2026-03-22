@@ -231,6 +231,35 @@ describe('Service Worker - Message Validation', () => {
     });
   });
 
+  it('should reject fixed_servers with invalid port', async () => {
+    const messageListener = vi.fn();
+    mockChrome.runtime.onMessage.addListener.mockImplementation((cb) => {
+      messageListener.mockImplementation(cb);
+    });
+
+    vi.resetModules();
+    await import('@/background/service-worker');
+
+    const mockMessage = {
+      action: 'setProxy',
+      config: {
+        mode: 'fixed_servers',
+        rules: {
+          singleProxy: { scheme: 'http', host: '127.0.0.1', port: 70000 },
+        },
+      },
+    };
+    const mockSender = { id: mockChrome.runtime.id };
+    const mockSendResponse = vi.fn();
+
+    messageListener(mockMessage, mockSender, mockSendResponse);
+
+    expect(mockSendResponse).toHaveBeenCalledWith({
+      success: false,
+      error: 'Invalid proxy configuration',
+    });
+  });
+
   it('should reject invalid color', async () => {
     const messageListener = vi.fn();
     mockChrome.runtime.onMessage.addListener.mockImplementation((cb) => {

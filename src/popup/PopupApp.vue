@@ -170,6 +170,7 @@ import {
   Cloud
 } from 'lucide-vue-next';
 import type { Profile, FixedProfile } from '@/core/schema';
+import { decryptProfilesFromStorage } from '@/utils/profile-storage';
 
 Logger.setComponentPrefix('Popup');
 
@@ -268,7 +269,7 @@ onMounted(async () => {
     }
     
     if (result.profiles && Array.isArray(result.profiles)) {
-      profiles.value = result.profiles;
+      profiles.value = await decryptProfilesFromStorage(result.profiles);
     }
     
     // Initialize activeProfileId if undefined or invalid

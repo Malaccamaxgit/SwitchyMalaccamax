@@ -1062,10 +1062,8 @@ import { VERSION, getManifestVersion } from '@/utils/version';
 import { 
   Plus, 
   Settings,
-  FileText,
   Download,
   Upload,
-  Palette,
   Globe,
   Zap,
   Monitor,
@@ -1084,7 +1082,9 @@ import {
   Bug
 } from 'lucide-vue-next';
 import { Card, Badge, Button, Toast, Select } from '@/components/ui';
-import { encryptProfile, decryptProfile } from '@/utils/crypto';
+import { encryptProfile } from '@/utils/crypto';
+import { OPTIONS_SETTINGS_NAV } from '@/composables/options/settingsNavConfig';
+import { loadDecryptMigrateProfiles } from '@/composables/options/loadDecryptMigrateProfiles';
 import { ProfileImportExport, ProfileEditor } from '@/components/profile';
 import { PacCompiler } from '@/core/pac/pac-generator';
 import { Logger } from '@/utils/Logger';
@@ -1133,12 +1133,7 @@ const {
 const testConflictActive = ref(false);
 const storageUsed = ref('Calculating...');
 
-const settingsNav = [
-  { id: 'interface', label: 'Interface', icon: Settings },
-  { id: 'import-export', label: 'Import/Export', icon: FileText },
-  { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'debug', label: 'Debug & Logs', icon: Bug },
-];
+const settingsNav = OPTIONS_SETTINGS_NAV;
 
 const settings = ref({ ...DEFAULT_SYNC_SETTINGS });
 
@@ -1526,63 +1521,14 @@ onMounted(async () => {
       profilesIsArray: Array.isArray(result.profiles)
     });
     
-    // Load profiles from storage or keep defaults
-    if (result.profiles && result.profiles.length > 0) {
-      // Decrypt profiles on load
-      profiles.value = await Promise.all(
-        result.profiles.map((profile: Profile) => decryptProfile(profile))
-      );
-      const msg = `Loaded ${result.profiles.length} profiles from storage`;
-      Logger.info(msg);
-      
-      // Migration: Update profile name capitalization
-      let needsSave = false;
-      profiles.value.forEach((p: Profile) => {
-        if (p.name === 'auto switch') {
-          p.name = 'Auto Switch';
-          needsSave = true;
-          Logger.info('Migrated profile name: "auto switch" → "Auto Switch"');
-        }
-        if (p.name === 'Builtin') {
-          p.name = 'Direct';
-          needsSave = true;
-          Logger.info('Migrated profile name: "Builtin" → "Direct"');
-        }
-      });
-      
-      // Migrate defaultProfileName in SwitchProfiles
-      profiles.value.forEach((p: Profile) => {
-        if (p.profileType === 'SwitchProfile' && p.defaultProfileName === 'Builtin') {
-          p.defaultProfileName = 'Direct';
-          needsSave = true;
-          Logger.info('Migrated default profile name in Auto Switch');
-        }
-      });
-      
-      // Save if migrations were applied
-      if (needsSave) {
-        const encryptedProfiles = await Promise.all(
-          profiles.value.map((profile: Profile) => encryptProfile(profile))
-        );
-        await chrome.storage.local.set({ profiles: encryptedProfiles });
-        Logger.info('Profile migrations saved');
+    profiles.value = await loadDecryptMigrateProfiles(getDefaultProfiles());
+
+    profiles.value.forEach((p: Profile) => {
+      if (p.profileType === 'FixedProfile' && p.bypassList) {
+        const bypassMsg = `Profile "${p.name}" has ${p.bypassList.length} bypass rules`;
+        Logger.debug(bypassMsg, p.bypassList);
       }
-      
-      // Log bypass lists
-      result.profiles.forEach((p: Profile, i: number) => {
-        if (p.profileType === 'FixedProfile' && p.bypassList) {
-          const bypassMsg = `Profile "${p.name}" has ${p.bypassList.length} bypass rules`;
-          Logger.debug(bypassMsg, p.bypassList);
-        }
-      });
-    } else {
-      // Keep default profiles and save them to storage
-      Logger.info('No profiles in storage, using defaults');
-      const encryptedProfiles = await Promise.all(
-        profiles.value.map((profile: Profile) => encryptProfile(profile))
-      );
-      await chrome.storage.local.set({ profiles: encryptedProfiles });
-    }
+    });
     
     if (result.activeProfileId) {
       activeProfileId.value = result.activeProfileId;

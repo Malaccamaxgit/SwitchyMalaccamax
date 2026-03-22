@@ -284,6 +284,14 @@ import {
 import { Card, Button, Switch, Badge, Tooltip } from '@/components/ui';
 import { copyToClipboard as copyText } from '@/lib/utils';
 import type { Profile, OmegaExport } from '@/core/schema';
+import { IMPORT_LIMITS } from '@/core/security/constants';
+import {
+  assertImportFileSize,
+  assertImportParsedJson,
+  assertImportProfileCount,
+  filterToValidImportedProfiles,
+  ImportValidationError,
+} from '@/utils/import-validation';
 import { Logger } from '@/utils/Logger';
 
 Logger.setComponentPrefix('ProfileImportExport');
@@ -529,22 +537,33 @@ function handleDrop(event: DragEvent) {
 async function handleFile(file: File) {
   selectedFile.value = file;
   parseResult.value = null;
-  
+
   const isBakFile = file.name.endsWith('.bak');
-  
+
   try {
+    assertImportFileSize(file);
     const text = await file.text();
-    const data = JSON.parse(text);
-    
-    // Support multiple formats
+    if (text.length > IMPORT_LIMITS.MAX_SERIALIZED_JSON_CHARS) {
+      throw new ImportValidationError('File contents exceed maximum length');
+    }
+
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new ImportValidationError('Invalid JSON');
+    }
+
+    assertImportParsedJson(data, text.length);
+
     let profiles: Profile[] = [];
-    
-    if (isBakFile || (data['+proxy'] && typeof data['+proxy'] === 'object')) {
-      // Legacy SwitchyOmega .bak format or Omega format
+
+    if (isBakFile || (data && typeof data === 'object' && '+proxy' in data && typeof (data as Record<string, unknown>)['+proxy'] === 'object')) {
       profiles = convertFromOmegaFormat(data);
+      profiles = filterToValidImportedProfiles(profiles as unknown[]);
+      assertImportProfileCount(profiles.length);
+      profiles = profiles.filter(p => p.name !== 'Direct');
       if (profiles.length > 0) {
-        // Filter out Direct profile as it's always present
-        profiles = profiles.filter(p => p.name !== 'Direct');
         parseResult.value = {
           success: true,
           message: `Legacy format detected - converted ${profiles.length} profile(s)`,
@@ -553,16 +572,14 @@ async function handleFile(file: File) {
         return;
       }
     } else if (Array.isArray(data)) {
-      // Direct array of profiles
-      profiles = data;
-    } else if (data.profiles && Array.isArray(data.profiles)) {
-      // Wrapped format { profiles: [...] }
-      profiles = data.profiles;
+      profiles = filterToValidImportedProfiles(data);
+    } else if (data && typeof data === 'object' && Array.isArray((data as Record<string, unknown>).profiles)) {
+      profiles = filterToValidImportedProfiles((data as Record<string, unknown>).profiles as unknown[]);
     }
-    
-    // Filter out Direct profile as it's always present
+
+    assertImportProfileCount(profiles.length);
     profiles = profiles.filter(p => p.name !== 'Direct');
-    
+
     if (profiles.length === 0) {
       parseResult.value = {
         success: false,
@@ -571,16 +588,22 @@ async function handleFile(file: File) {
       };
       return;
     }
-    
+
     parseResult.value = {
       success: true,
       message: `File parsed successfully - found ${profiles.length} profile(s)`,
       profiles,
     };
   } catch (error) {
+    const message =
+      error instanceof ImportValidationError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : 'Failed to parse file';
     parseResult.value = {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to parse file',
+      message,
       profiles: [],
     };
   }

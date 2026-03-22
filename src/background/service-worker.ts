@@ -12,7 +12,8 @@ import {
   DEFAULT_SYNC_SETTINGS,
 } from '../config/default-profiles';
 import { encryptProfile } from '../utils/crypto';
-import { parseProfilesFromStorage } from '../utils/profile-storage';
+import { parseProfilesFromStorage, decryptProfilesFromStorage } from '../utils/profile-storage';
+import { isValidProxyConfig } from '../core/security/validate-proxy-config';
 import { STARTUP_PROFILE_LAST_USED } from '../config/startup-profile';
 
 Logger.setComponentPrefix('Background');
@@ -58,33 +59,6 @@ migrateToEncryptedStorage().catch(error => {
 // ============================================================================
 // MESSAGE VALIDATION
 // ============================================================================
-
-/**
- * Validate proxy configuration structure
- */
-function isValidProxyConfig(config: unknown): config is chrome.proxy.ProxyConfig {
-  if (!config || typeof config !== 'object') return false;
-
-  const cfg = config as Record<string, unknown>;
-
-  // Must have valid mode
-  const validModes = ['direct', 'auto_detect', 'pac_script', 'fixed_servers', 'system'];
-  if (!cfg.mode || typeof cfg.mode !== 'string' || !validModes.includes(cfg.mode)) return false;
-
-  // pac_script mode requires pacScript
-  if (cfg.mode === 'pac_script') {
-    const pac = cfg.pacScript as Record<string, unknown> | undefined;
-    if (!pac || typeof pac !== 'object') return false;
-    if (!pac.data && !pac.url) return false;
-  }
-
-  // fixed_servers mode requires rules
-  if (cfg.mode === 'fixed_servers') {
-    if (!cfg.rules || typeof cfg.rules !== 'object') return false;
-  }
-
-  return true;
-}
 
 /**
  * Validate color value (must be from allowed set)
@@ -187,7 +161,7 @@ async function applyStartupProfile(): Promise<void> {
     const syncResult = await chrome.storage.sync.get(['settings', 'activeProfileId']);
     const localResult = await chrome.storage.local.get(['profiles']);
 
-    const profiles = parseProfilesFromStorage(localResult.profiles);
+    const profiles = await decryptProfilesFromStorage(localResult.profiles);
     const settings = (syncResult.settings || {}) as { startupProfile?: string };
     const startupProfileId = settings.startupProfile;
     const activeProfileId = syncResult.activeProfileId as string | undefined;

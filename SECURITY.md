@@ -31,8 +31,8 @@ This is a solo-maintained open source project. Security reports are reviewed on 
 
 | Measure | Implementation |
 |---------|---------------|
-| Pattern validation | `safe-regex` library before compilation |
-| Complexity limits | Max 200 chars, 10 capture groups, 3 nesting levels |
+| Pattern validation | `safe-regex` heuristic before compilation (reduces risk; not a formal proof) |
+| Complexity limits | Max **256** chars, caps on alternations (`\|`) and quantifiers (`*+?{}`) per [`SECURITY_LIMITS`](./src/core/security/constants.ts) |
 | Wildcard handling | Deterministic regex without backtracking |
 | Execution time | < 50ms (verified in tests) |
 
@@ -46,6 +46,8 @@ This is a solo-maintained open source project. Security reports are reviewed on 
 | Key derivation | PBKDF2 with 100,000 iterations |
 | Salt | Per-user random salt (32 bytes) in `chrome.storage.local` |
 | IV | Random IV for each encryption operation |
+
+**Threat model:** Credentials are protected against **casual inspection** of extension storage (local obfuscation). A **determined attacker** with access to the machine, a compromised browser profile, or debug APIs may still recover data. This is **not** a substitute for OS-level access control or a password manager.
 
 **Implementation:** [`src/utils/crypto.ts`](./src/utils/crypto.ts)
 
@@ -69,7 +71,7 @@ This is a solo-maintained open source project. Security reports are reviewed on 
 
 ## Security Testing
 
-The codebase includes **201 automated tests**, including:
+The codebase includes a growing automated test suite, including:
 
 | Test Suite | Purpose |
 |------------|---------|
