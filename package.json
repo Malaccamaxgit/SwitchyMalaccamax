@@ -1,6 +1,6 @@
 {
   "name": "switchymalaccamax",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Modern Chrome Extension for intelligent proxy switching with security-first design",
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:prod": "node scripts/production-logger.js && npm run build",
+    "package:store": "node scripts/package-chrome-store.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -74,5 +75,8 @@
     "redos-prevention"
   ],
   "author": "Benjamin Alloul - VS Code - Clause Sonnet",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "overrides": {
+    "defu": "^6.1.6"
+  }
 }
