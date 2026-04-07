@@ -74,7 +74,7 @@
     "security",
     "redos-prevention"
   ],
-  "author": "Benjamin Alloul - VS Code - Clause Sonnet",
+  "author": "Benjamin Alloul",
   "license": "GPL-3.0",
   "overrides": {
     "defu": "^6.1.6"
